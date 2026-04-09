@@ -7,6 +7,7 @@ import { injected } from "wagmi/connectors";
 
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
+import { UserProfileProvider } from "@/contexts/UserProfileContext";
 
 const config = createConfig({
   chains: [celoAlfajores, celo],
@@ -27,8 +28,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <MiniPayAutoConnect />
-        <Layout>{children}</Layout>
+        <UserProfileProvider>
+          <MiniPayAutoConnect />
+          <Layout>{children}</Layout>
+        </UserProfileProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

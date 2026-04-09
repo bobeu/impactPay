@@ -2,9 +2,12 @@
 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "@/components/ui/button";
+import { CreateGoalCard } from "@/components/CreateGoalCard";
 import { Input } from "@/components/ui/input";
 import { FeaturedGoalsCarousel } from "@/components/FeaturedGoalsCarousel";
 import { ImpactDashboard } from "@/components/ImpactDashboard";
+import { IdentityVerificationCard } from "@/components/IdentityVerificationCard";
+import { PhoneLookupCard } from "@/components/PhoneLookupCard";
 import { useWeb3 } from "@/contexts/useWeb3";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -113,6 +116,9 @@ export default function Home() {
                 <>
                     <ImpactDashboard totalFundedUsd={0} reputationScore={0} />
                     <FeaturedGoalsCarousel />
+                    <IdentityVerificationCard address={address} />
+                    <PhoneLookupCard />
+                    <CreateGoalCard />
 
                     <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm space-y-3">
                         <div className="flex items-center justify-between">
