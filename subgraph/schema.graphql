@@ -1,3 +1,9 @@
+type GlobalStat @entity {
+  id: ID!
+  totalDonors: Int!
+  totalRequesters: Int!
+}
+
 type Goal @entity(immutable: false) {
   id: ID!
   goalId: BigInt!
@@ -17,6 +23,8 @@ type Donor @entity(immutable: false) {
   goalsSupported: Int!
   successfulGoalsSupported: Int!
   reputation: BigInt!
+  globalRank: BigInt
+  percentileRank: BigDecimal
 }
 
 type Requester @entity(immutable: false) {
@@ -25,5 +33,7 @@ type Requester @entity(immutable: false) {
   unmetProofs: Int!
   flaggedGoals: Int!
   reputation: BigInt!
+  globalRank: BigInt
+  percentileRank: BigDecimal
 }
 

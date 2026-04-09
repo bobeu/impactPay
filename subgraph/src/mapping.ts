@@ -1,11 +1,22 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, BigDecimal } from "@graphprotocol/graph-ts";
 import {
   Completed,
   Funded,
   GoalCreated,
   GoalFlagged,
 } from "../generated/ImpactPay/ImpactPay";
-import { Donor, Goal, Requester } from "../generated/schema";
+import { Donor, Goal, Requester, GlobalStat } from "../generated/schema";
+
+function getGlobalStat(): GlobalStat {
+  let stat = GlobalStat.load("1");
+  if (stat == null) {
+    stat = new GlobalStat("1");
+    stat.totalDonors = 0;
+    stat.totalRequesters = 0;
+    stat.save();
+  }
+  return stat as GlobalStat;
+}
 
 function donorReputation(totalDonated: BigInt, successfulGoalsSupported: i32): BigInt {
   // Donor Reputation = (Total USD donated * 10) + (Successful goals supported * 50)
@@ -38,7 +49,14 @@ export function handleGoalCreated(event: GoalCreated): void {
     requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
     requester.reputation = requesterReputation(0, 0, 0);
+    // Setting defaults for rank
+    requester.globalRank = BigInt.fromI32(0);
+    requester.percentileRank = BigDecimal.fromString("0");
     requester.save();
+
+    let stat = getGlobalStat();
+    stat.totalRequesters = stat.totalRequesters + 1;
+    stat.save();
   }
 }
 
@@ -55,6 +73,12 @@ export function handleFunded(event: Funded): void {
     donor.totalDonated = BigInt.zero();
     donor.goalsSupported = 0;
     donor.successfulGoalsSupported = 0;
+    donor.globalRank = BigInt.fromI32(0);
+    donor.percentileRank = BigDecimal.fromString("0");
+    
+    let stat = getGlobalStat();
+    stat.totalDonors = stat.totalDonors + 1;
+    stat.save();
   }
   donor.totalDonated = donor.totalDonated.plus(event.params.amount);
   donor.goalsSupported = donor.goalsSupported + 1;
@@ -75,6 +99,12 @@ export function handleCompleted(event: Completed): void {
     donor.totalDonated = BigInt.zero();
     donor.goalsSupported = 0;
     donor.successfulGoalsSupported = 0;
+    donor.globalRank = BigInt.fromI32(0);
+    donor.percentileRank = BigDecimal.fromString("0");
+
+    let stat = getGlobalStat();
+    stat.totalDonors = stat.totalDonors + 1;
+    stat.save();
   }
   donor.successfulGoalsSupported = donor.successfulGoalsSupported + 1;
   donor.reputation = donorReputation(donor.totalDonated, donor.successfulGoalsSupported);
@@ -86,6 +116,12 @@ export function handleCompleted(event: Completed): void {
     requester.completedGoals = 0;
     requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
+    requester.globalRank = BigInt.fromI32(0);
+    requester.percentileRank = BigDecimal.fromString("0");
+
+    let stat = getGlobalStat();
+    stat.totalRequesters = stat.totalRequesters + 1;
+    stat.save();
   }
   requester.completedGoals = requester.completedGoals + 1;
   requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
@@ -105,6 +141,12 @@ export function handleGoalFlagged(event: GoalFlagged): void {
     requester.completedGoals = 0;
     requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
+    requester.globalRank = BigInt.fromI32(0);
+    requester.percentileRank = BigDecimal.fromString("0");
+
+    let stat = getGlobalStat();
+    stat.totalRequesters = stat.totalRequesters + 1;
+    stat.save();
   }
   requester.flaggedGoals = requester.flaggedGoals + 1;
   requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
