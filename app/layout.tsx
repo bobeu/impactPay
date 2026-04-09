@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "ImpactPay",
   },
+  other: {
+    "talentapp:project_verification": "d43006e0e383e185478822565b920c53c0461cf6df81aa54eb8b45a4a986cf512a785d12461e1b23687b87573586c71f201fcdf127afe4633c829fa9c1ac73cf",
+  },
 };
 
 /** Locks zoom for a native mini-app feel on mobile (MiniPay). */
