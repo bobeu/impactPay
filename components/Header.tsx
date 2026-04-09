@@ -40,13 +40,13 @@ export default function Header() {
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center gap-2">
-                  <Image
+                  {/* <Image
                     className="block h-8 w-auto"
                     src="/logo.svg"
                     width={24}
                     height={24}
                     alt="ImpactPay"
-                  />
+                  /> */}
                   <span className="hidden sm:inline text-sm font-semibold text-gray-900">
                     ImpactPay
                   </span>

@@ -22,7 +22,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="sticky bottom-0 inset-x-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm"
+      className="fixed bottom-0 inset-x-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm"
     >
       <div className="mx-auto flex max-w-[450px] items-stretch justify-between px-2 py-1.5 gap-1">
         {items.map((item) => {

@@ -14,12 +14,8 @@ import { useWeb3 } from "@/contexts/useWeb3";
 import { useEffect } from "react";
 
 export default function Home() {
-    const {
-        address,
-        getUserAddress,
-    } = useWeb3();
+    const { address, getUserAddress } = useWeb3();
     const { data: reputationData } = useReputation(address ?? undefined);
-
 
     useEffect(() => {
         getUserAddress();
