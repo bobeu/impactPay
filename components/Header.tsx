@@ -3,14 +3,24 @@
 import { Disclosure } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { useAccount } from "wagmi";
+import { useEffect, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 function shortenAddress(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
 export default function Header() {
-  const { address, isConnected, status } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { connectAsync, isPending } = useConnect();
+  const [isMiniPay, setIsMiniPay] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsMiniPay(Boolean(window.ethereum?.isMiniPay));
+    }
+  }, []);
 
   return (
     <Disclosure as="nav" className="bg-colors-primary border-b border-black">
@@ -58,6 +68,15 @@ export default function Header() {
                   >
                     {shortenAddress(address)}
                   </span>
+                ) : !isMiniPay ? (
+                  <button
+                    type="button"
+                    onClick={() => connectAsync({ connector: injected({ target: "metaMask" }) })}
+                    className="h-10 px-3 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700"
+                    disabled={isPending}
+                  >
+                    {isPending ? "Connecting..." : "Connect (Dev)"}
+                  </button>
                 ) : (
                   <span className="text-xs text-gray-800">Connecting…</span>
                 )}

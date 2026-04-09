@@ -21,6 +21,30 @@ export async function POST(req: NextRequest) {
     const chimoneyKey = process.env.CHIMONEY_API_KEY;
     const chimoneyBase = process.env.CHIMONEY_BASE_URL || "https://api-v2.chimoney.io";
     if (!chimoneyKey) return NextResponse.json({ error: "CHIMONEY_API_KEY missing" }, { status: 500 });
+    if (!chimoneyBase.startsWith("https://")) {
+      return NextResponse.json({ error: "CHIMONEY_BASE_URL must use HTTPS" }, { status: 500 });
+    }
+    const {
+      valueInUSD,
+      cardType,
+      reference,
+      issueCardFor,
+      redirectUrl,
+      meta,
+    } = body as {
+      valueInUSD?: number;
+      cardType?: string;
+      reference?: string;
+      issueCardFor?: string;
+      redirectUrl?: string;
+      meta?: Record<string, unknown>;
+    };
+    if (!valueInUSD || !cardType || !reference || !issueCardFor) {
+      return NextResponse.json(
+        { error: "Missing live Chimoney keys: valueInUSD, cardType, reference, issueCardFor" },
+        { status: 400 },
+      );
+    }
 
     // NOTE: endpoint shape may differ by account type; this is a production wiring scaffold.
     const cardRes = await fetch(`${chimoneyBase}/v0.2/payouts/virtual-card`, {
@@ -30,10 +54,12 @@ export async function POST(req: NextRequest) {
         "X-API-KEY": chimoneyKey,
       },
       body: JSON.stringify({
-        valueInUSD: body.valueInUSD ?? amount,
-        cardType: body.cardType ?? "visa",
-        currency: "USD",
-        metadata: { goalId, provider },
+        valueInUSD,
+        cardType,
+        reference,
+        issueCardFor,
+        redirectUrl,
+        metadata: { goalId, provider, ...(meta || {}) },
       }),
     });
 

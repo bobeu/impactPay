@@ -63,5 +63,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    min-height: 720px;
   }
 }

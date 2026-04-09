@@ -4,8 +4,8 @@
   "description": "Reputation-based social finance for MiniPay on Celo",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f5f4",
-  "theme_color": "#00955f",
+  "background_color": "#FFFFFF",
+  "theme_color": "#35D07F",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -13,6 +13,21 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "ImpactPay splash screen"
     }
   ]
 }

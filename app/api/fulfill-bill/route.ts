@@ -47,31 +47,40 @@ async function callBitGifty(payload: RetryPayload) {
   const key = process.env.BITGIFTY_API_KEY;
   const baseUrl = process.env.BITGIFTY_BASE_URL || "https://vbaas.vfdtech.ng";
   if (!key) throw new Error("BITGIFTY_API_KEY is missing");
+  if (!baseUrl.startsWith("https://")) throw new Error("BITGIFTY_BASE_URL must use HTTPS");
 
-  const providerMap: Record<string, { country: string; category: string; providerCode: string }> = {
-    IKEDC_NG: { country: "NG", category: "electricity", providerCode: "IKEDC" },
-    MTN_NG_DATA: { country: "NG", category: "data", providerCode: "MTN" },
-    SAF_KE_AIRTIME: { country: "KE", category: "airtime", providerCode: "SAFARICOM" },
-    MTN_GH_DATA: { country: "GH", category: "data", providerCode: "MTN" },
+  const schema = payload as RetryPayload & {
+    customerId?: string;
+    division?: string;
+    paymentItem?: string;
+    productId?: string;
+    billerId?: string;
+    reference?: string;
+    phoneNumber?: string;
   };
-  const mapped = providerMap[payload.providerCode] ?? {
-    country: "NG",
-    category: payload.billerCategory,
-    providerCode: payload.providerCode,
-  };
+  const division = schema.division || process.env.BITGIFTY_DIVISION;
+  const paymentItem = schema.paymentItem || process.env.BITGIFTY_PAYMENT_ITEM;
+  const productId = schema.productId || process.env.BITGIFTY_PRODUCT_ID;
+  const billerId = schema.billerId || process.env.BITGIFTY_BILLER_ID;
+  if (!schema.customerId || !division || !paymentItem || !productId || !billerId || !schema.reference) {
+    throw new Error("Missing live payload keys: customerId, division, paymentItem, productId, billerId, reference");
+  }
 
-  const response = await fetch(`${baseUrl}/api/v1/bills/purchase`, {
+  const response = await fetch(`${baseUrl}/pay`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
+      AccessToken: key,
     },
     body: JSON.stringify({
-      country: mapped.country,
-      category: mapped.category,
-      operator_id: mapped.providerCode,
-      customerReference: payload.customerReference,
-      value: payload.amount,
+      customerId: schema.customerId,
+      amount: String(payload.amount),
+      division,
+      paymentItem,
+      productId,
+      billerId,
+      reference: schema.reference,
+      phoneNumber: schema.phoneNumber,
     }),
   });
 
