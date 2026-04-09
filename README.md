@@ -1,66 +1,132 @@
-# React Framework + NextJS | Celo Composer
+# ImpactPay 🌍💚
+**Direct-to-Provider Impact Funding on Celo MiniPay**
 
-Celo Composer support React boilerplate template with TailwindCSS. This is a starter kit with no additional boilerplate code. It's a perfect starter kit to get your project started on Celo blockchain.
+ImpactPay is a decentralized, mobile-first micro-philanthropy platform tailored for the **Celo MiniPay** ecosystem. It redefines charitable giving and social funding by stripping away intermediaries, ensuring that 100% of a donor's capital is routed exactly to its intended use—whether paying an electricity bill via [BitGifty](https://bitgifty.com) or issuing a virtual developer card via [Chimoney](https://chimoney.io). 
 
-## Setup & Installation
+---
 
+## 🛑 The Problem
+1. **Capital Leakage:** Traditional micro-donations suffer from intermediary fees and a lack of transparency. Donors rarely know if their money directly helped the requester.
+2. **The "Liquid Cash" Risk:** Giving liquid crypto or cash directly to requesters rarely guarantees that the funds will be used for essential utilities or education.
+3. **The Developer Barrier:** Builders in emerging markets face massive hurdles accessing $20/month subscriptions (e.g., Cursor, OpenAI, GitHub Pro) due to lack of standard credit access.
+4. **No Portable Reputation:** Generous donors rarely receive verifiable, portable recognition for their impact.
 
-### Set environment variables
+## 💡 The Solution
+ImpactPay introduces **Direct-to-Provider Fulfillment**. Donors fund campaigns that are strictly tied to a utility API or virtual card issuance. 
+- A user requests help for a utility bill.
+- A donor funds the smart contract goal.
+- Upon 100% funding, the backend automatically triggers **BitGifty** to instantly pay the remote electricity/data bill. 
+- For Developer Subscriptions, **Chimoney** automatically generates a $20 loaded Virtual Card sent securely to the developer.
 
-Create a copy of `.env.example` and rename it to `.env`.
+This creates a high-trust, frictionless, and transparent giving loop.
 
-#### Add Wallet Connect ID
+---
 
-Create a WalletConnect Cloud Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/)
+## ✨ Key Features
 
-Provide the WalletConnect Cloud Project ID in your `.env` file to use WalletConnect in your project. As shown in the `.env.example` file.
+1. **Direct Fulfillment Architecture**: Seamless bridge between Celo smart contracts and Web2 API aggregators (BitGifty for utilities, Chimoney for virtual cards). 
+2. **SocialConnect & Self Identity**: Leverages Celo's SocialConnect (ODIS) mapping to link phone numbers and Twitter (X) handles natively to Celo addresses. "Level 3" identity verification is anchored on-chain via the **Self Protocol** to prevent bot abuse.
+3. **Portable Reputation Engine**: Built on **The Graph**. Generates dynamic, algorithmic ranking scores for both Donors and Requesters.
+4. **Verifiable Social Proof**: NextJS Edge endpoints generate high-trust OpenGraph (OG) visual profiles and issue W3C-standard JSON-LD **Verifiable Credentials** as users achieve philanthropic milestones.
+5. **MiniPay Optimized**: Built as a Progressive Web App (PWA) with a "Fintech" neo-brutalist styling specifically designed to feel native within the Opera MiniPay wallet constraints (mobile-responsive `< 360px`).
+6. **Built-in Escrows & Security**: Multi-signature "flagging" allows donors to freeze suspicious goals. Scholarships utilize a 20/40/40 milestone release structure.
 
-```typescript
-NEXT_PUBLIC_WC_PROJECT_ID=YOUR_EXAMPLE_PROJECT_ID;
+---
+
+## 🏗 System Architecture
+
+ImpactPay is split into four primary layers:
+
+1. **Smart Contracts (Solidity & Foundry)**
+   - `ImpactPay.sol`: Central logic governing `createGoal`, `fundGoal`, and milestone distributions.
+   - Built securely with Reentrancy guards and an admin `paused` emergency state. 
+2. **Frontend & Backend (Next.js 15, React, Tailwind v4)**
+   - PWA optimized for MiniPay with responsive design and modern UX bindings.
+   - API layer containing secure endpoints for fulfilling BitGifty and Chimoney payloads.
+   - Edge Routes for Social Card dynamic generation (`next/og`).
+3. **The Graph (Decentralized Indexer)**
+   - The primary data engine mapping Contract Events to real-time Donors and Requester `GlobalStat` ranks and percentiles.
+4. **Third-Party Integrations**
+   - **BitGifty**: African utility bill settlement.
+   - **Chimoney**: Virtual Card generation.
+   - **Self SDK**: Biometric unique-identity checks.
+   - **Celo ODIS**: Obfuscated Decentralized Identifier Service.
+
+---
+
+## 📂 Repository Structure
+
+```text
+impactPay/
+├── app/                      # Next.js 15 App Router (Pages, Layouts, APIs)
+│   ├── api/                  # Fulfillment, Credential, Leaderboard REST pipelines
+│   ├── docs/                 # Public API Leaderboard Documentation
+│   ├── profile/              # Trust Profile dynamic OG image endpoints
+│   └── verify/               # Public Verifiable Credential Validation Routes
+├── components/               # React UI Components (Flat, Fintech-styled)
+├── contracts/                # Foundry Smart Contracts and Tests 
+├── hooks/                    # Web3 custom hooks for contract/graph reads
+├── lib/                      # Utilities, Webhooks, Chimoney/BitGifty stores
+├── subgraph/                 # The Graph setup (schema.graphql, mappings)
+└── public/                   # PWA Manifest & static assets
 ```
 
-### Install dependencies
+---
 
-Install all the required dependencies to run the dApp.
+## 🛠 Setup & Installation
 
-Using **yarn**
+This project strictly utilizes `bun` as the core package manager for rapid dependency resolution.
 
+### Prerequisites
+- [Bun](https://bun.sh/) installed locally.
+- [Foundry](https://getfoundry.sh/) installed for smart contract compilation.
+- Target Network: **Celo Mainnet** / Celo Sepolia (Alfajores deprecated).
+
+### 1. Clone & Clean Install
 ```bash
-yarn
+git clone https://github.com/bobeu/impactPay.git
+cd impactPay
+bun install
 ```
 
-or using **npm**
+### 2. Environment Variables
+Create a `.env` file based on `.env.template`:
+```ini
+NEXT_PUBLIC_WC_PROJECT_ID=your_walletconnect_id
+NEXT_PUBLIC_GRAPH_ENDPOINT=your_subgraph_api_url
 
+# Fulfiller / Relayer 
+NEXT_PUBLIC_BACKEND_SIGNER_KEY=0x...
+BITGIFTY_API_KEY=your_bitgifty_key
+BITGIFTY_BASE_URL=https://vbaas.vfdtech.ng/api/v1/
+CHIMONEY_API_KEY=your_chimoney_key
+CHIMONEY_BASE_URL=https://api.chimoney.io/v0.2/
+
+# Features
+FULFILL_BILL_SHARED_SECRET=your_webhook_secret
+ISSUER_DID=did:web:impactpay.celo.org
+```
+
+### 3. Run Development Server
 ```bash
-npm i
+bun run dev
 ```
 
-> React + Tailwind CSS Template does not have any dependency on hardhat.
-> This starterkit does not include connection of Hardhat/Truffle with ReactJS. It's up to the user to integrate smart contract with ReactJS. This gives user more flexibility over the dApp.
-
-- To start the dApp, run the following command.
-
+### 4. Background Webhooks
+To actively listen to the Celo blockchain for `Funded` events and trigger real-time BitGifty API requests natively, start the listener in an alternate terminal:
 ```bash
-yarn dev
+bun run listen:funded
 ```
 
-or using **npm**
+---
 
-```bash
-npm run dev
-```
+## 📱 Testing Inside MiniPay
+Since ImpactPay is designed primarily for Opera's MiniPay ecosystem:
+1. Ensure your local server is exposed to the internet using a tool like [ngrok](https://ngrok.com/) or via a deployed Vercel instance.
+2. Use HTTPS exclusively, as MiniPay Web3 injection will block standard non-secure origins.
+3. Open the URL inside the Opera Mini app browser globally. ImpactPay natively detects `window.ethereum.isMiniPay` to toggle specialized Celo network rules and Dev/Prod states.
 
-## Dependencies
+---
 
-### Default
-
-- [Next.js](https://nextjs.org/) app framework
-- [TailwindCSS](https://tailwindcss.com/) for UI
-
-## Architecture
-
-- `/pages` includes the main application components (specifically `layout.tsx` and `page.tsx`)
-  - `layout.tsx` includes configuration
-  - `page.tsx` is the main page of the application
-- `/components` includes components that are rendered in `page.tsx`
-- `/public` includes static files
+## 📜 License
+This project is made open-source under the MIT License as part of the Celo decentralized builder community.
