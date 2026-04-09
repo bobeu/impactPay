@@ -71,7 +71,9 @@ export default function Header() {
                 ) : !isMiniPay ? (
                   <button
                     type="button"
-                    onClick={() => connectAsync({ connector: injected({ target: "metaMask" }) })}
+                    onClick={() => {
+                      void connectAsync({ connector: injected({ target: "metaMask" }) });
+                    }}
                     className="h-10 px-3 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700"
                     disabled={isPending}
                   >

@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
       redirectUrl?: string;
       meta?: Record<string, unknown>;
     };
-    if (!valueInUSD || !cardType || !reference || !issueCardFor) {
+    const finalCardType = cardType || process.env.CHIMONEY_CARD_TYPE;
+    if (!valueInUSD || !finalCardType || !reference || !issueCardFor) {
       return NextResponse.json(
         { error: "Missing live Chimoney keys: valueInUSD, cardType, reference, issueCardFor" },
         { status: 400 },
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         valueInUSD,
-        cardType,
+        cardType: finalCardType,
         reference,
         issueCardFor,
         redirectUrl,
