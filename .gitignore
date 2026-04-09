@@ -42,4 +42,5 @@ yarn.lock
 package-lock.json
 
 # Dev doc
-/DOC.md
+DOCUMENT.md
+/DOCUMENT.md
