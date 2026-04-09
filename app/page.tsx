@@ -3,11 +3,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "@/components/ui/button";
 import { CreateGoalCard } from "@/components/CreateGoalCard";
+import { DevSubscriptionCard } from "@/components/DevSubscriptionCard";
 import { Input } from "@/components/ui/input";
 import { FeaturedGoalsCarousel } from "@/components/FeaturedGoalsCarousel";
 import { ImpactDashboard } from "@/components/ImpactDashboard";
 import { IdentityVerificationCard } from "@/components/IdentityVerificationCard";
 import { PhoneLookupCard } from "@/components/PhoneLookupCard";
+import { SponsorDashboard } from "@/components/SponsorDashboard";
+import { VirtualCardPortal } from "@/components/VirtualCardPortal";
 import { useReputation } from "@/hooks/useReputation";
 import { useWeb3 } from "@/contexts/useWeb3";
 import Image from "next/image";
@@ -124,6 +127,9 @@ export default function Home() {
                     <IdentityVerificationCard address={address} />
                     <PhoneLookupCard />
                     <CreateGoalCard />
+                    <DevSubscriptionCard />
+                    <VirtualCardPortal address={address} />
+                    <SponsorDashboard />
 
                     <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm space-y-3">
                         <div className="flex items-center justify-between">

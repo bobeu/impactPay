@@ -48,6 +48,18 @@ async function callBitGifty(payload: RetryPayload) {
   const baseUrl = process.env.BITGIFTY_BASE_URL || "https://vbaas.vfdtech.ng";
   if (!key) throw new Error("BITGIFTY_API_KEY is missing");
 
+  const providerMap: Record<string, { country: string; category: string; providerCode: string }> = {
+    IKEDC_NG: { country: "NG", category: "electricity", providerCode: "IKEDC" },
+    MTN_NG_DATA: { country: "NG", category: "data", providerCode: "MTN" },
+    SAF_KE_AIRTIME: { country: "KE", category: "airtime", providerCode: "SAFARICOM" },
+    MTN_GH_DATA: { country: "GH", category: "data", providerCode: "MTN" },
+  };
+  const mapped = providerMap[payload.providerCode] ?? {
+    country: "NG",
+    category: payload.billerCategory,
+    providerCode: payload.providerCode,
+  };
+
   const response = await fetch(`${baseUrl}/api/v1/bills/purchase`, {
     method: "POST",
     headers: {
@@ -55,8 +67,9 @@ async function callBitGifty(payload: RetryPayload) {
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      category: payload.billerCategory,
-      providerCode: payload.providerCode,
+      country: mapped.country,
+      category: mapped.category,
+      providerCode: mapped.providerCode,
       customerReference: payload.customerReference,
       amount: payload.amount,
     }),
@@ -96,6 +109,10 @@ async function markGoalFulfilledOnChain(goalId: number) {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   try {
+    const sharedSecret = req.headers.get("x-impactpay-secret");
+    if (!sharedSecret || sharedSecret !== process.env.FULFILL_BILL_SHARED_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const retryToken = body.retryToken as string | undefined;
 
     let payload: RetryPayload;

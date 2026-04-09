@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "listen:funded": "bun run scripts/listen-goal-funded.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.1.10",

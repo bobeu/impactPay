@@ -10,6 +10,7 @@ export function CreateGoalCard() {
   const [category, setCategory] = useState<GoalCategory>("Bill");
   const [amount, setAmount] = useState("50");
   const [message, setMessage] = useState("");
+  const [showGateModal, setShowGateModal] = useState(false);
 
   const submit = () => {
     if (!goalTitle.trim()) {
@@ -18,6 +19,7 @@ export function CreateGoalCard() {
     }
     if (category === "Scholarship" && !canCreateScholarship) {
       setMessage("Scholarship goals require Level 3 verification.");
+      setShowGateModal(true);
       return;
     }
     setMessage(`Draft ${category} goal created for $${amount}.`);
@@ -76,6 +78,25 @@ export function CreateGoalCard() {
         Continue
       </button>
       {message ? <p className="text-xs text-slate-600">{message}</p> : null}
+      {showGateModal ? (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-white border border-slate-200 p-4 shadow-md space-y-2">
+            <h3 className="text-sm font-semibold text-slate-800">Verification Required</h3>
+            <p className="text-xs text-slate-600">
+              Scholarship goals are gated to Level 3 users. Complete Self biometric verification first.
+            </p>
+            <button
+              className="h-11 w-full rounded-full bg-[#35D07F] text-white text-sm font-medium"
+              onClick={() => {
+                setShowGateModal(false);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Go to Verify Identity
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
