@@ -1,6 +1,6 @@
-\"use client\";
+"use client";
 
-import { useMemo } from \"react\";
+import { useMemo } from "react";
 
 type Props = {
   totalFundedUsd?: number;
@@ -60,4 +60,3 @@ export function ImpactDashboard({ totalFundedUsd = 0, reputationScore = 0 }: Pro
     </section>
   );
 }
-
