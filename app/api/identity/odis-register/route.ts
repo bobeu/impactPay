@@ -8,9 +8,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "phoneNumber and walletAddress required" }, { status: 400 });
     }
 
-    // Production glue: dynamic import lets the app boot even if dependency is absent in local environments.
-    const identity = await import("@celo/identity");
-    const { OdisUtils } = identity as any;
+    // Runtime-only loading to avoid bundling Node-incompatible subdeps in Next build.
+    const runtimeRequire = eval("require") as NodeRequire;
+    const identity = runtimeRequire("@celo/identity");
+    const { OdisUtils, OdisContextName } = identity as any;
 
     const authSigner = {
       authenticationMethod: OdisUtils.Query.AuthenticationMethod.WALLET_KEY,
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const serviceContext = OdisUtils.Query.getServiceContext(OdisUtils.Query.OdisContextName.MAINNET);
+    const serviceContext = OdisUtils.Query.getServiceContext(OdisContextName.MAINNET);
     const quota = await OdisUtils.Quota.getPnpQuotaStatus(walletAddress, authSigner, serviceContext).catch(() => null);
 
     return NextResponse.json({

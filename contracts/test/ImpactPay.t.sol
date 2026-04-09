@@ -119,7 +119,7 @@ contract ImpactPayTest is Test {
 
         vm.prank(notFundedCreator);
         vm.expectRevert(bytes("BALANCE"));
-        impactPay.createGoal(5_000_000, ImpactPay.Category.Scholarship, "Should fail");
+        impactPay.createGoal(5_000_000, ImpactPay.Category.Bill, "Should fail");
     }
 
     function testBillClaimDeductsSuccessFeeAndListingFeeSentImmediately() public {
