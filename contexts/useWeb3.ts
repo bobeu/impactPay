@@ -5,19 +5,26 @@ import {
     createPublicClient,
     createWalletClient,
     custom,
+    defineChain,
     getContract,
     http,
     parseEther,
     stringToHex,
 } from "viem";
-import { celoAlfajores } from "viem/chains";
 
-const publicClient = createPublicClient({
-    chain: celoAlfajores,
-    transport: http(),
+const celoSepolia = defineChain({
+    id: 11142220,
+    name: "Celo Sepolia",
+    nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+    rpcUrls: { default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] } },
 });
 
-const cUSDTokenAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"; // Testnet
+const publicClient = createPublicClient({
+    chain: celoSepolia,
+    transport: http("https://forno.celo-sepolia.celo-testnet.org"),
+});
+
+const cUSDTokenAddress = "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80"; // Celo Sepolia USDm/cUSD proxy
 const MINIPAY_NFT_CONTRACT = "0xE8F4699baba6C86DA9729b1B0a1DA1Bd4136eFeF"; // Testnet
 
 function getInjectedProvider() {
@@ -36,7 +43,7 @@ export const useWeb3 = () => {
         if (!provider) return;
         const walletClient = createWalletClient({
             transport: custom(provider),
-            chain: celoAlfajores,
+            chain: celoSepolia,
         });
 
         const [addr] = await walletClient.getAddresses();
@@ -46,7 +53,7 @@ export const useWeb3 = () => {
     const sendCUSD = async (to: string, amount: string) => {
         let walletClient = createWalletClient({
             transport: custom(getInjectedProvider()),
-            chain: celoAlfajores,
+            chain: celoSepolia,
         });
 
         let [address] = await walletClient.getAddresses();
@@ -71,7 +78,7 @@ export const useWeb3 = () => {
     const mintMinipayNFT = async () => {
         let walletClient = createWalletClient({
             transport: custom(getInjectedProvider()),
-            chain: celoAlfajores,
+            chain: celoSepolia,
         });
 
         let [address] = await walletClient.getAddresses();
@@ -97,7 +104,7 @@ export const useWeb3 = () => {
     const getNFTs = async () => {
         let walletClient = createWalletClient({
             transport: custom(getInjectedProvider()),
-            chain: celoAlfajores,
+            chain: celoSepolia,
         });
 
         const minipayNFTContract = getContract({
@@ -125,7 +132,7 @@ export const useWeb3 = () => {
     const signTransaction = async () => {
         let walletClient = createWalletClient({
             transport: custom(getInjectedProvider()),
-            chain: celoAlfajores,
+            chain: celoSepolia,
         });
 
         let [address] = await walletClient.getAddresses();

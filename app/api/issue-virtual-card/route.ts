@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { storeCard } from "@/lib/virtual-card-store";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { goalId, amount, ownerAddress, provider } = body as {
+      goalId: number;
+      amount: number;
+      ownerAddress: string;
+      provider: string;
+    };
+
+    if (!goalId || !amount || !ownerAddress || !provider) {
+      return NextResponse.json({ error: "goalId, amount, ownerAddress, provider required" }, { status: 400 });
+    }
+
+    const chimoneyKey = process.env.CHIMONEY_API_KEY;
+    const chimoneyBase = process.env.CHIMONEY_BASE_URL || "https://api-v2.chimoney.io";
+    if (!chimoneyKey) return NextResponse.json({ error: "CHIMONEY_API_KEY missing" }, { status: 500 });
+
+    // NOTE: endpoint shape may differ by account type; this is a production wiring scaffold.
+    const cardRes = await fetch(`${chimoneyBase}/v0.2/payouts/virtual-card`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY": chimoneyKey,
+      },
+      body: JSON.stringify({
+        amount,
+        currency: "USD",
+        metadata: { goalId, provider },
+      }),
+    });
+
+    if (!cardRes.ok) {
+      const txt = await cardRes.text();
+      return NextResponse.json({ error: `Card issue failed: ${txt}` }, { status: 502 });
+    }
+
+    const cardData = await cardRes.json();
+    storeCard(goalId, ownerAddress, cardData);
+    return NextResponse.json({ success: true, goalId, status: "issued_pending_webhook" });
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+  }
+}
+

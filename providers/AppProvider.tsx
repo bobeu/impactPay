@@ -2,22 +2,30 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { celo, celoAlfajores } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
+import { defineChain } from "viem";
 
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
 import { UserProfileProvider } from "@/contexts/UserProfileContext";
 
+const celoSepolia = defineChain({
+  id: 11142220,
+  name: "Celo Sepolia",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: { default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] } },
+});
+
 const config = createConfig({
-  chains: [celoAlfajores, celo],
+  chains: [celoSepolia, celo],
   connectors: [
     injected({
       target: "metaMask",
     }),
   ],
   transports: {
-    [celoAlfajores.id]: http(),
+    [celoSepolia.id]: http("https://forno.celo-sepolia.celo-testnet.org"),
     [celo.id]: http(),
   },
 });

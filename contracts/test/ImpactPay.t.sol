@@ -40,6 +40,9 @@ contract ImpactPayTest is Test {
         _mintAndApprove(donor2, 10_000_000);
         _mintAndApprove(donor3, 10_000_000);
         _mintAndApprove(donor4, 10_000_000);
+
+        vm.prank(owner);
+        impactPay.onVerificationSuccess(creator);
     }
 
     function _mintAndApprove(address user, uint256 amount) internal {
@@ -136,6 +139,34 @@ contract ImpactPayTest is Test {
         // 3% success fee from 2_000_000 = 60_000
         assertEq(token.balanceOf(treasury), treasuryBeforeClaim + 60_000);
         assertEq(token.balanceOf(creator), creatorBefore + 1_940_000);
+    }
+
+    function testNonLevel3CannotCreateScholarship() public {
+        address unverified = address(0xAA01);
+        _mintAndApprove(unverified, 2_000_000);
+
+        vm.prank(unverified);
+        vm.expectRevert(ImpactPay.Level3Required.selector);
+        impactPay.createGoal(2_000_000, ImpactPay.Category.Scholarship, "Locked");
+    }
+
+    function testRefundAfterNinetyDaysIfMilestoneNotApproved() public {
+        uint256 goalId = _createScholarshipGoal();
+
+        vm.prank(donor1);
+        impactPay.fundGoal(goalId, 2_500_000);
+        vm.prank(donor2);
+        impactPay.fundGoal(goalId, 2_500_000);
+
+        vm.prank(creator);
+        impactPay.claimFunds(goalId); // 20% released, 80% left
+
+        vm.warp(block.timestamp + 91 days);
+
+        uint256 donorBefore = token.balanceOf(donor1);
+        vm.prank(donor1);
+        impactPay.refund(goalId);
+        assertGt(token.balanceOf(donor1), donorBefore);
     }
 }
 
