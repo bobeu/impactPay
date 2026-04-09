@@ -15,6 +15,7 @@ import { useReputation } from "@/hooks/useReputation";
 import { useWeb3 } from "@/contexts/useWeb3";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Home() {
     const {
@@ -54,7 +55,14 @@ export default function Home() {
         if (address) {
             setSigningLoading(true);
             try {
-                const tx = await sendCUSD(address, amountToSend);
+                const tx = await toast.promise(
+                    sendCUSD(address, amountToSend),
+                    {
+                        loading: "Sending transaction...",
+                        success: "Transfer successful",
+                        error: "Transfer failed",
+                    }
+                );
                 setTx(tx);
             } catch (error) {
                 console.log(error);
@@ -67,7 +75,11 @@ export default function Home() {
     async function signMessage() {
         setCUSDLoading(true);
         try {
-            await signTransaction();
+            await toast.promise(signTransaction(), {
+                loading: "Awaiting signature...",
+                success: "Message signed",
+                error: "Signature failed",
+            });
             setMessageSigned(true);
         } catch (error) {
             console.log(error);
@@ -80,7 +92,11 @@ export default function Home() {
     async function mintNFT() {
         setNFTLoading(true);
         try {
-            const tx = await mintMinipayNFT();
+            const tx = await toast.promise(mintMinipayNFT(), {
+                loading: "Minting NFT...",
+                success: "NFT minted",
+                error: "Mint failed",
+            });
             const tokenURIs = await getNFTs();
             setUserOwnedNFTs(tokenURIs);
             setTx(tx);

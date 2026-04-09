@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
       amount: number;
       ownerAddress: string;
       provider: string;
+      valueInUSD?: number;
+      cardType?: string;
     };
 
     if (!goalId || !amount || !ownerAddress || !provider) {
@@ -28,7 +30,8 @@ export async function POST(req: NextRequest) {
         "X-API-KEY": chimoneyKey,
       },
       body: JSON.stringify({
-        amount,
+        valueInUSD: body.valueInUSD ?? amount,
+        cardType: body.cardType ?? "visa",
         currency: "USD",
         metadata: { goalId, provider },
       }),

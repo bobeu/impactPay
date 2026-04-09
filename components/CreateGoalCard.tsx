@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import { GoalCategory, useUserProfile } from "@/contexts/UserProfileContext";
+import { useWeb3 } from "@/contexts/useWeb3";
 
 export function CreateGoalCard() {
   const { canCreateScholarship } = useUserProfile();
+  const { getGasReadiness } = useWeb3();
   const [goalTitle, setGoalTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Bill");
   const [amount, setAmount] = useState("50");
@@ -22,7 +25,19 @@ export function CreateGoalCard() {
       setShowGateModal(true);
       return;
     }
-    setMessage(`Draft ${category} goal created for $${amount}.`);
+    toast.promise(
+      getGasReadiness().then((g) => {
+        if (!g.hasEnough) {
+          throw new Error(`Insufficient CELO for gas. Est. ${g.estimatedCostCELO} CELO`);
+        }
+        setMessage(`Draft ${category} goal created for $${amount}. Est. gas ${g.estimatedGas}.`);
+      }),
+      {
+        loading: "Estimating gas for goal creation...",
+        success: "Gas check passed. Goal transaction ready.",
+        error: (e) => String(e),
+      },
+    );
   };
 
   return (

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
+import { verifyPhoneWithOdis } from "@/lib/odisClient";
 import { registerPhoneMapping } from "@/lib/socialconnect";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 
@@ -30,10 +32,14 @@ export function IdentityVerificationCard({ address }: Props) {
     setLoading(true);
     setStatus("");
     try {
-      await fetch("/api/identity/odis-register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: phoneInput, walletAddress: address }),
+      const odisPromise = verifyPhoneWithOdis({
+        phoneNumber: phoneInput,
+        walletAddress: address,
+      });
+      await toast.promise(odisPromise, {
+        loading: "Verifying phone with ODIS...",
+        success: "ODIS verification complete",
+        error: "ODIS verification failed",
       });
       await registerPhoneMapping({
         phoneNumber: phoneInput,
@@ -73,8 +79,12 @@ export function IdentityVerificationCard({ address }: Props) {
         if (data.error) throw new Error(data.error);
         setHumanVerified();
         setStatus("Human verification completed and anchored on-chain.");
+        toast.success("Self verification anchored on-chain.");
       })
-      .catch((e) => setStatus((e as Error).message));
+      .catch((e) => {
+        setStatus((e as Error).message);
+        toast.error((e as Error).message);
+      });
   };
 
   return (

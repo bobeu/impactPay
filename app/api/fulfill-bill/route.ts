@@ -23,7 +23,7 @@ const celoSepolia = defineChain({
 });
 
 function validatePayload(body: unknown): RetryPayload {
-  const x = body as Partial<RetryPayload> & { retryToken?: string };
+  const x = body as Partial<RetryPayload> & { retryToken?: string; operator_id?: string; value?: number };
   if (
     typeof x.goalId !== "number" ||
     !x.billerCategory ||
@@ -36,9 +36,9 @@ function validatePayload(body: unknown): RetryPayload {
   return {
     goalId: x.goalId,
     billerCategory: x.billerCategory,
-    providerCode: x.providerCode,
+    providerCode: x.operator_id ?? x.providerCode,
     customerReference: x.customerReference,
-    amount: x.amount,
+    amount: x.value ?? x.amount,
     feeCurrency: x.feeCurrency,
   };
 }
@@ -69,9 +69,9 @@ async function callBitGifty(payload: RetryPayload) {
     body: JSON.stringify({
       country: mapped.country,
       category: mapped.category,
-      providerCode: mapped.providerCode,
+      operator_id: mapped.providerCode,
       customerReference: payload.customerReference,
-      amount: payload.amount,
+      value: payload.amount,
     }),
   });
 

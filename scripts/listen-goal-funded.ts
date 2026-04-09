@@ -38,7 +38,7 @@ client.watchContractEvent({
   eventName: "Funded",
   onLogs: async (logs) => {
     for (const log of logs) {
-      const goalId = Number(log.args.goalId || 0n);
+      const goalId = Number(log.args.goalId || BigInt(0));
       if (!goalId) continue;
       await fetch(`${appUrl}/api/fulfill-bill`, {
         method: "POST",

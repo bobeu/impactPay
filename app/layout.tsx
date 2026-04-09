@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 
 import { AppProvider } from "@/providers/AppProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "ImpactPay",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body>
         <AppProvider>
           {children}
+          <Toaster position="top-center" />
           <ServiceWorkerRegister />
         </AppProvider>
       </body>

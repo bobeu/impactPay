@@ -2,6 +2,7 @@ import { useState } from "react";
 import StableTokenABI from "./cusd-abi.json";
 import MinipayNFTABI from "./minipay-nft.json";
 import {
+    formatEther,
     createPublicClient,
     createWalletClient,
     custom,
@@ -35,6 +36,24 @@ function getInjectedProvider() {
 }
 
 export const useWeb3 = () => {
+    const getGasReadiness = async () => {
+        const provider = getInjectedProvider();
+        const walletClient = createWalletClient({
+            transport: custom(provider),
+            chain: celoSepolia,
+        });
+        const [account] = await walletClient.getAddresses();
+        const balance = await publicClient.getBalance({ address: account });
+        const gas = BigInt(21000);
+        const gasPrice = await publicClient.getGasPrice();
+        const estimatedCost = gas * gasPrice;
+        return {
+            hasEnough: balance > estimatedCost,
+            estimatedGas: gas.toString(),
+            estimatedCostCELO: formatEther(estimatedCost),
+        };
+    };
+
     const [address, setAddress] = useState<string | null>(null);
 
     const getUserAddress = async () => {
@@ -152,5 +171,6 @@ export const useWeb3 = () => {
         mintMinipayNFT,
         getNFTs,
         signTransaction,
+        getGasReadiness,
     };
 };
