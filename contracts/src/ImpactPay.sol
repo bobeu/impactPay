@@ -1,22 +1,31 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.28;
 
-interface IERC20Like {
-    function transfer(address to, uint256 amount) external returns (bool);
-    function transferFrom(address from, address to, uint256 amount) external returns (bool);
-}
+import { Pausable } from "../lib/openzeppelin/contracts/utils/Pausable.sol";
+import { Ownable } from "../lib/openzeppelin/contracts/access/Ownable.sol";
+// import { IERC20 } from "../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20, IERC20 } from "../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ReentrancyGuard } from "../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract ImpactPay {
+// interface IERC20Like {
+//     function transfer(address to, uint256 amount) external returns (bool);
+//     function transferFrom(address from, address to, uint256 amount) external returns (bool);
+// }
+
+contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     enum Category {
-        Bill,
-        Scholarship
+        BILL,
+        SCHOLARSHIP,
+        OTHER
     }
 
     enum GoalStatus {
-        Open,
-        Funded,
-        Fulfilled,
-        Cancelled
+        OPEN,
+        FUNDED,
+        FULFILLED,
+        CANCELED
     }
 
     struct Goal {
@@ -27,7 +36,7 @@ contract ImpactPay {
         uint256 withdrawnAmount;
         uint256 refundedAmount;
         uint64 milestoneDeadline;
-        string description;
+        bytes description;
         Category category;
         GoalStatus status;
         uint8 milestoneIndex;
@@ -35,12 +44,12 @@ contract ImpactPay {
         bool lockedForReview;
     }
 
-    IERC20Like public immutable stableToken;
-    address public owner;
+    IERC20 public immutable stableToken;
+    // address public owner;
     address public treasury;
     address public releaseApprover;
     address public backendFulfillmentSigner;
-    bool public paused;
+    // bool public paused;
 
     uint256 public immutable billListingFee;
     uint256 public immutable scholarshipListingFee;
@@ -48,8 +57,10 @@ contract ImpactPay {
     uint256 public constant BPS_DENOMINATOR = 10000;
 
     uint256 public nextGoalId = 1;
+    uint public maxGoal;
 
     mapping(uint256 => Goal) public goals;
+    mapping(uint256 => uint8) public goalCount;
     mapping(uint256 => mapping(address => uint256)) public donationsByDonor;
     mapping(uint256 => mapping(address => bool)) public hasFlagged;
     mapping(uint256 => mapping(address => bool)) public donorRefunded;
@@ -91,28 +102,12 @@ contract ImpactPay {
     error RefundNotAvailable();
     error AlreadyRefunded();
     error PausedError();
-
-    modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
-        _;
-    }
+    error MaxGoalExceeded();
 
     modifier onlyReleaseApprover() {
-        if (msg.sender != owner && msg.sender != releaseApprover) revert NotReleaseApprover();
+        address sender = _msgSender();
+        if (sender != owner() && sender != releaseApprover) revert NotReleaseApprover();
         _;
-    }
-
-    modifier whenNotPaused() {
-        if (paused) revert PausedError();
-        _;
-    }
-
-    uint256 private _entered = 1;
-    modifier nonReentrant() {
-        require(_entered == 1, "REENTRANCY");
-        _entered = 2;
-        _;
-        _entered = 1;
     }
 
     constructor(
@@ -122,9 +117,9 @@ contract ImpactPay {
         address backendFulfillmentSigner_,
         uint256 billListingFee_,
         uint256 scholarshipListingFee_
-    ) {
+    ) Ownable(_msgSender()) {
         stableToken = IERC20Like(stableToken_);
-        owner = msg.sender;
+        owner = _msgSender();
         treasury = treasury_;
         releaseApprover = releaseApprover_;
         backendFulfillmentSigner = backendFulfillmentSigner_;
@@ -137,22 +132,26 @@ contract ImpactPay {
         Category category,
         string calldata description
     ) external whenNotPaused {
+        address sender = _msgSender();
         if (targetAmount == 0) revert InvalidAmount();
-        if (category == Category.Scholarship && !level3Verified[msg.sender]) revert Level3Required();
-
+        if (category == Category.SCHOLARSHIP && !level3Verified[sender]) revert Level3Required();
+        if(maxGoal > 0){
+            if(goalCount[sender] == maxGoal) revert MaxGoalExceeded();
+        }
+        goalCount[sender]++;
         uint256 listingFee = category == Category.Bill ? billListingFee : scholarshipListingFee;
-        if (!stableToken.transferFrom(msg.sender, treasury, listingFee)) revert TransferFailed();
+        if(listingFee > 0) stableToken.safeTransferFrom(sender, treasury, listingFee);
 
         uint256 goalId = nextGoalId++;
         goals[goalId] = Goal({
             id: goalId,
-            creator: msg.sender,
+            creator: sender,
             targetAmount: targetAmount,
             raisedAmount: 0,
             withdrawnAmount: 0,
             refundedAmount: 0,
             milestoneDeadline: 0,
-            description: description,
+            description: abi.encode(bytes(description)),
             category: category,
             status: GoalStatus.Open,
             milestoneIndex: 0,
@@ -160,31 +159,33 @@ contract ImpactPay {
             lockedForReview: false
         });
 
-        emit GoalCreated(goalId, msg.sender, address(0), category, targetAmount, description);
+        emit GoalCreated(goalId, _msgSender(), address(0), category, targetAmount, description);
     }
 
     function fundGoal(uint256 goalId, uint256 amount) external whenNotPaused nonReentrant {
+        address sender = _msgSender();
         Goal storage goal = goals[goalId];
         if (goal.id == 0) revert GoalNotFound();
         if (goal.status != GoalStatus.Open) revert GoalNotOpen();
         if (amount == 0) revert InvalidAmount();
 
-        if (!stableToken.transferFrom(msg.sender, address(this), amount)) revert TransferFailed();
+        stableToken.safeTransferFrom(sender, address(this), amount);
 
         goal.raisedAmount += amount;
-        donationsByDonor[goalId][msg.sender] += amount;
+        donationsByDonor[goalId][sender] += amount;
 
         if (goal.raisedAmount >= goal.targetAmount) {
             goal.status = GoalStatus.Funded;
         }
 
-        emit Funded(goalId, msg.sender, amount, goal.raisedAmount);
+        emit Funded(goalId, sender, amount, goal.raisedAmount);
     }
 
     function claimFunds(uint256 goalId) external whenNotPaused nonReentrant {
+        address sender = _msgSender();
         Goal storage goal = goals[goalId];
         if (goal.id == 0) revert GoalNotFound();
-        if (goal.creator != msg.sender) revert NotCreator();
+        if (goal.creator != sender) revert NotCreator();
         if (goal.lockedForReview) revert GoalLocked();
         if (goal.status != GoalStatus.Funded && goal.status != GoalStatus.Fulfilled) revert GoalNotFunded();
 
@@ -196,7 +197,7 @@ contract ImpactPay {
             goal.status = GoalStatus.Fulfilled;
             if (!stableToken.transfer(treasury, fee)) revert TransferFailed();
             if (!stableToken.transfer(goal.creator, payoutAmount)) revert TransferFailed();
-            emit Completed(goalId, msg.sender, payoutAmount, 1);
+            emit Completed(goalId, sender, payoutAmount, 1);
             emit ReputationUpdated(goal.creator, 100, "goal_fulfilled");
             return;
         }
@@ -208,7 +209,7 @@ contract ImpactPay {
         goal.milestoneIndex = 1;
         goal.milestoneDeadline = uint64(block.timestamp + 90 days);
         if (!stableToken.transfer(goal.creator, firstTranche)) revert TransferFailed();
-        emit Completed(goalId, msg.sender, firstTranche, 1);
+        emit Completed(goalId, sender, firstTranche, 1);
     }
 
     function approveRelease(uint256 goalId) external onlyReleaseApprover whenNotPaused nonReentrant {
@@ -234,27 +235,27 @@ contract ImpactPay {
 
         goal.withdrawnAmount += amountToRelease;
         if (!stableToken.transfer(goal.creator, amountToRelease)) revert TransferFailed();
-        emit Completed(goalId, msg.sender, amountToRelease, goal.milestoneIndex);
+        emit Completed(goalId, _msgSender(), amountToRelease, goal.milestoneIndex);
         if (goal.milestoneIndex == 3) emit ReputationUpdated(goal.creator, 100, "goal_fulfilled");
     }
 
     function flagGoal(uint256 goalId) external whenNotPaused {
         Goal storage goal = goals[goalId];
         if (goal.id == 0) revert GoalNotFound();
-        if (donationsByDonor[goalId][msg.sender] == 0) revert NotDonor();
-        if (hasFlagged[goalId][msg.sender]) revert AlreadyFlagged();
+        if (donationsByDonor[goalId][_msgSender()] == 0) revert NotDonor();
+        if (hasFlagged[goalId][_msgSender()]) revert AlreadyFlagged();
 
-        hasFlagged[goalId][msg.sender] = true;
+        hasFlagged[goalId][_msgSender()] = true;
         goal.flagsCount += 1;
         if (goal.flagsCount > 3) {
             goal.lockedForReview = true;
         }
-        emit GoalFlagged(goalId, msg.sender, goal.flagsCount, goal.lockedForReview);
+        emit GoalFlagged(goalId, _msgSender(), goal.flagsCount, goal.lockedForReview);
         emit ReputationUpdated(goal.creator, -500, "goal_flagged");
     }
 
     function markBillFulfilled(uint256 goalId) external whenNotPaused {
-        if (msg.sender != backendFulfillmentSigner && msg.sender != owner) revert NotOwner();
+        if (_msgSender() != backendFulfillmentSigner && _msgSender() != owner) revert NotOwner();
         Goal storage goal = goals[goalId];
         if (goal.id == 0) revert GoalNotFound();
         if (goal.category != Category.Bill) revert BillOnly();
@@ -270,25 +271,25 @@ contract ImpactPay {
         if (goal.milestoneIndex == 0) revert RefundNotAvailable();
         if (goal.milestoneIndex >= 2) revert RefundNotAvailable();
         if (goal.milestoneDeadline == 0 || block.timestamp <= goal.milestoneDeadline) revert RefundNotAvailable();
-        if (donationsByDonor[goalId][msg.sender] == 0) revert NotDonor();
-        if (donorRefunded[goalId][msg.sender]) revert AlreadyRefunded();
+        if (donationsByDonor[goalId][_msgSender()] == 0) revert NotDonor();
+        if (donorRefunded[goalId][_msgSender()]) revert AlreadyRefunded();
 
         uint256 remainingPool = goal.raisedAmount - goal.withdrawnAmount - goal.refundedAmount;
-        uint256 donorShare = (donationsByDonor[goalId][msg.sender] * remainingPool) / goal.raisedAmount;
+        uint256 donorShare = (donationsByDonor[goalId][_msgSender()] * remainingPool) / goal.raisedAmount;
         if (donorShare == 0) revert RefundNotAvailable();
 
-        donorRefunded[goalId][msg.sender] = true;
+        donorRefunded[goalId][_msgSender()] = true;
         goal.refundedAmount += donorShare;
-        if (!stableToken.transfer(msg.sender, donorShare)) revert TransferFailed();
+        if (!stableToken.transfer(_msgSender(), donorShare)) revert TransferFailed();
         if (goal.refundedAmount >= (goal.raisedAmount * 80) / 100) {
             goal.status = GoalStatus.Cancelled;
         }
-        emit Refunded(goalId, msg.sender, donorShare);
+        emit Refunded(goalId, _msgSender(), donorShare);
         emit ReputationUpdated(goal.creator, -200, "proof_unmet");
     }
 
     function onVerificationSuccess(address user) external {
-        if (msg.sender != backendFulfillmentSigner && msg.sender != owner) revert NotOwner();
+        if (_msgSender() != backendFulfillmentSigner && _msgSender() != owner) revert NotOwner();
         level3Verified[user] = true;
     }
 
@@ -300,9 +301,13 @@ contract ImpactPay {
         backendFulfillmentSigner = newSigner;
     }
 
-    function setPaused(bool state) external onlyOwner {
-        paused = state;
-        emit Paused(state);
+    // function setPaused(bool state) external onlyOwner {
+    //     paused = state;
+    //     emit Paused(state);
+    // }
+
+    function pause() public onlyOwner {
+        _pause();
     }
 }
 
