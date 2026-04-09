@@ -8,6 +8,7 @@ import { FeaturedGoalsCarousel } from "@/components/FeaturedGoalsCarousel";
 import { ImpactDashboard } from "@/components/ImpactDashboard";
 import { IdentityVerificationCard } from "@/components/IdentityVerificationCard";
 import { PhoneLookupCard } from "@/components/PhoneLookupCard";
+import { useReputation } from "@/hooks/useReputation";
 import { useWeb3 } from "@/contexts/useWeb3";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -29,6 +30,7 @@ export default function Home() {
     const [tx, setTx] = useState<any>(undefined);
     const [amountToSend, setAmountToSend] = useState<string>("0.1");
     const [messageSigned, setMessageSigned] = useState<boolean>(false); // State to track if a message was signed
+    const { data: reputationData } = useReputation(address ?? undefined);
 
 
     useEffect(() => {
@@ -114,7 +116,10 @@ export default function Home() {
 
             {address && (
                 <>
-                    <ImpactDashboard totalFundedUsd={0} reputationScore={0} />
+                    <ImpactDashboard
+                        totalFundedUsd={reputationData.totalFundedUsd}
+                        reputationScore={reputationData.donorReputation}
+                    />
                     <FeaturedGoalsCarousel />
                     <IdentityVerificationCard address={address} />
                     <PhoneLookupCard />

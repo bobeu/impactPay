@@ -1,0 +1,28 @@
+type Goal @entity(immutable: false) {
+  id: ID!
+  goalId: BigInt!
+  creator: Bytes!
+  category: String!
+  description: String!
+  targetAmount: BigInt!
+  amountRaised: BigInt!
+  status: String!
+  flagsCount: Int!
+  completed: Boolean!
+}
+
+type Donor @entity(immutable: false) {
+  id: ID!
+  totalDonated: BigInt!
+  goalsSupported: Int!
+  successfulGoalsSupported: Int!
+  reputation: BigInt!
+}
+
+type Requester @entity(immutable: false) {
+  id: ID!
+  completedGoals: Int!
+  flaggedGoals: Int!
+  reputation: BigInt!
+}
+
