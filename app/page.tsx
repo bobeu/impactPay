@@ -3,6 +3,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FeaturedGoalsCarousel } from "@/components/FeaturedGoalsCarousel";
+import { ImpactDashboard } from "@/components/ImpactDashboard";
 import { useWeb3 } from "@/contexts/useWeb3";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -84,112 +86,139 @@ export default function Home() {
 
 
     return (
-        <div className="flex flex-col justify-center items-center">
+        <div className="flex flex-col gap-5">
             {!address && (
-                <div className="h1 text-center text-sm px-2">
-                    Open this app in MiniPay (or use a browser with an injected
-                    wallet). Your wallet connects automatically—there is no
-                    connect button.
-                </div>
+                <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-3">
+                    <div className="space-y-1">
+                        <h1 className="text-base font-semibold text-slate-800">
+                            Welcome to ImpactPay
+                        </h1>
+                        <p className="text-sm text-slate-600">
+                            Open this app in MiniPay (or a browser with an injected wallet).
+                            Your wallet connects automatically—there is no connect button.
+                        </p>
+                    </div>
+                    <a
+                        href="https://faucet.celo.org/alfajores"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm active:scale-[0.98]"
+                    >
+                        Get test tokens on Alfajores
+                    </a>
+                </section>
             )}
-            {address && (
-                <div className="h1">
-                    There you go... a canvas for your next Minipay project!
-                </div>
-            )}
-
-            <a
-                href="https://faucet.celo.org/alfajores"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 mb-4 rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-                Get Test Tokens
-            </a>
 
             {address && (
                 <>
-                    <div className="h2 text-center">
-                        Your address:{" "}
-                        <span className="font-bold text-sm">{address}</span>
-                    </div>
-                    {tx && (
-                        <p className="font-bold mt-4">
-                            Tx Completed:{" "}
-                            <a
-                                href={`https://alfajores.celoscan.io/tx/${tx.transactionHash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 underline"
-                            >
-                                {tx.transactionHash.substring(0, 6)}...{tx.transactionHash.substring(tx.transactionHash.length - 6)}
-                            </a>
-                        </p>
-                    )}
-                    <div className="w-full px-3 mt-7">
-                        <Input
-                            type="number"
-                            value={amountToSend}
-                            onChange={(e) => setAmountToSend(e.target.value)}
-                            placeholder="Enter amount to send"
-                            className="border rounded-md px-3 py-2 w-full mb-3"
-                        ></Input>
-                        <Button
-                            loading={signingLoading}
-                            onClick={sendingCUSD}
-                            title={`Send ${amountToSend} cUSD to your own address`}
-                            widthFull
-                        />
-                    </div>
+                    <ImpactDashboard totalFundedUsd={0} reputationScore={0} />
+                    <FeaturedGoalsCarousel />
 
-                    <div className="w-full px-3 mt-6">
-                        <Button
-                            loading={cUSDLoading}
-                            onClick={signMessage}
-                            title="Sign a Message"
-                            widthFull
-                        />
-                    </div>
-
-                    {messageSigned && (
-                        <div className="mt-5 text-green-600 font-bold">
-                            Message signed successfully!
+                    <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-slate-800">
+                                Try a test transaction
+                            </h2>
+                            <span className="text-[11px] text-slate-500">
+                                Address ending in{" "}
+                                <span className="font-mono">
+                                    {address.slice(0, 6)}…{address.slice(-4)}
+                                </span>
+                            </span>
                         </div>
-                    )}
 
-                    <div className="w-full px-3 mt-5">
-                        <Button
-                            loading={nftLoading}
-                            onClick={mintNFT}
-                            title="Mint Minipay NFT"
-                            widthFull
-                        />
-                    </div>
+                        {tx && (
+                            <p className="text-xs font-medium text-emerald-700">
+                                Tx completed:{" "}
+                                <a
+                                    href={`https://alfajores.celoscan.io/tx/${tx.transactionHash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline"
+                                >
+                                    {tx.transactionHash.substring(0, 6)}...
+                                    {tx.transactionHash.substring(tx.transactionHash.length - 6)}
+                                </a>
+                            </p>
+                        )}
 
-                    {userOwnedNFTs.length > 0 ? (
-                        <div className="flex flex-col items-center justify-center w-full mt-7">
-                            <p className="font-bold">My NFTs</p>
-                            <div className="w-full grid grid-cols-2 gap-3 mt-3 px-2">
-                                {userOwnedNFTs.map((tokenURI, index) => (
-                                    <div
-                                        key={index}
-                                        className="p-2 border-[3px] border-colors-secondary rounded-xl"
-                                    >
-                                        <Image
-                                            alt="MINIPAY NFT"
-                                            src={tokenURI}
-                                            className="w-[160px] h-[200px] object-cover"
-                                            width={160}
-                                            height={200}
-                                        />
+                        <div className="space-y-3">
+                            <div className="space-y-2">
+                                <label className="block text-xs font-medium text-slate-600">
+                                    Send test cUSD to yourself
+                                </label>
+                                <Input
+                                    type="number"
+                                    value={amountToSend}
+                                    onChange={(e) => setAmountToSend(e.target.value)}
+                                    placeholder="Enter amount to send"
+                                    className="border rounded-md px-3 py-2 w-full"
+                                />
+                                <Button
+                                    loading={signingLoading}
+                                    onClick={sendingCUSD}
+                                    title={`Send ${amountToSend} cUSD`}
+                                    widthFull
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-xs font-medium text-slate-600">
+                                    Sign a message
+                                </label>
+                                <Button
+                                    loading={cUSDLoading}
+                                    onClick={signMessage}
+                                    title="Sign a message"
+                                    widthFull
+                                />
+                                {messageSigned && (
+                                    <div className="text-xs font-medium text-emerald-700">
+                                        Message signed successfully.
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
-                    ) : (
-                        <div className="mt-5">You do not have any NFTs yet</div>
-                    )}
+                    </section>
 
+                    <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+                        <h2 className="text-sm font-semibold text-slate-800 mb-2">
+                            Demo NFTs
+                        </h2>
+                        {userOwnedNFTs.length > 0 ? (
+                            <div className="flex flex-col items-center justify-center w-full mt-2">
+                                <div className="w-full grid grid-cols-2 gap-3 px-2">
+                                    {userOwnedNFTs.map((tokenURI, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-2 border border-slate-200 rounded-xl shadow-sm"
+                                        >
+                                            <Image
+                                                alt="MINIPAY NFT"
+                                                src={tokenURI}
+                                                className="w-full h-[160px] object-cover rounded-md"
+                                                width={160}
+                                                height={160}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-xs text-slate-600">
+                                    You do not have any NFTs yet. Mint one to test the
+                                    MiniPay flow.
+                                </p>
+                                <Button
+                                    loading={nftLoading}
+                                    onClick={mintNFT}
+                                    title="Mint demo NFT"
+                                    widthFull
+                                />
+                            </div>
+                        )}
+                    </section>
                 </>
             )}
         </div>
