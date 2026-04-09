@@ -107,12 +107,12 @@ export default function Home() {
                         </p>
                     </div>
                     <a
-                        href="https://faucet.celo.org/alfajores"
+                        href="https://faucet.celo.org/celo-sepolia/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm active:scale-[0.98]"
                     >
-                        Get test tokens on Alfajores
+                        Get test tokens on Celo Sepolia
                     </a>
                 </section>
             )}
@@ -148,7 +148,7 @@ export default function Home() {
                             <p className="text-xs font-medium text-emerald-700">
                                 Tx completed:{" "}
                                 <a
-                                    href={`https://alfajores.celoscan.io/tx/${tx.transactionHash}`}
+                                    href={`https://celo-sepolia.blockscout.com/tx/${tx.transactionHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="underline"

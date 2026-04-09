@@ -12,9 +12,9 @@ function donorReputation(totalDonated: BigInt, successfulGoalsSupported: i32): B
   return totalDonated.times(BigInt.fromI32(10)).plus(BigInt.fromI32(successfulGoalsSupported * 50));
 }
 
-function requesterReputation(completedGoals: i32, flaggedGoals: i32): BigInt {
-  // Requester Reputation = (Completed goals * 100) - (Flagged goals * 500)
-  return BigInt.fromI32(completedGoals * 100 - flaggedGoals * 500);
+function requesterReputation(completedGoals: i32, unmetProofs: i32, flaggedGoals: i32): BigInt {
+  // Requester Reputation = (Completed goals * 100) - (Unmet Proofs * 200) - (Flags * 500)
+  return BigInt.fromI32(completedGoals * 100 - unmetProofs * 200 - flaggedGoals * 500);
 }
 
 export function handleGoalCreated(event: GoalCreated): void {
@@ -35,8 +35,9 @@ export function handleGoalCreated(event: GoalCreated): void {
   if (requester == null) {
     requester = new Requester(event.params.creator.toHexString());
     requester.completedGoals = 0;
+    requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
-    requester.reputation = BigInt.zero();
+    requester.reputation = requesterReputation(0, 0, 0);
     requester.save();
   }
 }
@@ -83,10 +84,11 @@ export function handleCompleted(event: Completed): void {
   if (requester == null) {
     requester = new Requester(goal.creator.toHexString());
     requester.completedGoals = 0;
+    requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
   }
   requester.completedGoals = requester.completedGoals + 1;
-  requester.reputation = requesterReputation(requester.completedGoals, requester.flaggedGoals);
+  requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
   requester.save();
 }
 
@@ -101,10 +103,11 @@ export function handleGoalFlagged(event: GoalFlagged): void {
   if (requester == null) {
     requester = new Requester(goal.creator.toHexString());
     requester.completedGoals = 0;
+    requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
   }
   requester.flaggedGoals = requester.flaggedGoals + 1;
-  requester.reputation = requesterReputation(requester.completedGoals, requester.flaggedGoals);
+  requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
   requester.save();
 }
 

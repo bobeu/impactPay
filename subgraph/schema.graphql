@@ -22,6 +22,7 @@ type Donor @entity(immutable: false) {
 type Requester @entity(immutable: false) {
   id: ID!
   completedGoals: Int!
+  unmetProofs: Int!
   flaggedGoals: Int!
   reputation: BigInt!
 }
