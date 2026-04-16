@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { storeCard } from "@/lib/virtual-card-store";
 
+import { checkRateLimit } from "@/lib/rate-limiter";
+
 export async function POST(req: NextRequest) {
+  const ip = req.ip || "127.0.0.1";
+  const { success } = await checkRateLimit(ip);
+  if (!success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const { goalId, amount, ownerAddress, provider } = body as {

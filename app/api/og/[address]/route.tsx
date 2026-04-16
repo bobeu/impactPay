@@ -40,46 +40,62 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ addr
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: '#001B3D',
           padding: '60px',
           fontFamily: 'sans-serif',
+          color: 'white',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 28, color: '#10B981', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8 }}>ImpactPay Protocol</span>
-            <span style={{ fontSize: 60, color: '#001B3D', fontWeight: 800, letterSpacing: '-0.04em' }}>
+            <span style={{ fontSize: 24, color: '#10B981', fontWeight: 600, letterSpacing: '0.05em', marginBottom: 12 }}>IMPACTPAY PROTOCOL</span>
+            <span style={{ fontSize: 64, color: 'white', fontWeight: 800, letterSpacing: '-0.04em' }}>
               Proof of Impact
             </span>
           </div>
-          <div style={{ display: 'flex', backgroundColor: '#F8FAFC', padding: '16px 24px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-            <span style={{ fontSize: 24, fontWeight: 700, color: '#001B3D' }}>{displayName}</span>
+          <div style={{ display: 'flex', backgroundColor: 'rgba(255,255,255,0.05)', padding: '20px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: 28, fontWeight: 700, color: 'white' }}>{displayName}</span>
           </div>
         </div>
 
         <div style={{ display: 'flex', marginTop: 'auto', gap: '32px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#F8FAFC', padding: '32px', borderRadius: '24px', flex: 1, border: '1px solid #E2E8F0' }}>
-            <span style={{ fontSize: 20, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Impact Score</span>
-            <span style={{ fontSize: 56, color: '#001B3D', fontWeight: 800, marginTop: 12 }}>{score}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255,255,255,0.03)', padding: '40px', borderRadius: '32px', flex: 1, border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span style={{ fontSize: 18, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Verifiable Score</span>
+            <span style={{ fontSize: 72, color: 'white', fontWeight: 800, marginTop: 16 }}>{score}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#F8FAFC', padding: '32px', borderRadius: '24px', flex: 1, border: '1px solid #E2E8F0' }}>
-            <span style={{ fontSize: 20, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Global Rank</span>
-            <span style={{ fontSize: 56, color: '#001B3D', fontWeight: 800, marginTop: 12 }}>#{globalRank}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255,255,255,0.03)', padding: '40px', borderRadius: '32px', flex: 1, border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span style={{ fontSize: 18, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Global Ranking</span>
+            <span style={{ fontSize: 72, color: 'white', fontWeight: 800, marginTop: 16 }}>#{globalRank}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#F8FAFC', padding: '32px', borderRadius: '24px', flex: 1, border: '1px solid #E2E8F0' }}>
-            <span style={{ fontSize: 20, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verification</span>
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 12 }}>
-              <span style={{ fontSize: 32, color: '#10B981', fontWeight: 800 }}>L3 Verified</span>
-              <div style={{ display: 'flex', marginLeft: 12, backgroundColor: '#10B981', borderRadius: '50%', width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'white', fontSize: 20 }}>✓</span>
+          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '40px', borderRadius: '32px', flex: 1, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+            <span style={{ fontSize: 18, color: '#10B981', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Verification</span>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
+              <span style={{ fontSize: 32, color: 'white', fontWeight: 800 }}>LVL 3</span>
+              <div style={{ 
+                display: 'flex', 
+                marginLeft: 16, 
+                backgroundColor: '#10B981', 
+                borderRadius: '12px', 
+                width: 48, 
+                height: 48, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)'
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
               </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', marginTop: '60px', borderTop: '1px solid #E2E8F0', paddingTop: '32px' }}>
-          <span style={{ fontSize: 18, color: '#94A3B8' }}>Verified Social Impact powered by Celo SocialConnect</span>
+        <div style={{ display: 'flex', marginTop: '60px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '40px', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 20, color: '#64748B' }}>Verified Impact on Celo Network</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#10B981' }}></div>
+            <span style={{ fontSize: 18, color: '#10B981', fontWeight: 600 }}>SECURE & AUDITABLE</span>
+          </div>
         </div>
       </div>
     ),

@@ -115,9 +115,19 @@ async function markGoalFulfilledOnChain(goalId: number) {
   return txHash;
 }
 
+import { checkRateLimit } from "@/lib/rate-limiter";
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
+  const ip = req.ip || "127.0.0.1";
+  
   try {
+    // 1. Rate Limiting check
+    const { success } = await checkRateLimit(ip);
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const sharedSecret = req.headers.get("x-impactpay-secret");
     if (!sharedSecret || sharedSecret !== process.env.FULFILL_BILL_SHARED_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

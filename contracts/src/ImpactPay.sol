@@ -513,17 +513,22 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         cd.lockedForReview = true;
         
         sc.milestone = Milestone(uint8(sc.milestone) + 1);
-        uint256 payoutAmount = (cd.raisedAmount * milestonePercent[sc.milestone]) / 100;
+        uint256 payoutAmount;
+        
+        if (sc.milestone == Milestone.TWO_FORTY) {
+            if (block.timestamp <= sc.milestoneDeadline) revert DeadlineNotMet();
+            // Dust-free release: take everything remaining for this goal
+            payoutAmount = cd.raisedAmount - cd.withdrawnAmount;
+            cd.status = GoalStatus.FULFILLED;
+            sc.milestone = Milestone.COMPLETED;
+            goalCount[cd.creator]--;
+        } else {
+            payoutAmount = (cd.raisedAmount * milestonePercent[sc.milestone]) / 100;
+        }
+
         uint256 fee = (payoutAmount * scholarshipFeeBP) / BPS_DENOMINATOR;
         uint256 netPayout = payoutAmount - fee;
         cd.withdrawnAmount += payoutAmount;
-
-        if (sc.milestone == Milestone.TWO_FORTY) {
-            if (block.timestamp <= sc.milestoneDeadline) revert DeadlineNotMet();
-            cd.status = GoalStatus.FULFILLED;
-            sc.milestone = Milestone.COMPLETED;
-            goalCount[_msgSender()]--;
-        }
         
         sc.milestoneDeadline = uint64(block.timestamp + 90 days);
 

@@ -8,16 +8,24 @@ export function VirtualCardPortal({ address }: { address?: string | null }) {
   const [goalId, setGoalId] = useState("1");
   const [result, setResult] = useState<string>("");
 
+  const [loading, setLoading] = useState(false);
+  
   const reveal = async () => {
-    if (!address) return;
-    const res = await fetch("/api/card/redeem", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goalId: Number(goalId), requester: address }),
-    });
-    const data = await res.json();
-    if (!res.ok) setResult(data.error || "Unable to reveal card");
-    else setResult(JSON.stringify(data.card.payload).slice(0, 180) + "...");
+    if (!address || loading) return;
+    setLoading(true);
+    setResult("");
+    try {
+      const res = await fetch("/api/card/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goalId: Number(goalId), requester: address }),
+      });
+      const data = await res.json();
+      if (!res.ok) setResult(data.error || "Unable to reveal card");
+      else setResult(JSON.stringify(data.card.payload).slice(0, 180) + "...");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,11 +39,11 @@ export function VirtualCardPortal({ address }: { address?: string | null }) {
       <input className="h-11 border rounded-md px-3 text-sm" value={goalId} onChange={(e) => setGoalId(e.target.value)} placeholder="Goal ID" />
       <button
         type="button"
-        disabled={profile.verificationLevel < 3}
+        disabled={profile.verificationLevel < 3 || loading}
         onClick={reveal}
         className="h-11 w-full rounded-full border border-slate-200 bg-white text-slate-700 text-sm font-medium disabled:opacity-50"
       >
-        Reveal card details
+        {loading ? "Processing..." : "Reveal card details"}
       </button>
       {result ? <pre className="text-[11px] text-slate-600 whitespace-pre-wrap break-all">{result}</pre> : null}
     </section>
