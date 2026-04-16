@@ -23,13 +23,19 @@ dataSources:
         - name: ImpactPay
           file: ./abis/ImpactPay.json
       eventHandlers:
-        - event: GoalCreated(indexed uint256,indexed address,indexed address,uint8,uint256,string)
+        - event: GoalCreated(indexed uint256,indexed address,uint8,uint256,bytes,string,address,string)
           handler: handleGoalCreated
-        - event: Funded(indexed uint256,indexed address,uint256,uint256)
+        - event: Funded(indexed uint256,indexed address,uint256,uint256,uint8,string)
           handler: handleFunded
-        - event: Completed(indexed uint256,indexed address,uint256,uint8)
-          handler: handleCompleted
-        - event: GoalFlagged(indexed uint256,indexed address,uint8,bool)
+        - event: BillGoalFulfilled(indexed uint256,indexed address,indexed address,uint256,bytes,uint256)
+          handler: handleBillGoalFulfilled
+        - event: ScholarshipWithdrawal(indexed uint256,indexed address,indexed address,uint256,uint256,uint8,uint8)
+          handler: handleScholarshipWithdrawal
+        - event: GoalFlagged(indexed uint256,indexed address,uint8,bool,uint8,address,int256,string)
           handler: handleGoalFlagged
+        - event: Refunded(indexed uint256,indexed address,uint256,indexed address,int256,string)
+          handler: handleRefunded
+        - event: ReputationUpdated(indexed address,int256,string)
+          handler: handleReputationUpdated
       file: ./src/mapping.ts
 

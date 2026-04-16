@@ -1,172 +1,301 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-
+import {Test, console2} from "forge-std/Test.sol";
 import {ImpactPay} from "../src/ImpactPay.sol";
 import {MockERC20} from "../src/MockERC20.sol";
 
 contract ImpactPayTest is Test {
-    MockERC20 token;
-    ImpactPay impactPay;
+    ImpactPay public impactPay;
+    MockERC20 public token;
 
-    address owner = address(0xA11CE);
-    address treasury = address(0xBEEF);
-    address approver = address(0xCAFE);
-    address creator = address(0xC001);
-    address donor1 = address(0xD001);
-    address donor2 = address(0xD002);
-    address donor3 = address(0xD003);
-    address donor4 = address(0xD004);
+    address public owner = address(this);
+    address public treasury = address(0x1);
+    address public approver = address(0x2);
+    address public signer = address(0x3);
+    address public creator = address(0x4);
+    address public donor = address(0x5);
+    address public billServiceProvider = address(0x6);
 
-    uint256 billListingFee = 50_000; // $0.05 (6 decimals)
-    uint256 scholarshipListingFee = 1_000_000; // $1.00 (6 decimals)
+    uint256 public constant BILL_FEE = 10e18;
+    uint256 public constant SCHOLARSHIP_FEE = 20e18;
+    uint256 public constant INITIAL_BALANCE = 1000e18;
 
     function setUp() public {
-        vm.startPrank(owner);
         token = new MockERC20();
         impactPay = new ImpactPay(
             address(token),
             treasury,
             approver,
-            owner,
-            billListingFee,
-            scholarshipListingFee
+            signer,
+            BILL_FEE,
+            SCHOLARSHIP_FEE
         );
-        vm.stopPrank();
 
-        _mintAndApprove(creator, 10_000_000);
-        _mintAndApprove(donor1, 10_000_000);
-        _mintAndApprove(donor2, 10_000_000);
-        _mintAndApprove(donor3, 10_000_000);
-        _mintAndApprove(donor4, 10_000_000);
-
-        vm.prank(owner);
-        impactPay.onVerificationSuccess(creator);
-    }
-
-    function _mintAndApprove(address user, uint256 amount) internal {
-        token.mint(user, amount);
-        vm.prank(user);
-        token.approve(address(impactPay), type(uint256).max);
-    }
-
-    function _createScholarshipGoal() internal returns (uint256) {
-        vm.prank(creator);
-        impactPay.createGoal(5_000_000, ImpactPay.Category.Scholarship, "Nursing scholarship");
-        return 1;
-    }
-
-    function _createBillGoal() internal returns (uint256) {
-        vm.prank(creator);
-        impactPay.createGoal(2_000_000, ImpactPay.Category.Bill, "Electricity bill");
-        return 1;
-    }
-
-    function testScholarshipMilestoneReleaseFlow() public {
-        uint256 goalId = _createScholarshipGoal();
-
-        vm.prank(donor1);
-        impactPay.fundGoal(goalId, 3_000_000);
-        vm.prank(donor2);
-        impactPay.fundGoal(goalId, 2_000_000);
-
-        uint256 beforeCreator = token.balanceOf(creator);
+        token.mint(creator, INITIAL_BALANCE);
+        token.mint(donor, INITIAL_BALANCE);
 
         vm.prank(creator);
-        impactPay.claimFunds(goalId); // 20%
-        assertEq(token.balanceOf(creator), beforeCreator + 1_000_000);
-
-        vm.prank(approver);
-        impactPay.approveRelease(goalId); // +40%
-        assertEq(token.balanceOf(creator), beforeCreator + 3_000_000);
-
-        vm.prank(owner);
-        impactPay.approveRelease(goalId); // +40%
-        assertEq(token.balanceOf(creator), beforeCreator + 5_000_000);
-    }
-
-    function testFlaggedGoalPreventsWithdrawal() public {
-        uint256 goalId = _createScholarshipGoal();
-
-        vm.prank(donor1);
-        impactPay.fundGoal(goalId, 1_250_000);
-        vm.prank(donor2);
-        impactPay.fundGoal(goalId, 1_250_000);
-        vm.prank(donor3);
-        impactPay.fundGoal(goalId, 1_250_000);
-        vm.prank(donor4);
-        impactPay.fundGoal(goalId, 1_250_000);
-
-        vm.prank(donor1);
-        impactPay.flagGoal(goalId);
-        vm.prank(donor2);
-        impactPay.flagGoal(goalId);
-        vm.prank(donor3);
-        impactPay.flagGoal(goalId);
-        vm.prank(donor4);
-        impactPay.flagGoal(goalId);
-
-        vm.prank(creator);
-        vm.expectRevert(ImpactPay.GoalLocked.selector);
-        impactPay.claimFunds(goalId);
-    }
-
-    function testCreationFailsWithoutExactListingFee() public {
-        address notFundedCreator = address(0xF00D);
-        vm.prank(notFundedCreator);
         token.approve(address(impactPay), type(uint256).max);
 
-        vm.prank(notFundedCreator);
-        vm.expectRevert(bytes("BALANCE"));
-        impactPay.createGoal(5_000_000, ImpactPay.Category.Bill, "Should fail");
+        vm.prank(donor);
+        token.approve(address(impactPay), type(uint256).max);
+        
+        // Register a bill service
+        impactPay.setBillService(billServiceProvider);
     }
 
-    function testBillClaimDeductsSuccessFeeAndListingFeeSentImmediately() public {
-        uint256 beforeTreasury = token.balanceOf(treasury);
-        uint256 goalId = _createBillGoal();
-        assertEq(token.balanceOf(treasury), beforeTreasury + billListingFee);
+    // --- Goal Creation Tests ---
 
-        vm.prank(donor1);
-        impactPay.fundGoal(goalId, 2_000_000);
-
-        uint256 creatorBefore = token.balanceOf(creator);
-        uint256 treasuryBeforeClaim = token.balanceOf(treasury);
-
+    function test_CreateGoal_Default() public {
         vm.prank(creator);
-        impactPay.claimFunds(goalId);
-
-        // 3% success fee from 2_000_000 = 60_000
-        assertEq(token.balanceOf(treasury), treasuryBeforeClaim + 60_000);
-        assertEq(token.balanceOf(creator), creatorBefore + 1_940_000);
+        bool success = impactPay.createGoal(100e18, "Default Goal", "Extra Info");
+        assertTrue(success);
+        
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(goal.common.targetAmount, 100e18);
+        assertEq(uint8(goal.common.goalType), uint8(ImpactPay.GoalType.DEFAULT));
     }
 
-    function testNonLevel3CannotCreateScholarship() public {
-        address unverified = address(0xAA01);
-        _mintAndApprove(unverified, 2_000_000);
+    function test_CreateBillGoal() public {
+        uint256 balanceBefore = token.balanceOf(treasury);
+        
+        vm.prank(creator);
+        bool success = impactPay.createBillGoal(
+            50e18, 
+            "Electricity Bill", 
+            "electricity", 
+            "ID: 123", 
+            0 // index of billServiceProvider
+        );
+        assertTrue(success);
+        assertEq(token.balanceOf(treasury), balanceBefore + BILL_FEE);
+        
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.goalType), uint8(ImpactPay.GoalType.BILL));
+        assertEq(goal.bill.billService, billServiceProvider);
+    }
 
-        vm.prank(unverified);
+    function test_CreateScholarshipGoal_RevertIfNoLevel3() public {
+        vm.prank(creator);
         vm.expectRevert(ImpactPay.Level3Required.selector);
-        impactPay.createGoal(2_000_000, ImpactPay.Category.Scholarship, "Locked");
+        impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
     }
 
-    function testRefundAfterNinetyDaysIfMilestoneNotApproved() public {
-        uint256 goalId = _createScholarshipGoal();
-
-        vm.prank(donor1);
-        impactPay.fundGoal(goalId, 2_500_000);
-        vm.prank(donor2);
-        impactPay.fundGoal(goalId, 2_500_000);
-
+    function test_CreateScholarshipGoal_SuccessAfterLevel3() public {
+        impactPay.onVerificationSuccess(creator);
+        
         vm.prank(creator);
-        impactPay.claimFunds(goalId); // 20% released, 80% left
+        bool success = impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
+        assertTrue(success);
+        
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.goalType), uint8(ImpactPay.GoalType.SCHOLARSHIP));
+    }
 
+    // --- Funding Tests ---
+
+    function test_FundGoal() public {
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal", "Info");
+
+        vm.prank(donor);
+        bool success = impactPay.fundGoal(1, 50e18, "Donor Info");
+        assertTrue(success);
+
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(goal.common.raisedAmount, 50e18);
+        assertEq(goal.funders.length, 1);
+        assertEq(goal.funders[0].id, donor);
+    }
+
+    function test_FundGoal_StatusUpdatesToRaised() public {
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal", "Info");
+
+        vm.prank(donor);
+        impactPay.fundGoal(1, 100e18, "Donor Info");
+
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.status), uint8(ImpactPay.GoalStatus.RAISED));
+    }
+
+    // --- Scholarship Fulfillment Tests ---
+
+    function test_ScholarshipMilestoneFlow() public {
+        // Setup raised scholarship goal
+        impactPay.onVerificationSuccess(creator);
+        vm.prank(creator);
+        impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
+        vm.prank(donor);
+        impactPay.fundGoal(1, 100e18, "");
+
+        // First Milestone (20%)
+        uint256 creatorBalanceBefore = token.balanceOf(creator);
+        vm.prank(creator);
+        impactPay.claimScholarshipFunds(1, address(0));
+
+        uint256 expectedPayout = (100e18 * 20) / 100;
+        uint256 fee = (expectedPayout * 300) / 10000;
+        assertEq(token.balanceOf(creator), creatorBalanceBefore + expectedPayout - fee);
+    }
+
+    // --- Bill Relay Tests ---
+
+    function test_RelayBillFunds() public {
+        vm.prank(creator);
+        impactPay.createBillGoal(50e18, "Bill", "Type", "", 0);
+        vm.prank(donor);
+        impactPay.fundGoal(1, 50e18, "");
+
+        uint256 serviceBalanceBefore = token.balanceOf(billServiceProvider);
+        
+        vm.prank(approver);
+        impactPay.relayBillFundsToService(1, 50e18);
+
+        uint256 fee = (50e18 * 300) / 10000;
+        assertEq(token.balanceOf(billServiceProvider), serviceBalanceBefore + 50e18 - fee);
+        
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.status), uint8(ImpactPay.GoalStatus.FULFILLED));
+    }
+
+    // --- Flagging and Locking Tests ---
+
+    function test_FlagGoal() public {
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal", "");
+        vm.prank(donor);
+        impactPay.fundGoal(1, 10e18, "");
+
+        vm.prank(donor);
+        impactPay.flagGoal(1);
+
+        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(goal.common.flagsCount, 1);
+    }
+
+    // --- Admin Tests ---
+
+    function test_Restriction() public {
+        impactPay.restriction(donor, true);
+        
+        vm.prank(donor);
+        vm.expectRevert("Restricted");
+        impactPay.fundGoal(1, 10e18, "");
+    }
+
+    function test_Pause() public {
+        impactPay.pause();
+        
+        vm.prank(creator);
+        // Using custom error selector for Pausable
+        vm.expectRevert(bytes4(keccak256("EnforcedPause()")));
+        impactPay.createGoal(100e18, "Goal", "");
+    }
+
+    function test_MaxGoals() public {
+        impactPay.setMaxGoal(1);
+        
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal 1", "");
+        
+        vm.prank(creator);
+        vm.expectRevert(ImpactPay.MaxGoalExceeded.selector);
+        impactPay.createGoal(100e18, "Goal 2", "");
+    }
+
+    function test_ReactivateGoal() public {
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal", "");
+        
+        vm.prank(creator);
+        impactPay.fulfillGoal(1, ImpactPay.GoalStatus.FULFILLED);
+        
+        ImpactPay.GetGoal memory goalBefore = impactPay.getGoal(1);
+        assertEq(uint8(goalBefore.common.status), uint8(ImpactPay.GoalStatus.FULFILLED));
+        
+        impactPay.reactivateGoal(1);
+        
+        ImpactPay.GetGoal memory goalAfter = impactPay.getGoal(1);
+        assertEq(uint8(goalAfter.common.status), uint8(ImpactPay.GoalStatus.OPEN));
+    }
+
+    function test_RefundScholarship() public {
+        impactPay.onVerificationSuccess(creator);
+        vm.prank(creator);
+        impactPay.createScholarshipGoal(100e18, "Scholarship", "");
+        
+        vm.prank(donor);
+        impactPay.fundGoal(1, 100e18, "");
+
+        // First milestone withdrawal
+        vm.prank(creator);
+        impactPay.claimScholarshipFunds(1, address(0));
+        
         vm.warp(block.timestamp + 91 days);
+        
+        uint256 donorBalanceBefore = token.balanceOf(donor);
+        vm.prank(donor);
+        impactPay.refundScholarship(1);
+        
+        assertGt(token.balanceOf(donor), donorBalanceBefore);
+    }
 
-        uint256 donorBefore = token.balanceOf(donor1);
-        vm.prank(donor1);
-        impactPay.refund(goalId);
-        assertGt(token.balanceOf(donor1), donorBefore);
+    function test_ApproveScholarshipRelease() public {
+        impactPay.onVerificationSuccess(creator);
+        vm.prank(creator);
+        impactPay.createScholarshipGoal(100e18, "Scholarship", "");
+        
+        vm.prank(donor);
+        impactPay.fundGoal(1, 100e18, "");
+
+        // Withdraw once - this locks the goal
+        vm.prank(creator);
+        impactPay.claimScholarshipFunds(1, address(0));
+        
+        ImpactPay.GetGoal memory goalLocked = impactPay.getGoal(1);
+        assertTrue(goalLocked.common.lockedForReview);
+
+        // Try to withdraw again - should fail because of lock
+        vm.prank(creator);
+        vm.expectRevert("Locked for review");
+        impactPay.claimScholarshipFunds(1, address(0));
+
+        // Approver unlocks
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 1;
+        vm.prank(approver);
+        impactPay.approveScholarshipRelease(ids);
+        
+        ImpactPay.GetGoal memory goalUnlocked = impactPay.getGoal(1);
+        assertFalse(goalUnlocked.common.lockedForReview);
+    }
+
+    function test_FlagGoal_LockingAtThreshold() public {
+        vm.prank(creator);
+        impactPay.createGoal(100e18, "Goal", "");
+        
+        address donor2 = address(0x222);
+        address donor3 = address(0x333);
+        token.mint(donor2, 10e18);
+        token.mint(donor3, 10e18);
+        vm.prank(donor2); token.approve(address(impactPay), 10e18);
+        vm.prank(donor3); token.approve(address(impactPay), 10e18);
+
+        vm.prank(donor); impactPay.fundGoal(1, 1e18, "");
+        vm.prank(donor2); impactPay.fundGoal(1, 1e18, "");
+        vm.prank(donor3); impactPay.fundGoal(1, 1e18, "");
+
+        vm.prank(donor); impactPay.flagGoal(1);
+        vm.prank(donor2); impactPay.flagGoal(1);
+        
+        ImpactPay.GetGoal memory goalBefore = impactPay.getGoal(1);
+        assertFalse(goalBefore.common.lockedForReview);
+
+        vm.prank(donor3); impactPay.flagGoal(1);
+        
+        ImpactPay.GetGoal memory goalAfter = impactPay.getGoal(1);
+        assertTrue(goalAfter.common.lockedForReview);
     }
 }
-

@@ -1,49 +1,107 @@
 [
   {
-    "anonymous": false,
+    "type": "constructor",
     "inputs": [
-      { "indexed": true, "internalType": "uint256", "name": "goalId", "type": "uint256" },
-      { "indexed": true, "internalType": "address", "name": "creator", "type": "address" },
-      { "indexed": true, "internalType": "address", "name": "donor", "type": "address" },
-      { "indexed": false, "internalType": "uint8", "name": "category", "type": "uint8" },
-      { "indexed": false, "internalType": "uint256", "name": "targetAmount", "type": "uint256" },
-      { "indexed": false, "internalType": "string", "name": "description", "type": "string" }
+      { "name": "stableToken_", "type": "address", "internalType": "address" },
+      { "name": "treasury_", "type": "address", "internalType": "address" },
+      { "name": "releaseApprover_", "type": "address", "internalType": "address" },
+      { "name": "backendFulfillmentSigner_", "type": "address", "internalType": "address" },
+      { "name": "billListingFee_", "type": "uint256", "internalType": "uint256" },
+      { "name": "scholarshipListingFee_", "type": "uint256", "internalType": "uint256" }
     ],
-    "name": "GoalCreated",
-    "type": "event"
+    "stateMutability": "nonpayable"
   },
   {
-    "anonymous": false,
+    "type": "event",
+    "name": "BillGoalFulfilled",
     "inputs": [
-      { "indexed": true, "internalType": "uint256", "name": "goalId", "type": "uint256" },
-      { "indexed": true, "internalType": "address", "name": "donor", "type": "address" },
-      { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "totalRaised", "type": "uint256" }
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "service", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "creator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "serviceType", "type": "bytes", "indexed": false, "internalType": "bytes" },
+      { "name": "reputation", "type": "uint256", "indexed": false, "internalType": "uint256" }
     ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Funded",
-    "type": "event"
+    "inputs": [
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "donor", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "totalRaised", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "goalType", "type": "uint8", "indexed": false, "internalType": "enum ImpactPay.GoalType" },
+      { "name": "extraInfo", "type": "string", "indexed": false, "internalType": "string" }
+    ],
+    "anonymous": false
   },
   {
-    "anonymous": false,
+    "type": "event",
+    "name": "GoalCreated",
     "inputs": [
-      { "indexed": true, "internalType": "uint256", "name": "goalId", "type": "uint256" },
-      { "indexed": true, "internalType": "address", "name": "donor", "type": "address" },
-      { "indexed": false, "internalType": "uint256", "name": "amountReleased", "type": "uint256" },
-      { "indexed": false, "internalType": "uint8", "name": "milestoneIndex", "type": "uint8" }
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "creator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "goalType", "type": "uint8", "indexed": false, "internalType": "enum ImpactPay.GoalType" },
+      { "name": "targetAmount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "description", "type": "bytes", "indexed": false, "internalType": "bytes" },
+      { "name": "serviceType", "type": "string", "indexed": false, "internalType": "string" },
+      { "name": "billService", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "extraInfo", "type": "string", "indexed": false, "internalType": "string" }
     ],
-    "name": "Completed",
-    "type": "event"
+    "anonymous": false
   },
   {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "internalType": "uint256", "name": "goalId", "type": "uint256" },
-      { "indexed": true, "internalType": "address", "name": "donor", "type": "address" },
-      { "indexed": false, "internalType": "uint8", "name": "flagsCount", "type": "uint8" },
-      { "indexed": false, "internalType": "bool", "name": "lockedForReview", "type": "bool" }
-    ],
+    "type": "event",
     "name": "GoalFlagged",
-    "type": "event"
+    "inputs": [
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "donor", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "flagsCount", "type": "uint8", "indexed": false, "internalType": "uint8" },
+      { "name": "lockedForReview", "type": "bool", "indexed": false, "internalType": "bool" },
+      { "name": "goalType", "type": "uint8", "indexed": false, "internalType": "enum ImpactPay.GoalType" },
+      { "name": "creator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "reputationSlash", "type": "int256", "indexed": false, "internalType": "int256" },
+      { "name": "comment", "type": "string", "indexed": false, "internalType": "string" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Refunded",
+    "inputs": [
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "donor", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "creator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "reputationSlice", "type": "int256", "indexed": false, "internalType": "int256" },
+      { "name": "comment", "type": "string", "indexed": false, "internalType": "string" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ReputationUpdated",
+    "inputs": [
+      { "name": "user", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "change", "type": "int256", "indexed": false, "internalType": "int256" },
+      { "name": "reason", "type": "string", "indexed": false, "internalType": "string" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ScholarshipWithdrawal",
+    "inputs": [
+      { "name": "goalId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "recipient", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "creator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "reputation", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "milestoneIndex", "type": "uint8", "indexed": false, "internalType": "uint8" },
+      { "name": "goalType", "type": "uint8", "indexed": false, "internalType": "uint8" }
+    ],
+    "anonymous": false
   }
 ]
-

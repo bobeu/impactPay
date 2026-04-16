@@ -40,16 +40,31 @@ export default function Home() {
             {address && (
                 <>
                     <ImpactDashboard
-                        totalFundedUsd={reputationData.totalFundedUsd}
-                        reputationScore={reputationData.donorReputation}
+                        totalFundedUsd={reputationData.score * 10} // Approximation for UI
+                        reputationScore={reputationData.score}
+                        className="mb-8"
                     />
-                    <FeaturedGoalsCarousel />
-                    <IdentityVerificationCard address={address} />
-                    <PhoneLookupCard />
-                    <CreateGoalCard />
-                    <DevSubscriptionCard />
-                    <VirtualCardPortal address={address} />
-                    <SponsorDashboard />
+                    <div className="space-y-12 pb-24">
+                        <section>
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 ml-1">Explore Opportunities</h3>
+                            <FeaturedGoalsCarousel />
+                        </section>
+
+                        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <IdentityVerificationCard address={address} />
+                            <div className="space-y-6">
+                                <PhoneLookupCard />
+                                <CreateGoalCard />
+                            </div>
+                        </section>
+
+                        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <VirtualCardPortal address={address} />
+                            <SponsorDashboard />
+                        </section>
+                        
+                        <DevSubscriptionCard />
+                    </div>
                 </>
             )}
         </div>

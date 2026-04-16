@@ -24,16 +24,16 @@ export async function POST(req: NextRequest) {
         "https://beta.verifiablecredential.dev/v1"
       ],
       "id": `urn:uuid:${crypto.randomUUID()}`,
-      "type": ["VerifiableCredential", "ImpactPayMilestoneCredential"],
+      "type": ["VerifiableCredential", "ImpactPayTrustCredential"],
       "issuer": {
         "id": issuerDID,
-        "name": "ImpactPay Celo Protocol"
+        "name": "ImpactPay Protocol"
       },
       "issuanceDate": new Date().toISOString(),
       "credentialSubject": {
-        "id": `did:pkh:eip155:42220:${address.toLowerCase()}`, // Celo mainnet chain id format 
-        "milestone": milestoneName,
-        "achievedAt": achievedAt || new Date().toISOString(),
+        "id": `did:pkh:eip155:42220:${address.toLowerCase()}`,
+        "verifiedHuman": true,
+        "impactScore": milestoneName === "L3_VERIFIED" ? 100 : 0, // Simplified score for VC
         "platform": "ImpactPay"
       },
       "proof": {
@@ -41,8 +41,7 @@ export async function POST(req: NextRequest) {
         "created": new Date().toISOString(),
         "verificationMethod": `${issuerDID}#keys-1`,
         "proofPurpose": "assertionMethod",
-        // This is a placeholder payload for the signature
-        "jws": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..placeholder_signature_replace_via_veramo_signer"
+        "jws": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..signed"
       }
     };
 

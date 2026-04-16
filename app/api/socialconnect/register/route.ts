@@ -1,37 +1,57 @@
 import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-
-import { phoneMappings } from "@/lib/socialconnect-store";
+import { phoneMappings, handleMappings } from "@/lib/socialconnect-store";
 
 function normalizePhone(phone: string) {
   return phone.replace(/\s+/g, "");
 }
 
+function normalizeHandle(handle: string) {
+  return handle.trim().replace(/^@/, "").toLowerCase();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const phoneNumber = normalizePhone(body.phoneNumber ?? "");
+    const phoneNumber = body.phoneNumber ? normalizePhone(body.phoneNumber) : null;
+    const handle = body.handle ? normalizeHandle(body.handle) : null;
     const walletAddress = String(body.walletAddress ?? "");
 
-    if (!phoneNumber || !walletAddress) {
+    if ((!phoneNumber && !handle) || !walletAddress) {
       return NextResponse.json(
-        { error: "phoneNumber and walletAddress are required" },
+        { error: "phoneNumber or handle, and walletAddress are required" },
         { status: 400 },
       );
     }
 
-    // Placeholder ODIS-style obfuscation for local dev.
-    // Swap with @celo/identity OdisUtils.Identifier.getObfuscatedIdentifier in production.
-    const obfuscatedIdentifier = createHash("sha256")
-      .update(`PHONE:${phoneNumber}`)
-      .digest("hex");
+    let obfuscatedIdentifier = "";
+    if (phoneNumber) {
+      obfuscatedIdentifier = createHash("sha256")
+        .update(`PHONE:${phoneNumber}`)
+        .digest("hex");
 
-    phoneMappings.set(obfuscatedIdentifier, {
-      obfuscatedIdentifier,
-      phoneNumber,
-      address: walletAddress.toLowerCase(),
-      createdAt: Date.now(),
-    });
+      phoneMappings.set(obfuscatedIdentifier, {
+        obfuscatedIdentifier,
+        phoneNumber,
+        address: walletAddress.toLowerCase(),
+        createdAt: Date.now(),
+      });
+    }
+
+    if (handle) {
+      const handleId = createHash("sha256")
+        .update(`HANDLE:${handle}`)
+        .digest("hex");
+
+      handleMappings.set(handleId, {
+        obfuscatedIdentifier: handleId,
+        handle,
+        address: walletAddress.toLowerCase(),
+        createdAt: Date.now(),
+      });
+      // If we only have handle, use this id
+      if (!obfuscatedIdentifier) obfuscatedIdentifier = handleId;
+    }
 
     return NextResponse.json({
       success: true,

@@ -64,3 +64,14 @@ $ forge --help
 $ anvil --help
 $ cast --help
 ```
+
+
+<!-- 
+For the current project - impactPay:
+
+1. I have completely modified the contract at `src/Impact.sol` which causes the test to break. Your task is to rewrite the tests ensuring they pass. Include every relevant and necessary test cases not already provided. 
+
+2. Create comprehensive documentation for the contract code using Natspec comment. DO NOT ALTER THE CONTRACT CODE.
+
+RULE:
+- You must not modify the contract. If you find any descrepancy, create a `REPORT.md` file in the project root directory, add it to `gitginore` and include your recommended fixes in the file. -->

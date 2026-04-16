@@ -1,16 +1,20 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { Compass, FolderHeart, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type NavItem = {
   key: "explore" | "my-goals" | "profile";
   label: string;
+  icon: typeof Compass;
+  href: string;
 };
 
 const items: NavItem[] = [
-  { key: "explore", label: "Explore" },
-  { key: "my-goals", label: "My Goals" },
-  { key: "profile", label: "Profile" },
+  { key: "explore", label: "Explore", icon: Compass, href: "/" },
+  { key: "my-goals", label: "My Goals", icon: FolderHeart, href: "/my-goals" },
+  { key: "profile", label: "Profile", icon: User, href: "/profile" },
 ];
 
 export function BottomNav() {
@@ -22,25 +26,28 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm"
+      className="fixed bottom-0 inset-x-0 border-t border-slate-100 bg-white/80 backdrop-blur-md z-50 transition-all duration-300"
     >
-      <div className="mx-auto flex max-w-[450px] items-stretch justify-between px-2 py-1.5 gap-1">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-4 h-16">
         {items.map((item) => {
           const isActive = item.key === activeKey;
+          const Icon = item.icon;
           return (
-            <button
+            <a
               key={item.key}
-              type="button"
-              className={
-                "flex-1 min-h-[44px] rounded-full text-xs font-medium " +
-                "flex items-center justify-center px-2 " +
-                (isActive
-                  ? "bg-[#35D07F] text-white shadow-sm"
-                  : "bg-slate-50 text-slate-600 border border-slate-200")
-              }
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 transition-all duration-200 w-16 h-full border-t-2",
+                isActive 
+                  ? "border-primary text-primary" 
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              )}
             >
-              {item.label}
-            </button>
+              <Icon className={cn("w-5 h-5", isActive && "stroke-[2.5px]")} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">
+                {item.label}
+              </span>
+            </a>
           );
         })}
       </div>

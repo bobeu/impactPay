@@ -2,38 +2,61 @@ type GlobalStat @entity {
   id: ID!
   totalDonors: Int!
   totalRequesters: Int!
+  totalVolume: BigInt!
 }
 
 type Goal @entity(immutable: false) {
   id: ID!
   goalId: BigInt!
-  creator: Bytes!
-  category: String!
-  description: String!
+  creator: Requester!
+  goalType: String!
+  description: Bytes!
+  extraInfo: String
   targetAmount: BigInt!
   amountRaised: BigInt!
+  withdrawnAmount: BigInt!
   status: String!
   flagsCount: Int!
-  completed: Boolean!
+  lockedForReview: Boolean!
+  donations: [Donation!]! @derivedFrom(field: "goal")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type Donation @entity(immutable: true) {
+  id: ID!
+  donor: Donor!
+  goal: Goal!
+  amount: BigInt!
+  extraInfo: String
+  timestamp: BigInt!
 }
 
 type Donor @entity(immutable: false) {
   id: ID!
+  address: Bytes!
   totalDonated: BigInt!
   goalsSupported: Int!
   successfulGoalsSupported: Int!
   reputation: BigInt!
-  globalRank: BigInt
-  percentileRank: BigDecimal
+  donations: [Donation!]! @derivedFrom(field: "donor")
 }
 
 type Requester @entity(immutable: false) {
   id: ID!
+  address: Bytes!
   completedGoals: Int!
   unmetProofs: Int!
   flaggedGoals: Int!
   reputation: BigInt!
-  globalRank: BigInt
-  percentileRank: BigDecimal
+  goals: [Goal!]! @derivedFrom(field: "creator")
 }
 
+type ReputationHistory @entity(immutable: true) {
+  id: ID!
+  user: Bytes!
+  change: BigInt!
+  newScore: BigInt!
+  reason: String!
+  timestamp: BigInt!
+}

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { ShieldCheck, Phone, Share2, Fingerprint, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 import { verifyPhoneWithOdis } from "@/lib/odisClient";
 import { registerPhoneMapping } from "@/lib/socialconnect";
@@ -14,23 +17,21 @@ type Props = {
 export function IdentityVerificationCard({ address }: Props) {
   const { profile, setPhoneVerified, setSocialsLinked, setHumanVerified } = useUserProfile();
   const [phoneInput, setPhoneInput] = useState("");
-  const [xHandle, setXHandle] = useState("");
-  const [instagramHandle, setInstagramHandle] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<string>("");
+  const [handle, setHandle] = useState("");
+  const [loading, setLoading] = useState<string | null>(null);
+  // const [status, setStatus] = useState<string>("");
 
   const verifyPhone = async () => {
     if (!address) return;
     if (!window.ethereum?.isMiniPay) {
-      setStatus("Open in MiniPay to run secure ODIS identity flow.");
+      toast.error("Open in MiniPay to run secure ODIS identity flow.");
       return;
     }
     if (!phoneInput.trim()) {
-      setStatus("Enter a valid phone number first.");
+      toast.error("Enter a valid phone number.");
       return;
     }
-    setLoading(true);
-    setStatus("");
+    setLoading("phone");
     try {
       const odisPromise = verifyPhoneWithOdis({
         phoneNumber: phoneInput,
@@ -46,29 +47,45 @@ export function IdentityVerificationCard({ address }: Props) {
         walletAddress: address,
       });
       setPhoneVerified(phoneInput);
-      setStatus("Phone verified and mapped to your wallet.");
+      toast.success("Phone verified and mapped securely.");
     } catch (error) {
-      setStatus((error as Error).message);
+      toast.error((error as Error).message);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
-  const linkSocials = () => {
-    if (!xHandle.trim() || !instagramHandle.trim()) {
-      setStatus("Add both X and Instagram handles.");
+  const linkSocials = async () => {
+    if (!handle.trim()) {
+      toast.error("Please enter a social handle.");
       return;
     }
-    setSocialsLinked(xHandle.trim(), instagramHandle.trim());
-    setStatus("Social profiles linked.");
+    if (!address) return;
+    setLoading("social");
+    try {
+      const res = await fetch("/api/socialconnect/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handle, walletAddress: address }),
+      });
+      if (!res.ok) throw new Error("Failed to register handle");
+      
+      setSocialsLinked(handle.trim(), "");
+      toast.success("Social handle linked successfully.");
+    } catch (error) {
+       toast.error((error as Error).message);
+    } finally {
+      setLoading(null);
+    }
   };
 
   const verifyHuman = () => {
     if (!address) return;
     if (!window.ethereum?.isMiniPay) {
-      setStatus("Self verification is only enabled in MiniPay environment.");
+      toast.error("Self verification is only enabled in MiniPay environment.");
       return;
     }
+    setLoading("human");
     fetch("/api/identity/self-verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -78,109 +95,101 @@ export function IdentityVerificationCard({ address }: Props) {
       .then((data) => {
         if (data.error) throw new Error(data.error);
         setHumanVerified();
-        setStatus("Human verification completed and anchored on-chain.");
-        toast.success("Self verification anchored on-chain.");
+        toast.success("Human verification anchored on-chain.");
       })
       .catch((e) => {
-        setStatus((e as Error).message);
         toast.error((e as Error).message);
-      });
+      })
+      .finally(() => setLoading(null));
   };
 
+  const steps = [
+    { id: 1, label: "Phone", field: profile.phoneVerified, icon: Phone, action: verifyPhone, value: phoneInput, setValue: setPhoneInput, placeholder: "+234...", type: "phone" },
+    { id: 2, label: "Socials", field: profile.socialsLinked, icon: Share2, action: linkSocials, value: handle, setValue: setHandle, placeholder: "@username", type: "social" },
+    { id: 3, label: "Human", field: profile.humanVerified, icon: Fingerprint, action: verifyHuman, type: "human" }
+  ];
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-800">Verify identity</h2>
-        <span className="text-[11px] text-slate-500">Level {profile.verificationLevel}/3</span>
+    <motion.section 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col"
+    >
+      <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/20">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-primary" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Reputation Verification</h2>
+        </div>
+        <div className="flex gap-1.5">
+          {[1, 2, 3].map(lvl => (
+            <div key={lvl} className={cn(
+              "w-2 h-2 rounded-full",
+              profile.verificationLevel >= lvl ? "bg-accent" : "bg-slate-200"
+            )} />
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-[11px]">
-        <span
-          className={`rounded-full px-2 py-1 text-center border ${
-            profile.phoneVerified
-              ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-              : "border-amber-300 bg-amber-50 text-amber-700"
-          }`}
-        >
-          L1 Phone
-        </span>
-        <span
-          className={`rounded-full px-2 py-1 text-center border ${
-            profile.socialsLinked
-              ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-              : "border-amber-300 bg-amber-50 text-amber-700"
-          }`}
-        >
-          L2 Socials
-        </span>
-        <span
-          className={`rounded-full px-2 py-1 text-center border ${
-            profile.humanVerified
-              ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-              : "border-amber-300 bg-amber-50 text-amber-700"
-          }`}
-        >
-          L3 Human
-        </span>
-      </div>
+      <div className="p-6 space-y-6">
+        {steps.map((step) => (
+          <div key={step.id} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "p-1.5 rounded-md",
+                  step.field ? "bg-accent/10 text-accent" : "bg-slate-100 text-slate-400"
+                )}>
+                  <step.icon className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">Level {step.id}: {step.label}</span>
+              </div>
+              {step.field && <CheckCircle2 className="w-4 h-4 text-accent" />}
+            </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-slate-600">1) Verify phone (SocialConnect)</label>
-        <input
-          className="h-11 w-full rounded-md border border-slate-200 px-3 text-sm"
-          placeholder="+234..."
-          value={phoneInput}
-          onChange={(e) => setPhoneInput(e.target.value)}
-        />
-        <button
-          type="button"
-          disabled={!address || loading}
-          onClick={verifyPhone}
-          className="h-11 w-full rounded-full bg-[#35D07F] text-white text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? "Verifying..." : "Verify phone"}
-        </button>
-      </div>
+            {!step.field && (
+              <div className="flex gap-2">
+                {step.setValue && (
+                  <input
+                    className="flex-1 h-11 rounded-md border border-slate-200 px-4 text-sm focus:border-accent outline-none transition-all"
+                    placeholder={step.placeholder}
+                    value={step.value}
+                    onChange={(e) => step.setValue!(e.target.value)}
+                  />
+                )}
+                <button
+                  onClick={step.action}
+                  disabled={!!loading || (step.id > 1 && !profile.phoneVerified)}
+                  className={cn(
+                    "h-11 px-4 rounded-md text-xs font-bold transition-all",
+                    step.id > 1 && !profile.phoneVerified 
+                      ? "bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-opacity-90 active:scale-95"
+                  )}
+                >
+                  {loading === step.type ? "..." : "Verify"}
+                </button>
+              </div>
+            )}
+            
+            {step.id === 3 && !step.field && (
+              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">
+                Self uses ZK proofs to anchor humanhood on-chain without storing PII.
+              </p>
+            )}
+          </div>
+        ))}
 
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-slate-600">2) Link socials</label>
-        <input
-          className="h-11 w-full rounded-md border border-slate-200 px-3 text-sm"
-          placeholder="X handle"
-          value={xHandle}
-          onChange={(e) => setXHandle(e.target.value)}
-        />
-        <input
-          className="h-11 w-full rounded-md border border-slate-200 px-3 text-sm"
-          placeholder="Instagram handle"
-          value={instagramHandle}
-          onChange={(e) => setInstagramHandle(e.target.value)}
-        />
-        <button
-          type="button"
-          onClick={linkSocials}
-          className="h-11 w-full rounded-full border border-slate-200 bg-white text-slate-700 text-sm font-medium"
-        >
-          Link socials
-        </button>
+        {!profile.humanVerified && (
+          <div className="flex items-start gap-2 p-3 bg-slate-50 border border-slate-100 rounded-md">
+            <AlertCircle className="w-4 h-4 text-slate-400 mt-0.5" />
+            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-normal">
+              Linking socials and completing humanhood check increases your reputation score multiplier by 2x.
+            </p>
+          </div>
+        )}
       </div>
-
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-slate-600">3) Human verification (Self)</label>
-        <p className="text-[11px] text-slate-500">
-          Self uses ZK proofs so your personal data is not stored in plaintext on-chain.
-        </p>
-        <button
-          type="button"
-          onClick={verifyHuman}
-          className="h-11 w-full rounded-full bg-[#35D07F] text-white text-sm font-medium"
-        >
-          Complete Self verification
-        </button>
-      </div>
-
-      {status ? <p className="text-xs text-slate-600">{status}</p> : null}
-    </section>
+    </motion.section>
   );
 }
 

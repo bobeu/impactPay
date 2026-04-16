@@ -1,11 +1,14 @@
-import { BigInt, BigDecimal } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
-  Completed,
-  Funded,
   GoalCreated,
+  Funded,
+  BillGoalFulfilled,
+  ScholarshipWithdrawal,
   GoalFlagged,
+  Refunded,
+  ReputationUpdated
 } from "../generated/ImpactPay/ImpactPay";
-import { Donor, Goal, Requester, GlobalStat } from "../generated/schema";
+import { Donor, Goal, Requester, GlobalStat, Donation, ReputationHistory } from "../generated/schema";
 
 function getGlobalStat(): GlobalStat {
   let stat = GlobalStat.load("1");
@@ -13,45 +16,42 @@ function getGlobalStat(): GlobalStat {
     stat = new GlobalStat("1");
     stat.totalDonors = 0;
     stat.totalRequesters = 0;
+    stat.totalVolume = BigInt.zero();
     stat.save();
   }
   return stat as GlobalStat;
 }
 
-function donorReputation(totalDonated: BigInt, successfulGoalsSupported: i32): BigInt {
-  // Donor Reputation = (Total USD donated * 10) + (Successful goals supported * 50)
-  return totalDonated.times(BigInt.fromI32(10)).plus(BigInt.fromI32(successfulGoalsSupported * 50));
-}
-
-function requesterReputation(completedGoals: i32, unmetProofs: i32, flaggedGoals: i32): BigInt {
-  // Requester Reputation = (Completed goals * 100) - (Unmet Proofs * 200) - (Flags * 500)
-  return BigInt.fromI32(completedGoals * 100 - unmetProofs * 200 - flaggedGoals * 500);
-}
-
 export function handleGoalCreated(event: GoalCreated): void {
-  const id = event.params.goalId.toString();
-  const goal = new Goal(id);
+  let goal = new Goal(event.params.goalId.toString());
   goal.goalId = event.params.goalId;
-  goal.creator = event.params.creator;
-  goal.category = event.params.category.toString() == "0" ? "Bill" : "Scholarship";
+  goal.creator = event.params.creator.toHexString();
+  
+  let gt = event.params.goalType;
+  if (gt == 0) goal.goalType = "Default";
+  else if (gt == 1) goal.goalType = "Bill";
+  else goal.goalType = "Scholarship";
+  
   goal.description = event.params.description;
+  goal.extraInfo = event.params.extraInfo;
   goal.targetAmount = event.params.targetAmount;
   goal.amountRaised = BigInt.zero();
-  goal.status = "Open";
+  goal.withdrawnAmount = BigInt.zero();
+  goal.status = "OPEN";
   goal.flagsCount = 0;
-  goal.completed = false;
+  goal.lockedForReview = false;
+  goal.createdAt = event.block.timestamp;
+  goal.updatedAt = event.block.timestamp;
   goal.save();
 
   let requester = Requester.load(event.params.creator.toHexString());
   if (requester == null) {
     requester = new Requester(event.params.creator.toHexString());
+    requester.address = event.params.creator;
     requester.completedGoals = 0;
     requester.unmetProofs = 0;
     requester.flaggedGoals = 0;
-    requester.reputation = requesterReputation(0, 0, 0);
-    // Setting defaults for rank
-    requester.globalRank = BigInt.fromI32(0);
-    requester.percentileRank = BigDecimal.fromString("0");
+    requester.reputation = BigInt.zero();
     requester.save();
 
     let stat = getGlobalStat();
@@ -61,95 +61,147 @@ export function handleGoalCreated(event: GoalCreated): void {
 }
 
 export function handleFunded(event: Funded): void {
-  const goal = Goal.load(event.params.goalId.toString());
+  let goal = Goal.load(event.params.goalId.toString());
   if (goal == null) return;
+
   goal.amountRaised = event.params.totalRaised;
-  goal.status = "Funded";
+  if (goal.amountRaised >= goal.targetAmount) {
+    goal.status = "RAISED";
+  }
+  goal.updatedAt = event.block.timestamp;
   goal.save();
 
-  let donor = Donor.load(event.params.donor.toHexString());
+  let donorId = event.params.donor.toHexString();
+  let donor = Donor.load(donorId);
   if (donor == null) {
-    donor = new Donor(event.params.donor.toHexString());
+    donor = new Donor(donorId);
+    donor.address = event.params.donor;
     donor.totalDonated = BigInt.zero();
     donor.goalsSupported = 0;
     donor.successfulGoalsSupported = 0;
-    donor.globalRank = BigInt.fromI32(0);
-    donor.percentileRank = BigDecimal.fromString("0");
+    donor.reputation = BigInt.zero();
     
     let stat = getGlobalStat();
     stat.totalDonors = stat.totalDonors + 1;
     stat.save();
   }
+  
   donor.totalDonated = donor.totalDonated.plus(event.params.amount);
   donor.goalsSupported = donor.goalsSupported + 1;
-  donor.reputation = donorReputation(donor.totalDonated, donor.successfulGoalsSupported);
+  // Donor rep logic: (Total USD * 10) + (Goals * 50)
+  // We'll update rep via handleReputationUpdated if we want exact on-chain sync,
+  // but we can also update based on internal logic.
   donor.save();
+
+  let donationId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  let donation = new Donation(donationId);
+  donation.donor = donorId;
+  donation.goal = event.params.goalId.toString();
+  donation.amount = event.params.amount;
+  donation.extraInfo = event.params.extraInfo;
+  donation.timestamp = event.block.timestamp;
+  donation.save();
+
+  let stat = getGlobalStat();
+  stat.totalVolume = stat.totalVolume.plus(event.params.amount);
+  stat.save();
 }
 
-export function handleCompleted(event: Completed): void {
-  const goal = Goal.load(event.params.goalId.toString());
+export function handleBillGoalFulfilled(event: BillGoalFulfilled): void {
+  let goal = Goal.load(event.params.goalId.toString());
   if (goal == null) return;
-  goal.status = "Completed";
-  goal.completed = true;
+  
+  goal.status = "FULFILLED";
+  goal.withdrawnAmount = goal.amountRaised; // For full fulfillment
+  goal.updatedAt = event.block.timestamp;
   goal.save();
 
-  let donor = Donor.load(event.params.donor.toHexString());
-  if (donor == null) {
-    donor = new Donor(event.params.donor.toHexString());
-    donor.totalDonated = BigInt.zero();
-    donor.goalsSupported = 0;
-    donor.successfulGoalsSupported = 0;
-    donor.globalRank = BigInt.fromI32(0);
-    donor.percentileRank = BigDecimal.fromString("0");
-
-    let stat = getGlobalStat();
-    stat.totalDonors = stat.totalDonors + 1;
-    stat.save();
+  let requester = Requester.load(event.params.creator.toHexString());
+  if (requester != null) {
+    requester.completedGoals += 1;
+    requester.save();
   }
-  donor.successfulGoalsSupported = donor.successfulGoalsSupported + 1;
-  donor.reputation = donorReputation(donor.totalDonated, donor.successfulGoalsSupported);
-  donor.save();
+}
 
-  let requester = Requester.load(goal.creator.toHexString());
-  if (requester == null) {
-    requester = new Requester(goal.creator.toHexString());
-    requester.completedGoals = 0;
-    requester.unmetProofs = 0;
-    requester.flaggedGoals = 0;
-    requester.globalRank = BigInt.fromI32(0);
-    requester.percentileRank = BigDecimal.fromString("0");
+export function handleScholarshipWithdrawal(event: ScholarshipWithdrawal): void {
+  let goal = Goal.load(event.params.goalId.toString());
+  if (goal == null) return;
 
-    let stat = getGlobalStat();
-    stat.totalRequesters = stat.totalRequesters + 1;
-    stat.save();
+  goal.withdrawnAmount = goal.withdrawnAmount.plus(event.params.amount);
+  if (event.params.milestoneIndex == 4) { // Milestone.COMPLETED
+    goal.status = "FULFILLED";
+    
+    let requester = Requester.load(event.params.creator.toHexString());
+    if (requester != null) {
+      requester.completedGoals += 1;
+      requester.save();
+    }
   }
-  requester.completedGoals = requester.completedGoals + 1;
-  requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
-  requester.save();
+  goal.updatedAt = event.block.timestamp;
+  goal.save();
 }
 
 export function handleGoalFlagged(event: GoalFlagged): void {
-  const goal = Goal.load(event.params.goalId.toString());
+  let goal = Goal.load(event.params.goalId.toString());
   if (goal == null) return;
+
   goal.flagsCount = event.params.flagsCount;
-  goal.status = event.params.lockedForReview ? "LockedForReview" : goal.status;
+  if (event.params.lockedForReview) {
+    goal.status = "LOCKED";
+    goal.lockedForReview = true;
+  }
+  goal.updatedAt = event.block.timestamp;
   goal.save();
 
-  let requester = Requester.load(goal.creator.toHexString());
-  if (requester == null) {
-    requester = new Requester(goal.creator.toHexString());
-    requester.completedGoals = 0;
-    requester.unmetProofs = 0;
-    requester.flaggedGoals = 0;
-    requester.globalRank = BigInt.fromI32(0);
-    requester.percentileRank = BigDecimal.fromString("0");
-
-    let stat = getGlobalStat();
-    stat.totalRequesters = stat.totalRequesters + 1;
-    stat.save();
+  let requester = Requester.load(event.params.creator.toHexString());
+  if (requester != null) {
+    requester.flaggedGoals += 1;
+    requester.save();
   }
-  requester.flaggedGoals = requester.flaggedGoals + 1;
-  requester.reputation = requesterReputation(requester.completedGoals, requester.unmetProofs, requester.flaggedGoals);
-  requester.save();
 }
 
+export function handleRefunded(event: Refunded): void {
+  let goal = Goal.load(event.params.goalId.toString());
+  if (goal == null) return;
+
+  // If status becomes CANCELED in contract, we should mirror it.
+  // The contract says: if sc.refundedAmount >= 80% then status = CANCELED
+  // We can track this or just trust the next status update if any.
+  // But wait, the Refunded event tells us a refund happened.
+  
+  let requester = Requester.load(event.params.creator.toHexString());
+  if (requester != null) {
+    requester.unmetProofs += 1;
+    requester.save();
+  }
+}
+
+export function handleReputationUpdated(event: ReputationUpdated): void {
+  let userAddr = event.params.user.toHexString();
+  
+  let donor = Donor.load(userAddr);
+  if (donor != null) {
+    donor.reputation = donor.reputation.plus(event.params.change);
+    donor.save();
+  }
+
+  let requester = Requester.load(userAddr);
+  if (requester != null) {
+    requester.reputation = requester.reputation.plus(event.params.change);
+    requester.save();
+  }
+
+  let historyId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  let history = new ReputationHistory(historyId);
+  history.user = event.params.user;
+  history.change = event.params.change;
+  
+  let baseScore = BigInt.zero();
+  if (donor != null) baseScore = donor.reputation;
+  else if (requester != null) baseScore = requester.reputation;
+  
+  history.newScore = baseScore;
+  history.reason = event.params.reason;
+  history.timestamp = event.block.timestamp;
+  history.save();
+}

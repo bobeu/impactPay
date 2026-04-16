@@ -1,68 +1,61 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   :root {
-    /* Light, high-trust palette for ImpactPay */
-    --background: 0 0% 100%; /* #FFFFFF */
-    --foreground: 210 28% 26%; /* #334155 */
-    --card: 0 0% 100%;
-    --card-foreground: 210 28% 26%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 28% 26%;
-    --primary: 152 62% 51%; /* #35D07F Celo green */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 210 28% 26%;
-    --muted: 210 40% 97%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 210 28% 26%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 152 62% 51%; /* match primary */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --background: #F8FAFC;
+    --foreground: #001B3D;
+    --primary: #001B3D;
+    --accent: #10B981;
+    --warning: #F59E0B;
+    --border: #E2E8F0;
+    --card: #FFFFFF;
+    
+    --radius: 0.5rem;
   }
+
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --background: #001B3D;
+    --foreground: #F8FAFC;
+    --primary: #F8FAFC;
+    --accent: #10B981;
+    --warning: #F59E0B;
+    --border: #1E293B;
+    --card: #0F172A;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    min-height: 720px;
+    @apply bg-[var(--background)] text-[var(--foreground)] antialiased font-sans;
+    min-height: 100vh;
   }
 }
+
+@layer components {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+  
+  .zebra-table tr:nth-child(even) {
+    background: rgba(226, 232, 240, 0.2);
+  }
+
+  .fintech-card {
+    @apply p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all hover:shadow-md;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all font-medium;
+  }
+
+  .btn-accent {
+    @apply bg-[var(--accent)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all font-medium;
+  }
+}

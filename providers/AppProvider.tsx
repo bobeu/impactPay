@@ -5,7 +5,6 @@ import { WagmiProvider, createConfig, http } from "wagmi";
 import { celo } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 import { defineChain } from "viem";
-
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
 import { UserProfileProvider } from "@/contexts/UserProfileContext";
