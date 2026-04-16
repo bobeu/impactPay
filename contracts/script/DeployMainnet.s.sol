@@ -17,6 +17,8 @@ contract DeployMainnet is Script {
         address treasury = vm.envAddress("TREASURY_ADDRESS");
         address approver = vm.envAddress("RELEASE_APPROVER_ADDRESS");
         address backendSigner = vm.envAddress("BACKEND_SIGNER_ADDRESS");
+        address selfProtocol = vm.envAddress("SELF_PROTOCOL_ADDRESS");
+        address socialConnectRegistry = vm.envAddress("SOCIALCONNECT_REGISTRY_ADDRESS");
         
         // Initial Fees (in cUSD units, e.g. 1 USD = 1e18)
         uint256 billFee = 0.5 * 1e18; // $0.50
@@ -29,6 +31,8 @@ contract DeployMainnet is Script {
             treasury,
             approver,
             backendSigner,
+            selfProtocol,
+            socialConnectRegistry,
             billFee,
             scholarshipFee
         );

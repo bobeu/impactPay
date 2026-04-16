@@ -137,6 +137,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     mapping(uint256 => mapping(address => bool)) public hasFlagged;
     /// @notice Tracks verification level of users
     mapping(address => bool) public level3Verified;
+    /// @notice Address of the Self Protocol for biometric verification anchoring
+    address public selfProtocol;
+    /// @notice Address of the Celo SocialConnect registry (ODIS)
+    address public socialConnectRegistry;
     /// @notice Stores percentage release for each milestone
     mapping(Milestone => uint8) public milestonePercent;
 
@@ -237,6 +241,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         address treasury_,
         address releaseApprover_,
         address backendFulfillmentSigner_,
+        address selfProtocol_,
+        address socialConnectRegistry_,
         uint256 billListingFee_,
         uint256 scholarshipListingFee_
     ) Ownable(_msgSender()) {
@@ -244,6 +250,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         treasury = treasury_;
         releaseApprover = releaseApprover_;
         backendFulfillmentSigner = backendFulfillmentSigner_;
+        selfProtocol = selfProtocol_;
+        socialConnectRegistry = socialConnectRegistry_;
         billListingFee = billListingFee_;
         scholarshipListingFee = scholarshipListingFee_;
         milestonePercent[Milestone.NONE] = 0;
@@ -666,6 +674,16 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param max The maximum number
     function setMaxGoal(uint256 max) external onlyOwner {
         maxGoal = max;
+    }
+
+    /// @notice Sets the Self Protocol address
+    function setSelfProtocol(address _self) external onlyOwner {
+        selfProtocol = _self;
+    }
+
+    /// @notice Sets the SocialConnect registry address
+    function setSocialConnectRegistry(address _registry) external onlyOwner {
+        socialConnectRegistry = _registry;
     }
 
     /// @notice Pauses contract activity

@@ -20,6 +20,10 @@ SUBGRAPH_QUERY_URL=https://api.studio.thegraph.com/query/...
 BACKEND_SIGNER_PRIVATE_KEY=0x... # Used to mark bills as fulfilled
 FULFILL_BILL_SHARED_SECRET=your_long_random_string
 
+# Infrastructure Addresses
+SELF_PROTOCOL_ADDRESS=0x...
+SOCIALCONNECT_REGISTRY_ADDRESS=0x...
+
 # Redis (Upstash)
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
@@ -32,7 +36,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 2. Copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to your environment.
 
 ### Monitoring (Sentry)
-1. Initialize Sentry using `npx sentry-wizard@latest -s -t nextjs`.
+1. Initialize Sentry using `bunx sentry-wizard@latest -s -t nextjs`.
 2. Ensure `SENTRY_AUTH_TOKEN` is in your CI/CD.
 
 ## 3. Smart Contract Deployment
@@ -51,15 +55,15 @@ forge script script/DeployMainnet.s.sol --rpc-url https://forno.celo.org --broad
 ## 4. Subgraph Deployment
 
 1. **Auth**: `graph auth --product hosted-service <ACCESS_TOKEN>`
-2. **Codegen**: `npm run codegen` (in `subgraph/` directory)
-3. **Build**: `npm run build`
+2. **Codegen**: `bun run codegen` (in `subgraph/` directory)
+3. **Build**: `bun run build`
 4. **Deploy**: `graph deploy --node https://api.thegraph.com/deploy/ <USER>/<SUBGRAPH_NAME>`
 
 ## 5. Next.js App Deployment (Vercel)
 
 1. Connect your GitHub repository to Vercel.
 2. Add all secrets from `.env.production` to **Environment Variables** in the Vercel dashboard.
-3. Deploy! The build process will automatically run `npm run check-env` to verify your keys.
+3. Deploy! The build process will automatically run `bun run check-env` to verify your keys.
 
 ---
 **Security Note**: Never commit your `.env.production` or `private keys` to version control.

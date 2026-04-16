@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "check-env": "ts-node scripts/checkEnv.ts",
+    "check-env": "bun run scripts/checkEnv.ts",
     "dev": "next dev",
-    "build": "npm run check-env && next build",
+    "build": "bun run check-env && next build",
     "start": "next start",
     "lint": "next lint",
     "listen:funded": "bun run scripts/listen-goal-funded.ts"
