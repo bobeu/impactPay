@@ -1,17 +1,17 @@
-# ImpactPay 🌍💚
+# ImpactPay 
 **Direct-to-Provider Impact Funding on Celo MiniPay**
 
 ImpactPay is a decentralized, mobile-first micro-philanthropy platform tailored for the **Celo MiniPay** ecosystem. It redefines charitable giving and social funding by stripping away intermediaries, ensuring that 100% of a donor's capital is routed exactly to its intended use—whether paying an electricity bill via [BitGifty](https://bitgifty.com) or issuing a virtual developer card via [Chimoney](https://chimoney.io). 
 
 ---
 
-## 🛑 The Problem
+## The Problem
 1. **Capital Leakage:** Traditional micro-donations suffer from intermediary fees and a lack of transparency. Donors rarely know if their money directly helped the requester.
 2. **The "Liquid Cash" Risk:** Giving liquid crypto or cash directly to requesters rarely guarantees that the funds will be used for essential utilities or education.
 3. **The Developer Barrier:** Builders in emerging markets face massive hurdles accessing $20/month subscriptions (e.g., Cursor, OpenAI, GitHub Pro) due to lack of standard credit access.
 4. **No Portable Reputation:** Generous donors rarely receive verifiable, portable recognition for their impact.
 
-## 💡 The Solution
+## The Solution
 ImpactPay introduces **Direct-to-Provider Fulfillment**. Donors fund campaigns that are strictly tied to a utility API or virtual card issuance. 
 - A user requests help for a utility bill.
 - A donor funds the smart contract goal.
@@ -22,7 +22,7 @@ This creates a high-trust, frictionless, and transparent giving loop.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 1. **Direct Fulfillment Architecture**: Seamless bridge between Celo smart contracts and Web2 API aggregators (BitGifty for utilities, Chimoney for virtual cards). 
 2. **SocialConnect & Self Identity**: Leverages Celo's SocialConnect (ODIS) mapping to link phone numbers and Twitter (X) handles natively to Celo addresses. "Level 3" identity verification is anchored on-chain via the **Self Protocol** to prevent bot abuse.
@@ -33,7 +33,7 @@ This creates a high-trust, frictionless, and transparent giving loop.
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ImpactPay is split into four primary layers:
 
@@ -73,7 +73,7 @@ impactPay/
 
 ---
 
-## 🛠 Setup & Installation
+## Setup & Installation
 
 This project strictly utilizes `bun` as the core package manager for rapid dependency resolution.
 
@@ -120,7 +120,7 @@ bun run listen:funded
 
 ---
 
-## 📱 Testing Inside MiniPay
+## Testing Inside MiniPay
 Since ImpactPay is designed primarily for Opera's MiniPay ecosystem:
 1. Ensure your local server is exposed to the internet using a tool like [ngrok](https://ngrok.com/) or via a deployed Vercel instance.
 2. Use HTTPS exclusively, as MiniPay Web3 injection will block standard non-secure origins.
@@ -128,5 +128,5 @@ Since ImpactPay is designed primarily for Opera's MiniPay ecosystem:
 
 ---
 
-## 📜 License
+## License
 This project is made open-source under the MIT License as part of the Celo decentralized builder community.
