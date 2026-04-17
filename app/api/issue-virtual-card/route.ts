@@ -5,7 +5,7 @@ import { storeCard } from "@/lib/virtual-card-store";
 import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
-  const ip = req.ip || "127.0.0.1";
+  const ip = (req as any).ip || req.headers.get("x-forwarded-for") || "127.0.0.1";
   const { success } = await checkRateLimit(ip);
   if (!success) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });

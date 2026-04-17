@@ -119,7 +119,7 @@ import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const ip = req.ip || "127.0.0.1";
+  const ip = (req as any).ip || req.headers.get("x-forwarded-for") || "127.0.0.1";
   
   try {
     // 1. Rate Limiting check

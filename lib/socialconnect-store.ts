@@ -23,7 +23,7 @@ export const handleMappings = globalStore.__impactPayHandleMappings;
 
 export function getHandleByAddress(address: string): string | null {
   const addr = address.toLowerCase();
-  for (const mapping of handleMappings.values()) {
+  for (const mapping of Array.from(handleMappings.values())) {
     if (mapping.address.toLowerCase() === addr) return mapping.handle || null;
   }
   return null;
@@ -31,7 +31,7 @@ export function getHandleByAddress(address: string): string | null {
 
 export function getPhoneByAddress(address: string): string | null {
   const addr = address.toLowerCase();
-  for (const mapping of phoneMappings.values()) {
+  for (const mapping of Array.from(phoneMappings.values())) {
     if (mapping.address.toLowerCase() === addr) return mapping.phoneNumber || null;
   }
   return null;

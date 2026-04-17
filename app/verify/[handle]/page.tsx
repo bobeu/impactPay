@@ -27,7 +27,7 @@ export default async function VerifyPage({ params }: Props) {
   // Since we are in Edge, we can iterate handleMappings if it's available in this chunk
   // For production, this should query a database or indexer.
   let targetMapping = null;
-  for (const mapping of handleMappings.values()) {
+  for (const mapping of Array.from(handleMappings.values())) {
     if (mapping.handle?.toLowerCase() === handle) {
       targetMapping = mapping;
       break;
