@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
-import { useAccount, useReadContract, useReadContracts, useWriteContract, useConfig, useSignTypedData, useWatchContractEvent } from 'wagmi';
+import { useAccount, useReadContract, useReadContracts, useWriteContract, useConfig, useWatchContractEvent } from 'wagmi';
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
@@ -17,8 +17,8 @@ import { Address } from 'viem';
 
 const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefined);
 
-export function HashFlowProvider({ children }: { children: React.ReactNode }) {
-  const { address, chainId } = useAccount();
+export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
+  const { address } = useAccount();
   const config = useConfig();
 
   // Global UI States
@@ -42,18 +42,57 @@ export function HashFlowProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
-    contracts: goalIdsAndState.goalIds.map(k => ({
+    contracts: [...Array(Number(goalIdsAndState.goalCounter)).keys()].map(k => ({
       address: CONTRACTS.ImpactPay.address, 
       abi: CONTRACTS.ImpactPay.abi as any, 
       functionName: 'getGoal',
-      args: [k]
+      args: [BigInt(k)]
     })),
     query: { enabled: !!goalIdsAndState }
   });
 
+  // // Fetch the goals for all the goal IDs
+  // const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
+  //   contracts: goalIdsAndState.goalIds.map(k => ({
+  //     address: CONTRACTS.ImpactPay.address, 
+  //     abi: CONTRACTS.ImpactPay.abi as any, 
+  //     functionName: 'getGoal',
+  //     args: [k]
+  //   })),
+  //   query: { enabled: !!goalIdsAndState }
+  // });
+
   // Derived the goals
-  const goals = useMemo(() => rawGoals?.map(k => k?.result as GetGoal), [rawGoals]);
-  console.log("Goals", goals);
+  const { userGoals, goals, stats, funderReputations } = useMemo(() => {
+    const goals = (rawGoals?.map(k => k?.result as GetGoal) || []).filter(g => g && g.common); 
+
+    // Filter all goals for the current user
+    const userGoals = goals.filter(k => k.common.creator.toLowerCase() === address?.toLowerCase());
+
+    // Aggregate funders and calculate reputations
+    const reputations: Record<string, bigint> = {};
+    goals.forEach(goal => {
+      goal.funders?.forEach(funder => {
+        const addr = funder.id.toLowerCase();
+        reputations[addr] = (reputations[addr] || 0n) + funder.amount;
+      });
+    });
+
+    // Stats
+    const stats = {
+      totalGoals: goals.length,
+      totalRaised: goals.reduce((acc, g) => acc + g.common.raisedAmount, 0n),
+      totalFunders: Object.keys(reputations).length,
+      activeGoals: goals.filter(g => g.common.status === 0).length, // OPEN = 0
+    };
+
+    return {
+      goals,
+      userGoals,
+      stats,
+      funderReputations: reputations
+    }
+  }, [rawGoals, address]);
  
   const refresh = useCallback(() => {
     refetchIdsAndState();
@@ -84,14 +123,7 @@ export function HashFlowProvider({ children }: { children: React.ReactNode }) {
 
   // Write Hooks
   const { writeContractAsync: writeCreateBillGoal } = useWriteContract();
-  const { writeContractAsync: writeFundGoal } = useWriteContract();
   const { writeContractAsync: writeTxn } = useWriteContract();
-  const { writeContractAsync: writeApproveScholarshipRelease} = useWriteContract();
-  const { writeContractAsync: writeClaimScholarshipFunds} = useWriteContract();
-  const { writeContractAsync: writeRelayBillFundsToService} = useWriteContract();
-  const { writeContractAsync: writeRefundScholarship} = useWriteContract();
-  const { writeContractAsync: writeFlagGoal} = useWriteContract();
-  const { writeContractAsync: writeOnVerificationSuccess} = useWriteContract();
 
   const createGoal = async (param: CreateBillGoal) => {
     try {
@@ -225,7 +257,10 @@ export function HashFlowProvider({ children }: { children: React.ReactNode }) {
       refundScholarship: async(goalId: bigint) => { await runTransaction({goalIds: [goalId], func: 'refundScholarship'})},
       onVerificationSuccess: async(user: Address) => { await runTransaction({user, func: 'onVerificationSuccess'})},
       goalIdsAndState,
-      goals: goals || [{}] as GetGoal[]
+      goals: goals || [] as GetGoal[],
+      userGoals,
+      stats,
+      funderReputations
     }}>
       {children}
     </ImpactPayContext.Provider>

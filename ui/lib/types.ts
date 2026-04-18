@@ -75,6 +75,7 @@ export interface GetGoalIdAndState {
     billServices: readonly Address[];
     level3Verified: boolean;
     restricted: boolean;
+    reputation: bigint;
 }
 
 /// @notice Composite struct for goal information retrieval
@@ -116,9 +117,19 @@ export interface Args {
     func: OtherFuncType;
 }
 
+export interface Stats {
+  totalGoals: number;
+  totalRaised: bigint;
+  totalFunders: number;
+  activeGoals: number;
+}
+
 export interface ImpactPayContextType {
   goals: GetGoal[];
+  userGoals: GetGoal[] | undefined;
   goalIdsAndState: GetGoalIdAndState;
+  stats: Stats;
+  funderReputations: Record<string, bigint>;
   isLoading: boolean;
 
   // Modal State (Global for easier orchestration)

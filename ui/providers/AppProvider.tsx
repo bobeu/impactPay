@@ -11,6 +11,7 @@ import { UserProfileProvider } from "@/contexts/UserProfileContext";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
 import '@rainbow-me/rainbowkit/styles.css';
+import { ImpactPayProvider } from "@/contexts/ImpactPayContext";
 
 const connectors = connectorsForWallets(
   [
@@ -47,10 +48,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <UserProfileProvider>
-          <MiniPayAutoConnect />
-          <Layout>{children}</Layout>
-        </UserProfileProvider>
+        <ImpactPayProvider>
+          <UserProfileProvider>
+            <MiniPayAutoConnect />
+            <Layout>{children}</Layout>
+          </UserProfileProvider>
+        </ImpactPayProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

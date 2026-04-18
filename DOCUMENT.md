@@ -1539,3 +1539,77 @@ git commit -m "fix(impactpay): forcefully remove redundant [socialHandle] dynami
 git push
 ```
 
+--------------------------------------------------------
+
+### CTO Said:
+
+We need to provide another way of fetching data in case the APIs are not working. A nore reliable way is to fetch data directly from the blockchain.
+
+**Tasks for Antigravity**
+
+I have created a proper way of fetching the data in `impactPay/ui/contexts/ImpactPayContext.tsx`. Read and understand the intention of the file. We are currently fetching the `goalCounter`, converted the goalCounter to an array of `goalId`, then we use the result for fetching all the goals using multicall strategy.
+
+The type of data we are fetching are all described in the `src/lib/types.ts`. This will enable you understand how the data are nested and should be used. 
+
+We need an alternative data source since the subgraph is yet to be deployed hence your tasks are as follows:
+
+- Using the data fetched from the blockchain, update all the relevant components to consume from it only when fetching from subgraph failed.
+
+- The reputation of the connected address (if the address is a user) has been fetched inside the `GetGoalIdAndState` as `reputation: bigint`. 
+
+- To determine if the connected address is a funder including their reputation, you will need to bulld this out. Here is a guide for you:
+
+   * Inside the `useMemo` hook on line 66 in `ui/contexts/ImpactPayContext.tsx` is where you will process the reputation. All the goals created to-date has been determined. All the goals created by the connected user have also been determined. Since each the goal has funders nested inside `GetGoal` as `funders: readonly Funder[]` with each funder having the following data :
+
+   ```ts
+      export type Funder = {
+         amount: bigint;
+         id: Address;
+         extraInfo: string; //  bytes;
+         fundedAt: bigint;
+      }
+   ```
+
+   you should use this to aggregate all the funders for all the goals, calculate their reputation based on the total `amount` they've funded so far. Use a very deterministic approach in solving this.
+
+   - On the landing page, users should see the blockchain information and stats. Create and determine the stats if not already exist. They can decide to enter either as a `funder` or Need help. If they enter as `funder`, only then should the goals be loaded and displayed with every other necessary detail otherwise, as a help finder, they should only be routed to their profile where they see all the goals they've created so far and can take necessary action.
+
+   - On the UI, using card-bases system or tabular method (whichever fits better for a miniapp), display all the goals in the `goals` array. Each goal should be clickable and display more information when clicked. The transition should be smooth and compact with a professional look and behavior. Wire all the nested details and properties of each goal including the funders for easy view.
+
+   - On the user's profile, when clicked, the can see all the goals they've created so far. If no goal, display an image or icon with text asking them to create goal. When clicked, it should return them to the `createGoal` tab.
+
+   - Implement all the functions described in the `ui/contexts/ImpactPayContexts.tsx` and `types.ts` in the component where they should be:
+
+   ```ts
+      createGoal: (params: CreateBillGoal) => Promise<void>;
+      fundGoal: (goalId: bigint, amount: bigint, extraInfo: string) => Promise<void>;
+      reactivateGoal: (goalId: bigint) => Promise<void>;
+      approveScholarshipRelease: (goalIds: bigint[]) => Promise<void>;
+      claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;
+      relayBillFundsToService: (goalId: bigint, amount: bigint) => Promise<void>;
+      flagGoal: (goalId: bigint) => Promise<void>;
+      refundScholarship: (goalId: bigint) => Promise<void>;
+      onVerificationSuccess: (user: Address) => Promise<void>;
+   ```
+
+---
+
+### Implementation Update (2026-04-18)
+
+Completed the blockchain data fetching strategy and UI implementation:
+
+1. **Context & Logic**: 
+   - Updated `ImpactPayContext.tsx` to handle on-chain data aggregation.
+   - Implemented reputation calculation logic by summing contributions across all goals for every funder.
+   - Integrated global stats (raised amount, active goals, funder count) derived from `rawGoals`.
+
+2. **UI & UX Enhancement**:
+   - Created **LandingView** for a stats-driven first impression with clear user paths (Funder vs Help Seeker).
+   - Developed **GoalList** and **GoalCard** components for professional, compact display of impact opportunities.
+   - Implemented **GoalDetailsModal** providing deep visibility into goal specifics, donor messages, and creator-specific actions.
+   - Transformed the User Profile into a client-side reactive view showing specific goals created by the address.
+
+3. **Resilience**:
+   - Wired all components to prioritize on-chain data as a reliable alternative to the subgraph, ensuring the dapp remains functional during development and deployment phases.
+
+Implementation verified and integrated into the main `Home` and `Profile` flows.

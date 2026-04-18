@@ -76,6 +76,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         address[] billServices;
         bool level3Verified;
         bool restricted;
+        uint reputation;
     }
 
     struct Verification {
@@ -111,30 +112,37 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
 
     /// @notice The stable token used for all transactions (e.g., USDT/USDC)
     IERC20 public immutable stableToken;
+
     /// @notice Address where listing and success fees are sent
     address public treasury;
+
     /// @notice Address authorized to approve milestone releases and relay funds
     address public releaseApprover;
+
     /// @notice Address used to verify off-chain fulfillment or user verification
     address public backendFulfillmentSigner;
 
     /// @notice Fee in absolute token units to list a Bill goal
     uint256 public billListingFee;
+
     /// @notice Fee in absolute token units to list a Scholarship goal
     uint256 public scholarshipListingFee;
+    
     /// @notice Fee in absolute token units to list a Default goal
     uint256 public defaultListingFee;
+
     /// @notice Fee in Basis Points for scholarship withdrawals
     uint256 public scholarshipFeeBP = 300;
+
     /// @notice Fee in Basis Points for bill fulfillment relays
     uint256 public billSuccessFeeBP = 300;
+
     /// @notice Denominator for Basis Points calculations
     uint256 public constant BPS_DENOMINATOR = 10000;
 
-    /// @notice The current milestone deadline in seconds
-    uint256 public milestoneDeadline;
     /// @notice Counter for generating unique goal IDs
     uint256 public goalCounter;
+
     /// @notice Maximum number of active goals allowed per user (0 for unlimited)
     uint256 public maxGoal;
 
@@ -159,8 +167,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Tracks verification level of users
     mapping(address => Verification) public verification;
 
-    /// @notice Address of the Celo SocialConnect registry (ODIS)
-    // address public socialConnectRegistry;
+    /// @notice Onchain reputation
+    mapping(address => uint) public reputationScores;
 
     /// @notice Stores percentage release for each milestone
     mapping(Milestone => uint8) public milestonePercent;
@@ -452,6 +460,16 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         require(goal.cData.status == status, errorMessage);
     }
 
+    function _editReputation(bool add, uint256 amount, address target, bool isFunder) internal {
+        uint256 mantissa = 10 ** stableToken.decimals();
+        if (add) {
+            reputationScores[target] += isFunder? amount > mantissa? (amount / mantissa) : 1 : 5;
+        } else {
+            uint rep = reputationScores[target];
+            reputationScores[target] = isFunder? rep >= 50? rep - 50 : 0 : rep >= 5? rep - 5 : 0; 
+        }
+    }
+
     /// @notice Allows users to fund an open goal
     /// @param goalId ID of the goal to fund
     /// @param amount Amount of stable tokens to contribute
@@ -473,8 +491,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             _c.status = GoalStatus.RAISED;
         }
 
+        _editReputation(true, amount, sender, true);        
         stableToken.safeTransferFrom(sender, address(this), amount);
         emit Funded(goalId, sender, amount, _c.raisedAmount, _c.goalType, extraInfo);
+        emit ReputationUpdated(sender, 100, "funding received");
 
         return true;
     }
@@ -576,6 +596,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         cd.withdrawnAmount += payoutAmount;
         
         sc.milestoneDeadline = uint64(block.timestamp + 90 days);
+        _editReputation(true, 0, _msgSender(), false);
 
         if (fee > 0) stableToken.safeTransfer(treasury, fee);
         if (netPayout > 0) stableToken.safeTransfer(isRecipientEmpty? cd.creator : recipient, netPayout);
@@ -609,6 +630,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         uint256 relayAmount = amount - fee;
         
         cd.withdrawnAmount += amount;
+        _editReputation(true, 0, cd.creator, false);
         require(cd.withdrawnAmount <= cd.raisedAmount, "Bal Anomally");
         if (cd.withdrawnAmount == cd.raisedAmount) {
             cd.status = GoalStatus.FULFILLED;
@@ -631,6 +653,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         require (!hasFlagged[goalId][sender], "AlreadyFlagged");
 
         hasFlagged[goalId][sender] = true;
+        _editReputation(false, 0, goal.cData.creator, false);
+        uint rep = reputationScores[goal.cData.creator];
+        reputationScores[goal.cData.creator] = rep >= 50? rep -= 50 : 0;
+        
         goal.cData.flagsCount += 1;
         if (goal.cData.flagsCount >= 3) {
             if (goal.cData.goalType == GoalType.SCHOLARSHIP) {
@@ -677,6 +703,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         require(remainingPool > 0, "Pool empty");
         uint256 donorShare = (donations * remainingPool) / cd.raisedAmount;
         if (donorShare == 0) revert RefundNotAvailable();
+        _editReputation(false, 0, sender, true);
 
         sc.refundedAmount += donorShare;
         if (sc.refundedAmount >= (cd.raisedAmount * 80) / 100) {
@@ -756,7 +783,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             maxGoal: maxGoal,
             billServices: billServices,
             level3Verified: level3Verified[user],
-            restricted: restrictions[user];
+            restricted: restrictions[user],
+            reputation: reputationScores[user]
         });
 
         return data;
