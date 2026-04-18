@@ -6,6 +6,17 @@ export enum GoalType {
     SCHOLARSHIP
 }
 
+export type GoalTypeStr = 'DEFAULT' | 'BILL' | 'SCHOLARSHIP';
+export type OtherFuncType = 
+'fundGoal' | 
+'reactivateGoal' | 
+'approveScholarshipRelease' | 
+'claimScholarshipFunds' | 
+'relayBillFundsToService' |
+'flagGoal' |
+'refundScholarship' |
+'onVerificationSuccess'
+
 export enum GoalStatus {
     OPEN,
     RAISED,
@@ -82,28 +93,32 @@ export type Funder = {
     fundedAt: bigint;
 }
 
-export type TransactionStage = 'idle' | 'awaiting_auth' | 'payment_included' | 'verifying' | 'success' | 'error';
+export type TransactionStage = 'idle' | 'awaiting_auth' | 'tx_included' | 'verifying' | 'success' | 'error';
 
 export interface CreateGoal { 
     targetAmount: bigint;
     description: string;
     extraInfo: string;
-
-}
-export interface FundGoal { 
-    goalId: bigint;
-    amount: bigint;
-    extraInfo: string;
+    goalType: GoalTypeStr;
 }
 
 export interface CreateBillGoal extends CreateGoal { 
-    serviceType: string;
-    billServiceIndex: string;
+    serviceType?: string;
+    billServiceIndex?: string;
+}
+
+export interface Args {
+    goalIds?: bigint[];
+    recipient?: Address;
+    amount?: bigint;
+    user?: Address;
+    extraInfo?: string;
+    func: OtherFuncType;
 }
 
 export interface ImpactPayContextType {
   goals: GetGoal[];
-  goalIdAndState: GetGoalIdAndState;
+  goalIdsAndState: GetGoalIdAndState;
   isLoading: boolean;
 
   // Modal State (Global for easier orchestration)
@@ -115,10 +130,8 @@ export interface ImpactPayContextType {
   };
  
   // Actions
-  createBillGoal: (params: CreateBillGoal) => Promise<void>;
-  createScholarshipGoal: (params: CreateGoal) => Promise<void>;
-  createOtherGoal: (params: CreateGoal) => Promise<void>;
-  fundGoal: (params: FundGoal) => Promise<void>;
+  createGoal: (params: CreateBillGoal) => Promise<void>;
+  fundGoal: (goalId: bigint, amount: bigint, extraInfo: string) => Promise<void>;
   reactivateGoal: (goalId: bigint) => Promise<void>;
   approveScholarshipRelease: (goalIds: bigint[]) => Promise<void>;
   claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;

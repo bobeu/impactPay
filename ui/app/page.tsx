@@ -13,9 +13,12 @@ import { useReputation } from "@/hooks/useReputation";
 import { useWeb3 } from "@/contexts/useWeb3";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
+import { TransactionModal } from "@/components/TransactionModal";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
 
 export default function Home() {
     const { getUserAddress } = useWeb3();
+    const { modal } = useImpactPay();
     const { address, isConnected } = useAccount();
     const { data: reputationData } = useReputation(address ?? undefined);
 
@@ -69,6 +72,13 @@ export default function Home() {
                     </div>
                 </>
             )}
+
+            {/* Global Overlays */}
+            <TransactionModal 
+                stage={modal.stage} 
+                txHash={modal.txHash} 
+                errorMessage={modal.error} 
+            />
         </div>
     );
 }
