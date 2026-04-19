@@ -7,8 +7,8 @@
     "test": "bunx hardhat test",
     "contract": "bunx hardhat compile && bunx hardhat test",
     "deploy": "bunx hardhat deploy --network hardhat",
-    "deploy:testnet": "hardhat deploy --network testnet --export deployments/contracts.json",
-    "deploy:mainnet": "hardhat deploy --network mainnet --export deployments/contracts.json",
+    "deploy:testnet": "hardhat deploy --network celoSepolia --export deployments/contracts.json",
+    "deploy:mainnet": "hardhat deploy --network celo --export deployments/contracts.json",
     "tsc": "bunx tsc -p . && cp typechain/*.d.ts dist/typechain/",
     "build": "yarn compile && yarn tsc",
     "clean": "hardhat clean"

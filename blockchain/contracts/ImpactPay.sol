@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { Pausable } from "openzeppelin-contracts/contracts/utils/Pausable.sol";
-import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
-import { SafeERC20, IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title ImpactPay Protocol
 /// @notice A decentralized platform for managing bill payments, scholarships, and social impact goals.
@@ -74,16 +75,16 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         uint256 goalCounter;
         uint256 maxGoal;
         address[] billServices;
-        bool level3Verified;
+        Level level;
         bool restricted;
         uint reputation;
     }
 
-    struct Verification {
-        lvl1: bool;
-        lvl2: bool;
-        lvl3: bool;
-    }
+    // struct Verification {
+    //     bool lvl1;
+    //     bool lvl2;
+    //     bool lvl3;
+    // }
 
     /// @notice Composite struct for goal information retrieval
     struct GetGoal {
@@ -119,7 +120,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Address authorized to approve milestone releases and relay funds
     address public releaseApprover;
 
-    /// @notice Address used to verify off-chain fulfillment or user verification
+    /// @notice Address used to verify off-chain fulfillment or user levels
     address public backendFulfillmentSigner;
 
     /// @notice Fee in absolute token units to list a Bill goal
@@ -164,8 +165,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Tracks if a donor has already flagged a specific goal
     mapping(uint256 => mapping(address => bool)) public hasFlagged;
 
-    /// @notice Tracks verification level of users
-    mapping(address => Verification) public verification;
+    /// @notice Tracks levels level of users
+    mapping(address => Level) public levels;
 
     /// @notice Onchain reputation
     mapping(address => uint) public reputationScores;
@@ -258,14 +259,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     }
 
     modifier isVerified(Level lvl, address user) {
-        Verification vf = verification[user];
-        if (lvl == Level.LEVEL1) {
-            require(vf.lvl1, "Not verified: lvl1");
-        } else if (lvl ==Level.LEVEL2) {
-            require(vf.lvl2, "Not verified: lvl2");
-        } else {
-            require(vf.lvl3, "Not verified: lvl3");
-        }
+        Level vf = levels[user];
+        require(levels[user] == lvl, "Not verified");
         _;
     }   
 
@@ -273,9 +268,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param stableToken_ Address of the ERC20 token for payments
     /// @param treasury_ Address to receive protocol fees
     /// @param releaseApprover_ Address authorized for milestone approvals
-    /// @param backendFulfillmentSigner_ Address for off-chain verification signatures
-    /// @param billListingFee_ Initial fee for bill goals
-    /// @param scholarshipListingFee_ Initial fee for scholarship goals
+    /// @param backendFulfillmentSigner_ Address for off-chain levels signatures
     constructor(
         address stableToken_,
         address treasury_,
@@ -410,7 +403,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         return true;
     }
 
-    /// @notice Creates a new scholarship goal. Requires Level 3 verification.
+    /// @notice Creates a new scholarship goal. Requires Level 3 levels.
     /// @param targetAmount Amount intended to be raised
     /// @param description Public description of the goal
     /// @param extraInfo Additional metadata encoded as string
@@ -461,7 +454,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     }
 
     function _editReputation(bool add, uint256 amount, address target, bool isFunder) internal {
-        uint256 mantissa = 10 ** stableToken.decimals();
+        uint256 mantissa = 10 ** IERC20Metadata(address(stableToken)).decimals();
         if (add) {
             reputationScores[target] += isFunder? amount > mantissa? (amount / mantissa) : 1 : 5;
         } else {
@@ -714,12 +707,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         emit ReputationUpdated(goal.cData.creator, -200, "proof_unmet");
     }
 
-    /// @notice Updates user verification status. Only callable by signer or owner.
+    /// @notice Updates user levels status. Only callable by signer or owner.
     /// @param user Address of the user to verify
-    function onVerificationSuccess(address user) external {
+    function onVerificationSuccess(address user, Level lvl) external {
         address sender = _msgSender();
         require((backendFulfillmentSigner != address(0) && sender == backendFulfillmentSigner) || sender == owner());
-        level3Verified[user] = true;
+        levels[user] = lvl;
     }
 
     /// @notice Sets a new release approver address
@@ -754,7 +747,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param goalId ID of the goal to pull
     /// @return data Goal
     function getGoal(uint256 goalId) external view returns (GetGoal memory data) {
-        Goal memory goal = goals[goalId]
+        Goal storage goal = goals[goalId];
         data = GetGoal({
             bill: goal.bill,
             scholarship: goal.scholarship,
@@ -782,7 +775,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             goalCounter:goalCounter,
             maxGoal: maxGoal,
             billServices: billServices,
-            level3Verified: level3Verified[user],
+            level: levels[user],
             restricted: restrictions[user],
             reputation: reputationScores[user]
         });

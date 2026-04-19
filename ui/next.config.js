@@ -13,6 +13,16 @@ const nextConfig = {
   images: {
     domains: ['cdn-production-opera-website.operacdn.com'],
   },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      '@heroicons/react',
+      'framer-motion',
+      '@radix-ui/react-icons',
+      'viem',
+      'wagmi'
+    ],
+  },
 };
 
 module.exports = nextConfig;

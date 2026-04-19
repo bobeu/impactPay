@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "check-env": "bun run scripts/checkEnv.ts",
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "bun run check-env && next build",
     "start": "next start",
     "lint": "next lint",
-    "listen:funded": "bun run scripts/listen-goal-funded.ts"
+    "listen:funded": "bun run scripts/listen-goal-funded.ts",
+    "sync:data": "node sync-artifacts.js"
   },
   "dependencies": {
     "@celo/abis": "^14.0.1",

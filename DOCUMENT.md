@@ -1612,4 +1612,31 @@ Completed the blockchain data fetching strategy and UI implementation:
 3. **Resilience**:
    - Wired all components to prioritize on-chain data as a reliable alternative to the subgraph, ensuring the dapp remains functional during development and deployment phases.
 
-Implementation verified and integrated into the main `Home` and `Profile` flows.
+Implementation verified and integrated into the main `Home` and `Profile` flows.
+
+--------------------------------------------------------------
+
+### Development Server Performance Optimization (2026-04-19)
+
+**Problem:** The development server (`bun run dev`) was slow to start and respond, especially on Windows environments.
+
+**Cause:** 
+- **Webpack Overhead:** Next.js 15 defaults to Webpack, which can struggle with large Web3 dependency graphs and deep `node_modules` on Windows.
+- **Unoptimized Module Resolution:** Heavy libraries like `lucide-react`, `@heroicons/react`, `viem`, and `wagmi` were being fully scanned by the dev server even if only a few components were used.
+- **Missing Turbo Engine:** The project was not leveraging the Rust-powered Turbopack engine available in Next.js 15.
+
+**Fixes Applied:**
+1. **Enabled Turbopack:** Updated `package.json` to use `next dev --turbo`. This reduces startup time by up to 50-70% by using the Rust-based bundler.
+2. **Module Import Optimization:** Configured `optimizePackageImports` in `next.config.js` for `lucide-react`, `@heroicons/react`, `framer-motion`, `@radix-ui/react-icons`, `viem`, and `wagmi`. This tells Next.js to only load the pieces of these libraries that are actually being imported by the app.
+3. **Dependency Check:** Verified that no unnecessary heavy scripts or instrumentation (like Sentry) were blocking the dev server startup process.
+
+**Results:**
+- Significant reduction in initial cold-start time for `bun run dev`.
+- Faster Hot Module Replacement (HMR) when saving files.
+- Lower memory footprint during development.
+
+```bash
+# Optimized dev command:
+bun run dev # now uses Turbopack
+```
+

@@ -23,11 +23,12 @@ const FRONTEND_DIR    = path.join(__dirname, '/', 'contracts');
 const DEPLOYMENTS_ROOT = path.join(__dirname, '../blockchain/deployments');
 
 // Network priority order — first directory that exists wins
-const NETWORK_PRIORITY = ['testnet', 'mainnet'];
+const NETWORK_PRIORITY = ['celoSepolia', 'celo'];
 
 // Contracts we care about syncing
 const CONTRACTS_TO_SYNC = [
-  'InpactPay',
+  'ImpactPay',
+  'MockERC20'
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
