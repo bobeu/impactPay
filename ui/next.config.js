@@ -22,6 +22,13 @@ const nextConfig = {
       'viem',
       'wagmi'
     ],
+    turbo: {
+      resolveAlias: {
+        fs: false,
+        net: false,
+        tls: false,
+      },
+    },
   },
 };
 

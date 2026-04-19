@@ -1639,4 +1639,8 @@ Implementation verified and integrated into the main `Home` and `Profile` flows.
 # Optimized dev command:
 bun run dev # now uses Turbopack
 ```
+
+**Update (Turbopack Warning Fix):**
+- **Issue:** Next.js warned that Webpack was configured while Turbopack was not, leading to potential discrepancies in module resolution (specifically for `fs`, `net`, and `tls` fallbacks used by Web3 libraries).
+- **Fix:** Added `experimental.turbo.resolveAlias` to `next.config.js` to mirror the Webpack `resolve.fallback` configuration. This ensures that Turbopack correctly ignores Node.js internal modules when bundling for the browser, eliminating the startup warning.
 
