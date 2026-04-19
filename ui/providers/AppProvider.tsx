@@ -2,13 +2,13 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { celo } from "wagmi/chains";
+import { celo, celoSepolia } from "wagmi/chains";
 // import { injected } from "wagmi/connectors";
 import { defineChain } from "viem";
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
 import { UserProfileProvider } from "@/contexts/UserProfileContext";
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
+import { connectorsForWallets, RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ImpactPayProvider } from "@/contexts/ImpactPayContext";
@@ -26,12 +26,12 @@ const connectors = connectorsForWallets(
   }
 );
 
-const celoSepolia = defineChain({
-  id: 11142220,
-  name: "Celo Sepolia",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: { default: { http: [process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL??"https://forno.celo-sepolia.celo-testnet.org"] } },
-});
+// const celoSepolia = defineChain({
+//   id: 11142220,
+//   name: "Celo Sepolia",
+//   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+//   rpcUrls: { default: { http: [process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL??"https://forno.celo-sepolia.celo-testnet.org"] } },
+// });
 
 const config = createConfig({
   chains: [celoSepolia, celo],
@@ -48,12 +48,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ImpactPayProvider>
-          <UserProfileProvider>
-            <MiniPayAutoConnect />
-            <Layout>{children}</Layout>
-          </UserProfileProvider>
-        </ImpactPayProvider>
+        <RainbowKitProvider
+          theme={
+            lightTheme({
+                accentColor: '#001B3D',
+                accentColorForeground: 'white',
+                borderRadius: 'medium',
+              })}
+              initialChain={celoSepolia.id}
+        >
+          <ImpactPayProvider>
+            <UserProfileProvider>
+              <MiniPayAutoConnect />
+              <Layout>{children}</Layout>
+            </UserProfileProvider>
+          </ImpactPayProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

@@ -6,7 +6,7 @@ import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
 import { PlusCircle, Wallet, ShieldCheck, Share2, ExternalLink } from 'lucide-react';
-import { Address } from 'viem';
+import AddressWrapper from './AddressFormatter/AddressWrapper';
 
 interface ProfileClientViewProps {
   address: string;
@@ -14,10 +14,9 @@ interface ProfileClientViewProps {
 }
 
 export default function ProfileClientView({ address, ogImageUrl }: ProfileClientViewProps) {
-  const { goals, isLoading } = useImpactPay();
+  const { userGoals } = useImpactPay();
   
-  const profileGoals = goals.filter(g => g.common.creator.toLowerCase() === address.toLowerCase());
-
+  // const profileGoals = goals.filter(g => g.common.creator.toLowerCase() === address.toLowerCase());
   const shareText = encodeURIComponent(`Check out my verified impact on ImpactPay! 🌍💚\n${window.location.href}`);
   const xShareLink = `https://twitter.com/intent/tweet?text=${shareText}`;
   const verifyLink = `/verify/${address}`;
@@ -33,7 +32,13 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">Public Profile</h1>
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full font-mono text-[11px] text-slate-500 border border-slate-200">
                 <Wallet className="w-3.5 h-3.5" />
-                {address}
+                <AddressWrapper 
+                  display={true}
+                  account={address}
+                  copyIconSize='6'
+                  size={6}
+                  overrideClassName='text-slate-500 font-mono text-[11px]'
+                />
               </div>
             </div>
             
@@ -65,12 +70,12 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Impact Goals Created</h3>
               <div className="h-px flex-1 bg-slate-100 mx-4" />
-              <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{profileGoals.length}</span>
+              <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{userGoals?.length || 0}</span>
             </div>
 
-            {profileGoals.length > 0 ? (
+            {(userGoals && userGoals.length > 0) ? (
               <GoalList 
-                goals={profileGoals} 
+                goals={userGoals} 
                 emptyMessage="No goals found for this address."
               />
             ) : (

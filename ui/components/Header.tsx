@@ -46,11 +46,11 @@ export default function Header() {
         ) : (
           !hideConnectBtn && <ConnectButton 
             showBalance={{
-              smallScreen: true,
+              smallScreen: false,
               largeScreen: true,
             }}
             chainStatus={{
-              smallScreen: 'icon',
+              smallScreen: 'none',
               largeScreen: 'full',
             }}
             accountStatus={{

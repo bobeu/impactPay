@@ -1,4 +1,4 @@
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 
 export enum GoalType {
     DEFAULT,
@@ -73,7 +73,7 @@ export interface GetGoalIdAndState {
     goalCounter: bigint;
     maxGoal: bigint;
     billServices: readonly Address[];
-    level3Verified: boolean;
+    level: number;
     restricted: boolean;
     reputation: bigint;
 }
@@ -151,4 +151,23 @@ export interface ImpactPayContextType {
   refundScholarship: (goalId: bigint) => Promise<void>;
   onVerificationSuccess: (user: Address) => Promise<void>;
   refresh: () => void;
+}
+
+
+export const mockGetGoalIDAndState : GetGoalIdAndState = {
+    backendFulfillmentSigner: zeroAddress,
+    billListingFee: 0n,
+    billServices: zeroAddress,
+    billSuccessFeeBP: 0n,
+    defaultListingFee: 0n,
+    goalCounter: 0n,
+    goalIds: [0n],
+    level: 0,
+    maxGoal: 0n,
+    releaseApprover: zeroAddress,
+    reputation: 0n,
+    restricted: false,
+    scholarshipFeeBP: 0n,
+    scholarshipListingFee: 0n,
+    treasury: zeroAddress
 }

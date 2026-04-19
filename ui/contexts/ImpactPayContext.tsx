@@ -5,15 +5,16 @@ import { useAccount, useReadContract, useReadContracts, useWriteContract, useCon
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
-import type { 
-  CreateBillGoal, 
-  GetGoal, 
-  GetGoalIdAndState, 
-  ImpactPayContextType, 
-  TransactionStage, 
-  Args
+import { 
+  type CreateBillGoal, 
+  type GetGoal, 
+  type GetGoalIdAndState, 
+  type ImpactPayContextType, 
+  type TransactionStage, 
+  type Args,
+  mockGetGoalIDAndState
 } from "../lib/types";
-import { Address } from 'viem';
+import { Address, zeroAddress } from 'viem';
 
 const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefined);
 
@@ -35,14 +36,20 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     query: { enabled: !!address }
   });
 
-  const goalIdsAndState = React.useMemo(() => {
-    if (!goalIdsAndState_) return { } as GetGoalIdAndState;
-    return goalIdsAndState_ as GetGoalIdAndState;
+  const {goalIdsAndState, goalIds } = React.useMemo(() => {
+    if (!goalIdsAndState_) return {goalIdsAndState: mockGetGoalIDAndState, goalIds: []};
+    const goalIds = [...Array(Number(goalIdsAndState_.goalCounter)).keys()];
+    console.log('Goal IDs to fetch:', goalIds);
+    return {
+      goalIdsAndState: goalIdsAndState_ as GetGoalIdAndState,
+      goalIds
+    }
   }, [ goalIdsAndState_ ]);
+  console.log('Goal IDs to fetch:', goalIds);
 
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
-    contracts: [...Array(Number(goalIdsAndState.goalCounter)).keys()].map(k => ({
+    contracts: goalIds.map(k => ({
       address: CONTRACTS.ImpactPay.address, 
       abi: CONTRACTS.ImpactPay.abi as any, 
       functionName: 'getGoal',
