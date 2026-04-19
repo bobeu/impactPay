@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
@@ -51,7 +51,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
               >
                 <Share2 className="w-4 h-4" /> Share
               </a>
-              <Link href={verifyLink} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 px-5 rounded-2xl hover:border-slate-300 transition">
+              <Link to={verifyLink} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 px-5 rounded-2xl hover:border-slate-300 transition">
                 <ShieldCheck className="w-4 h-4 text-accent" /> Verify
               </Link>
             </div>
@@ -94,7 +94,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                   </p>
                 </div>
                 <Link 
-                  href="/" 
+                  to="/" 
                   className="inline-flex items-center gap-2 bg-accent text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors uppercase tracking-widest text-[11px]"
                 >
                   Create Your First Goal <ExternalLink className="w-3.5 h-3.5" />

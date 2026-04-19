@@ -1,45 +1,47 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Compass, FolderHeart, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Compass, FolderHeart, User, Shield, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAccount } from "wagmi";
 
 type NavItem = {
-  key: "explore" | "my-goals" | "profile";
+  key: string;
   label: string;
   icon: typeof Compass;
   href: string;
 };
 
-const items: NavItem[] = [
-  { key: "explore", label: "Explore", icon: Compass, href: "/" },
-  { key: "my-goals", label: "My Goals", icon: FolderHeart, href: "/my-goals" },
-  { key: "profile", label: "Profile", icon: User, href: "/profile" },
-];
-
 export function BottomNav() {
-  const pathname = usePathname();
+  const location = useLocation();
+  const { address } = useAccount();
 
-  const activeKey: NavItem["key"] =
-    pathname?.startsWith("/profile") ? "profile" : pathname?.startsWith("/my-goals") ? "my-goals" : "explore";
+  const items: NavItem[] = [
+    { key: "home", label: "Explore", icon: Compass, href: "/" },
+    { key: "sponsor", label: "Sponsor", icon: Shield, href: "/sponsor" },
+    { key: "create", label: "Create", icon: Target, href: "/create-goal" },
+    { key: "profile", label: "Profile", icon: User, href: `/profile/${address || '0x0'}` },
+  ];
+
+  const activePath = location.pathname;
 
   return (
     <nav
       aria-label="Primary"
       className="fixed bottom-0 inset-x-0 border-t border-slate-100 bg-white/80 backdrop-blur-md z-50 transition-all duration-300"
     >
-      <div className="mx-auto flex max-w-lg items-center justify-around px-4 h-16">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-2 h-16">
         {items.map((item) => {
-          const isActive = item.key === activeKey;
+          const isActive = item.href === "/" ? activePath === "/" : activePath.startsWith(item.href);
           const Icon = item.icon;
           return (
-            <a
+            <Link
               key={item.key}
-              href={item.href}
+              to={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 transition-all duration-200 w-16 h-full border-t-2",
                 isActive 
-                  ? "border-primary text-primary" 
+                  ? "border-accent text-accent" 
                   : "border-transparent text-slate-400 hover:text-slate-600"
               )}
             >
@@ -47,7 +49,7 @@ export function BottomNav() {
               <span className="text-[10px] font-bold uppercase tracking-wider">
                 {item.label}
               </span>
-            </a>
+            </Link>
           );
         })}
       </div>
