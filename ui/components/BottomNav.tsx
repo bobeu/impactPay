@@ -15,6 +15,7 @@ type NavItem = {
 };
 
 export function BottomNav() {
+  const location = useLocation();
   const { address } = useAccount();
   const [mounted, setMounted] = useState(false);
   

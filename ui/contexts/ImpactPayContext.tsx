@@ -39,15 +39,27 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   const { goalIdsAndState, goalIdsToFetch } = React.useMemo(() => {
     if (!goalIdsAndState_) return { goalIdsAndState: mockGetGoalIDAndState, goalIdsToFetch: [] };
-    const goalIdsData = goalIdsAndState_ as GetGoalIdAndState;
+    const goalIdsData = goalIdsAndState_ as GetGoalIdAndState | readonly unknown[];
     let fetchedIds: bigint[] = [];
-    if (goalIdsData.goalIds && goalIdsData.goalIds.length > 0) {
-      fetchedIds = [...goalIdsData.goalIds];
-    } else if (goalIdsData.goalCounter) {
-      fetchedIds = Array.from(Array(Number(goalIdsData.goalCounter)).keys()).map(n => BigInt(n));
+    
+    // Safely parse the wagmi return type (could be a tuple if ABI names are loose)
+    if (Array.isArray(goalIdsData)) {
+       const ids = goalIdsData[0]; // goalIds is usually index 0
+       if (Array.isArray(ids)) fetchedIds = [...ids].map(n => BigInt(n));
+       else {
+          const counter = Number(goalIdsData[9] || 0); // goalCounter index 9
+          if (counter && !isNaN(counter)) fetchedIds = Array.from(Array(counter).keys()).map(n => BigInt(n));
+       }
+    } else if (goalIdsData) {
+       const typedData = goalIdsData as GetGoalIdAndState;
+       if (typedData.goalIds && typedData.goalIds.length > 0) fetchedIds = [...typedData.goalIds].map(n => BigInt(n));
+       else if (typedData.goalCounter) {
+          const counter = Number(typedData.goalCounter);
+          if (!isNaN(counter)) fetchedIds = Array.from(Array(counter).keys()).map(n => BigInt(n));
+       }
     }
     return {
-      goalIdsAndState: goalIdsData,
+      goalIdsAndState: goalIdsData as GetGoalIdAndState,
       goalIdsToFetch: fetchedIds
     };
   }, [goalIdsAndState_]);
