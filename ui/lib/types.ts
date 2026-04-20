@@ -7,6 +7,9 @@ export enum GoalType {
 }
 
 export type GoalTypeStr = 'DEFAULT' | 'BILL' | 'SCHOLARSHIP';
+export enum GoalStr { 'Default', 'Bill', 'Scholarship'}
+export type GoalCategory = "Bill" | "Scholarship" | "Default";
+export type VerificationLevel = 0 | 1 | 2 | 3;
 export type OtherFuncType = 
 'fundGoal' | 
 'reactivateGoal' | 
@@ -59,6 +62,12 @@ export type CommonData = {
     lockedForReview: boolean;
 }
 
+export interface Verification {
+    lvl1: boolean;
+    lvl2: boolean;
+    lvl3: boolean;
+}
+
 /// @notice Composite struct for goal id and state variables information retrieval
 export interface GetGoalIdAndState {
     goalIds: readonly bigint[];
@@ -73,7 +82,7 @@ export interface GetGoalIdAndState {
     goalCounter: bigint;
     maxGoal: bigint;
     billServices: readonly Address[];
-    level: number;
+    verifications: Verification;
     restricted: boolean;
     reputation: bigint;
 }
@@ -162,7 +171,11 @@ export const mockGetGoalIDAndState : GetGoalIdAndState = {
     defaultListingFee: 0n,
     goalCounter: 0n,
     goalIds: [0n],
-    level: 0,
+    verifications: {
+        lvl1: false,
+        lvl2: false,
+        lvl3: false
+    },
     maxGoal: 0n,
     releaseApprover: zeroAddress,
     reputation: 0n,
@@ -170,4 +183,35 @@ export const mockGetGoalIDAndState : GetGoalIdAndState = {
     scholarshipFeeBP: 0n,
     scholarshipListingFee: 0n,
     treasury: zeroAddress
+}
+
+export const mockGoals : GetGoal = {
+    bill: {
+        billService: zeroAddress,
+        serviceType: ""
+    },
+    common: {
+        creator: zeroAddress,
+        description: "",
+        flagsCount: 0,
+        goalType: GoalType.DEFAULT,
+        id: 0n,
+        raisedAmount: 0n,
+        status: GoalStatus.OPEN,
+        targetAmount: 0n,
+        lockedForReview: false,
+        withdrawnAmount: 0n
+    },
+    scholarship: {
+        refundedAmount: 0n,
+        milestoneDeadline: 0n,
+        milestone: Milestone.NONE,
+        disputed: false
+    },
+    funders: [{
+        amount: 0n,
+        extraInfo: "",
+        fundedAt: 0n,
+        id: zeroAddress
+    }]
 }

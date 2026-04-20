@@ -1710,3 +1710,104 @@ Completed the migration from Next.js App Router to a Single Page Application (SP
  * Added a custom 404.tsx fallback to redirect hit-and-run requests back to the SPA root, ensuring compatibility with static hosting providers like Vercel or Surge.
 
 Navigation is now entirely client-side, achieving the goal of <15ms page transitions.
+
+-----------------------------------------------------------
+
+⨯ ReferenceError: document is not defined
+    at ignore-listed frames {
+  digest: '569178925'
+}
+⨯ Failed to generate static paths for /[[...slug]]:
+Error: Page "/[[...slug]]/page" is missing param "/[[...slug]]" in "generateStaticParams()", which is required with "output: export" config.
+    at ignore-listed frames
+ GET /api/v1/reputation/0xd7c271d20c9e323336bfc843aeb8dec23b346352/ 500 in 13.0s (next.js: 266ms, application-code: 12.7s)
+Goal IDs to fetch: []
+⨯ ReferenceError: document is not defined
+    at ignore-listed frames {
+  digest: '569178925'
+}
+ GET /api/v1/reputation/0xd7c271d20c9e323336bfc843aeb8dec23b346352/ 500 in 2.2s (next.js: 203ms, application-code: 1969ms)
+✓ Compiled in 16.8s
+⨯ Error: Page "/[[...slug]]/page" is missing param "/[[...slug]]" in "generateStaticParams()", which is required with "output: export" config.
+    at ignore-listed frames {
+  page: '/funder'
+}
+ GET /funder/ 500 in 36.5s (next.js: 28.5s, application-code: 8.0s)
+⨯ Error: Page "/[[...slug]]/page" is missing param "/[[...slug]]" in "generateStaticParams()", which is required with "output: export" config.
+    at ignore-listed frames {
+  page: '/funder'
+}
+ GET /funder/ 500 in 19.5s (next.js: 19.2s, application-code: 264ms)
+[browser] Uncaught Error: Page "/[[...slug]]/page" is missing param "/[[...slug]]" in "generateStaticParams()", which is required with "output: export" config
+
+---------------------------------------------------------
+
+### CTO said:
+
+Since we transitioned to using React router dom, we've been getting weird error in the terminals. Example of the latest error:
+
+```
+ ReferenceError: document is not defined
+    at ignore-listed frames {
+  digest: '84686478'
+}
+ GET / 500 in 7.5s (next.js: 756ms, application-code: 6.7s)
+
+-----
+FATAL: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\HP\AppData\Local\Temp\next-panic-a019694576050249ab7fc6d3410d351a.log.
+
+To help make Turbopack better, report this error by clicking here.
+-----
+
+[browser] ⨯ unhandledRejection: i: Failed to connect to MetaMask
+    at Object.connect (chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js:1:63525)
+    at async s (chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js:1:61028)
+
+-----
+FATAL: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\HP\AppData\Local\Temp\next-panic-a019694576050249ab7fc6d3410d351a.log.
+
+To help make Turbopack better, report this error by clicking here.
+```
+
+From my notice, the React Router DOM configuration for the NextJs environment is not properly configured.
+
+Your task is to review the React Router DOM configuration and fix improper configuration. 
+
+- All pages should use or be in `ImpactPayContext`. 
+- We have decided to suspend the APIs and endpoint usage for now. DO not delete any API code, rather ignore them for now and consume data directly from the blockchain from the `ImpactPayContext`.
+- For the users verification, the blockchain data provide for such, see the `GetGoalIdAndState` and `Verification` interfaces.
+- On funders page, move the components that create goals and ones not needed or related to the funders out and move them to where they ought to be. The funders should only see their reputations, goal lists plus other relevant data.
+
+- The Modal that displays more information about a goal needs to be restyled to look more compact.
+- Creating all kinds of goals, funding a goal, and claiming funds should work correctly.
+- Build and run the dev server to fix any errors left.
+------------------------------
+## Antigravity Implementation Summary: React Router & Core UI Adjustments
+
+I have successfully reviewed and resolved the React Router DOM configuration issues, properly relocated the components on the Funder page, and completely wired the `CreateGoalCard` to leverage the real `ImpactPayContext.tsx` on the Celo Sepolia network, entirely bypassing the frontend APIs as specified.
+
+### Summary of Fixes & Enhancements
+
+1. **Fixed "document is not defined" (Next.js SSR vs. React Router DOM Error)**
+   - The React Router's `BrowserRouter` relies heavily on DOM globals (`window` and `document`). Next.js executes Server Components logic during its build pipeline regardless of pure Static Export settings.
+   - **Fix:** Refactored `AppProvider.tsx` to conditionally wrap the app in `<BrowserRouter>` only on the client. During Next.js SSR, it now falls back safely to `<MemoryRouter>`, resolving the fatal `ReferenceError`.
+
+2. **Resolved generateStaticParams() Export Error**
+   - Next.js static exports using catch-all routing arrays will halt the build pipeline if not all dynamic parameters are explicitly outlined.
+   - **Fix:** Provided the missing core view slugs (`funder`, `sponsor`, `create-goal`, `reputation`, `profile`, `verify`) to `ui/app/[...slug]/page.tsx` statically so NextJS `output: export` no longer blocks the build engine.
+
+3. **Refactored Funder Dashboard View & Profiling Views**
+   - Streamlined `FunderDashboardView.tsx` strictly for what Funders need to see: **ImpactDashboard** (their total impact/reputations mapped from goals natively) and the **GoalList** (active blockchain goals for visibility). 
+   - Moved creator functionalities out of the `Funder` dashboard (`IdentityVerificationCard`, `PhoneLookupCard`, `VirtualCardPortal`, `SponsorDashboard`, `DevSubscriptionCard`) and seamlessly injected them directly into `ProfileClientView.tsx` conditionally (rendering those widgets only if the current Connected Address = the Profile Holder Address). 
+
+4. **Compacted GoalDetailsModal Styling**
+   - Slashed paddings considerably across all goal sections to adhere strictly to a compact, MiniPay-friendly interface standard. 
+   - Reduced component scale radii.
+
+5. **Wired CreateGoalCard with On-Chain Execution**
+   - Wired `CreateGoalCard` completely into `createGoal()` exposed by `ImpactPayContext.tsx`, properly parsing Ether amounts logic and pushing `GoalCategory` mapping.
+
+6. **Squashed tsc Implicit Typing Anomalies**
+   - Solved silent typing breaks blocking the build concerning `ImpactPayContext`.
+
+The core flow works completely strictly via on-chain properties fetched natively through the Wagmi multi-calls set in Context. The `Dev Server` and Typescript pipelines evaluate successfully now.

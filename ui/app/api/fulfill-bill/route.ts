@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-
 import { retryStore, type RetryPayload } from "@/lib/fulfillment-retry-store";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { CONTRACTS } from "@/contracts";
+import { waitForTransactionReceipt } from "viem/actions";
 
 const impactPayAbi = [
   {
@@ -91,10 +93,10 @@ async function callBitGifty(payload: RetryPayload) {
   return response.json();
 }
 
-async function markGoalFulfilledOnChain(goalId: number) {
+async function markGoalFulfilledOnChain(goalId: number, amount: bigint) {
   const privateKey = process.env.BACKEND_SIGNER_PRIVATE_KEY as `0x${string}` | undefined;
-  const contractAddress = process.env.IMPACTPAY_CONTRACT_ADDRESS as `0x${string}` | undefined;
-  if (!privateKey || !contractAddress) {
+  // const contractAddress = process.env.IMPACTPAY_CONTRACT_ADDRESS as `0x${string}` | undefined;
+  if (!privateKey) {
     throw new Error("BACKEND_SIGNER_PRIVATE_KEY or IMPACTPAY_CONTRACT_ADDRESS missing");
   }
 
@@ -106,16 +108,17 @@ async function markGoalFulfilledOnChain(goalId: number) {
   });
 
   const txHash = await client.writeContract({
-    address: contractAddress,
-    abi: impactPayAbi,
-    functionName: "markBillFulfilled",
-    args: [BigInt(goalId)],
+    address: CONTRACTS.ImpactPay.address,
+    abi: CONTRACTS.ImpactPay.abi,
+    functionName: "relayBillFundsToService",
+    args: [BigInt(goalId), amount],
   });
+
+  // const receipt = await waitForTransactionReceipt(client., {hash: txHash});
 
   return txHash;
 }
 
-import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -146,7 +149,7 @@ export async function POST(req: NextRequest) {
     }
 
     const bitgifty = await callBitGifty(payload);
-    const onChainTx = await markGoalFulfilledOnChain(payload.goalId);
+    const onChainTx = await markGoalFulfilledOnChain(payload.goalId, BigInt(payload.amount));
 
     if (retryToken) retryStore.delete(retryToken);
     return NextResponse.json({

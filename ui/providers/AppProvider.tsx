@@ -12,6 +12,7 @@ import { connectorsForWallets, RainbowKitProvider, lightTheme } from "@rainbow-m
 import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ImpactPayProvider } from "@/contexts/ImpactPayContext";
+import { BrowserRouter, MemoryRouter } from "react-router-dom";
 
 const connectors = connectorsForWallets(
   [
@@ -58,10 +59,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               initialChain={celoSepolia.id}
         >
           <ImpactPayProvider>
-            <UserProfileProvider>
-              <MiniPayAutoConnect />
-              <Layout>{children}</Layout>
-            </UserProfileProvider>
+            {typeof window !== 'undefined' ? (
+              <BrowserRouter>
+                <UserProfileProvider>
+                  <MiniPayAutoConnect />
+                  <Layout>{children}</Layout>
+                </UserProfileProvider>
+              </BrowserRouter>
+            ) : (
+              <MemoryRouter>
+                <UserProfileProvider>
+                  <MiniPayAutoConnect />
+                  <Layout>{children}</Layout>
+                </UserProfileProvider>
+              </MemoryRouter>
+            )}
           </ImpactPayProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

@@ -1,9 +1,10 @@
 "use client";
 
 import { Link, useLocation } from "react-router-dom";
-import { Compass, FolderHeart, User, Shield, Target } from "lucide-react";
+import { Compass, User, Shield, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "wagmi";
+import { zeroAddress } from "viem";
 
 type NavItem = {
   key: string;
@@ -20,7 +21,7 @@ export function BottomNav() {
     { key: "home", label: "Explore", icon: Compass, href: "/" },
     { key: "sponsor", label: "Sponsor", icon: Shield, href: "/sponsor" },
     { key: "create", label: "Create", icon: Target, href: "/create-goal" },
-    { key: "profile", label: "Profile", icon: User, href: `/profile/${address || '0x0'}` },
+    { key: "profile", label: "Profile", icon: User, href: `/profile/${address || zeroAddress}` },
   ];
 
   const activePath = location.pathname;

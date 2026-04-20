@@ -77,10 +77,10 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-md bg-white rounded-t-[2rem] sm:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-50">
+            <div className="p-4 pb-3 flex items-center justify-between border-b border-slate-50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                    {common.goalType === GoalType.BILL ? <FileText className="w-5 h-5" /> : <Target className="w-5 h-5" />}
@@ -95,9 +95,9 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div className="flex-1 overflow-y-auto p-4 space-y-5">
               {/* Description Section */}
-              <section className="space-y-3">
+              <section className="space-y-2">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Story</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
                   {common.description}
@@ -115,7 +115,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               </section>
 
               {/* Progress & Stats */}
-              <section className="bg-slate-50 rounded-2xl p-5 grid grid-cols-2 gap-6">
+              <section className="bg-slate-50 rounded-xl p-4 grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Raised</span>
                   <div className="text-xl font-bold text-slate-900">{formatEther(common.raisedAmount)} CELO</div>
@@ -147,7 +147,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               </section>
 
               {/* Funders List */}
-              <section className="space-y-4">
+              <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Donors ({funders.length})</h3>
                   <Users className="w-4 h-4 text-slate-300" />
@@ -182,30 +182,30 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
               {/* Action Area */}
               {common.status === GoalStatus.OPEN && !isCreator && (
-                <section className="space-y-4 bg-accent/5 p-5 rounded-2xl border border-accent/10">
-                  <div className="flex items-center gap-2 mb-2">
+                <section className="space-y-3 bg-accent/5 p-4 rounded-xl border border-accent/10">
+                  <div className="flex items-center gap-2 mb-1">
                     <Wallet className="w-4 h-4 text-accent" />
                     <h3 className="text-[11px] font-bold text-accent uppercase tracking-widest">Fund this Impact</h3>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <input 
                       type="number" 
                       placeholder="Amount in CELO"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none font-bold"
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none font-bold"
                       value={fundingAmount}
                       onChange={(e) => setFundingAmount(e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="Add a support message (optional)"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none"
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none"
                       value={extraInfo}
                       onChange={(e) => setExtraInfo(e.target.value)}
                     />
                     <button 
                       onClick={handleFund}
                       disabled={isSubmitting}
-                      className="w-full py-4 bg-accent text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 active:scale-[0.98]"
+                      className="w-full py-3 bg-accent text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 active:scale-[0.98]"
                     >
                       {isSubmitting ? 'Sending...' : 'Donate Now'}
                       {!isSubmitting && <ArrowRight className="w-4 h-4" />}
@@ -216,7 +216,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
               {/* Creator Actions */}
               {isCreator && (
-                 <section className="p-4 bg-slate-900 rounded-2xl space-y-3">
+                 <section className="p-3 bg-slate-900 rounded-xl space-y-2">
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Creator Tools</h4>
                     <div className="grid grid-cols-2 gap-2">
                        {common.status === GoalStatus.CANCELED && (

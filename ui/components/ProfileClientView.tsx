@@ -7,6 +7,12 @@ import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
 import { PlusCircle, Wallet, ShieldCheck, Share2, ExternalLink } from 'lucide-react';
 import AddressWrapper from './AddressFormatter/AddressWrapper';
+import { useAccount } from 'wagmi';
+import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
+import { PhoneLookupCard } from '@/components/PhoneLookupCard';
+import { VirtualCardPortal } from '@/components/VirtualCardPortal';
+import { SponsorDashboard } from '@/components/SponsorDashboard';
+import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
 
 interface ProfileClientViewProps {
   address: string;
@@ -15,6 +21,8 @@ interface ProfileClientViewProps {
 
 export default function ProfileClientView({ address, ogImageUrl }: ProfileClientViewProps) {
   const { userGoals } = useImpactPay();
+  const { address: connectedAddress } = useAccount();
+  const isOwner = connectedAddress?.toLowerCase() === address.toLowerCase();
   
   // const profileGoals = goals.filter(g => g.common.creator.toLowerCase() === address.toLowerCase());
   const shareText = encodeURIComponent(`Check out my verified impact on ImpactPay! 🌍💚\n${window.location.href}`);
@@ -94,7 +102,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                   </p>
                 </div>
                 <Link 
-                  to="/" 
+                  to="/create-goal" 
                   className="inline-flex items-center gap-2 bg-accent text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors uppercase tracking-widest text-[11px]"
                 >
                   Create Your First Goal <ExternalLink className="w-3.5 h-3.5" />
@@ -121,6 +129,30 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
             </div>
           </div>
         </section>
+
+        {isOwner && (
+          <>
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <IdentityVerificationCard address={connectedAddress} />
+                <div className="space-y-6">
+                    <PhoneLookupCard />
+                    <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
+                        <h3 className="text-sm font-bold text-slate-800">Quick Actions</h3>
+                        <Link to="/create-goal" className="flex items-center justify-center w-full py-3 bg-accent text-white font-bold rounded-2xl text-[11px] uppercase tracking-widest hover:bg-emerald-600 transition-colors">
+                            Create Goal
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <VirtualCardPortal address={connectedAddress} />
+                <SponsorDashboard />
+            </section>
+            
+            <DevSubscriptionCard />
+          </>
+        )}
       </div>
     </div>
   );

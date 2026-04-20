@@ -36,7 +36,7 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
           Direct Help. <br/><span className="text-accent underline decoration-emerald-200 underline-offset-4">Verified Stories.</span>
         </h1>
         <p className="text-sm text-slate-500 font-medium max-w-xs mx-auto">
-          The most transparent way to support essential needs and education on Celo.
+          The most transparent and verfied way to support essential needs and education on Celo.
         </p>
       </section>
 
@@ -81,7 +81,7 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
           >
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-                <Heart className="w-3 h-3 fill-emerald-400" /> Become a Funder
+                <Heart className="w-3 h-3 fill-emerald-400" /> Fund a goal
               </div>
               <h4 className="text-xl font-bold text-white">I want to give back</h4>
               <p className="text-xs text-slate-400">Browse verified bills and scholarships</p>

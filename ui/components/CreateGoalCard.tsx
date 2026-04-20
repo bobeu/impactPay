@@ -6,19 +6,22 @@ import { PlusCircle, CreditCard, GraduationCap, AlertCircle, CheckCircle2 } from
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-import { GoalCategory, useUserProfile } from "@/contexts/UserProfileContext";
-import { useWeb3 } from "@/contexts/useWeb3";
+import { useUserProfile } from "@/contexts/UserProfileContext";
+import { GoalCategory } from "@/lib/types";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
+import { parseEther } from "viem";
 
 export function CreateGoalCard() {
   const { canCreateScholarship } = useUserProfile();
-  const { getGasReadiness } = useWeb3();
+  const { createGoal } = useImpactPay();
   const [goalTitle, setGoalTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Bill");
   const [amount, setAmount] = useState("50");
   const [message, setMessage] = useState("");
   const [showGateModal, setShowGateModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     if (!goalTitle.trim()) {
       setMessage("Add a short goal description.");
       return;
@@ -28,19 +31,30 @@ export function CreateGoalCard() {
       setShowGateModal(true);
       return;
     }
-    toast.promise(
-      getGasReadiness().then((g) => {
-        if (!g.hasEnough) {
-          throw new Error(`Insufficient CELO for gas. Est. ${g.estimatedCostCELO} CELO`);
-        }
-        setMessage(`Draft ${category} goal created for $${amount}. Est. gas ${g.estimatedGas}.`);
-      }),
-      {
-        loading: "Estimating gas for goal creation...",
-        success: "Gas check passed. Goal transaction ready.",
-        error: (e) => String(e),
-      },
-    );
+
+    try {
+      setIsSubmitting(true);
+      setMessage("Preparing transaction...");
+      
+      const payload = {
+        targetAmount: parseEther(amount),
+        description: goalTitle,
+        extraInfo: "",
+        goalType: category.toUpperCase() as "BILL" | "SCHOLARSHIP" | "DEFAULT",
+        serviceType: category === "Bill" ? "General" : undefined,
+        billServiceIndex: category === "Bill" ? "0" : undefined
+      };
+      
+      await createGoal(payload);
+      
+      setGoalTitle("");
+      setAmount("50");
+      setMessage("Goal created successfully!");
+    } catch (err: any) {
+      setMessage(err.shortMessage || err.message || "Failed to create goal.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -129,10 +143,11 @@ export function CreateGoalCard() {
         <button
           type="button"
           onClick={submit}
-          className="h-14 w-full rounded-md bg-primary text-white text-sm font-bold hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-[0.98]"
+          disabled={isSubmitting}
+          className="h-14 w-full rounded-md bg-primary text-white text-sm font-bold hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          Create Impact Goal
-          <CheckCircle2 className="w-4 h-4 text-accent" />
+          {isSubmitting ? "Processing..." : "Create Impact Goal"}
+          {!isSubmitting && <CheckCircle2 className="w-4 h-4 text-accent" />}
         </button>
 
         <AnimatePresence>

@@ -12,7 +12,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address: paramAddress } = await params;
   const address = paramAddress.toLowerCase();
-  
+
   const ogImageUrl = `/api/og/${address}`;
 
   return {
@@ -42,7 +42,7 @@ export default async function ProfilePage({ params }: Props) {
   const { address: paramAddress } = await params;
   const address = paramAddress.toLowerCase();
   const ogImageUrl = `/api/og/${address}`;
-  
+
   return (
     <ProfileClientView address={address} ogImageUrl={ogImageUrl} />
   );

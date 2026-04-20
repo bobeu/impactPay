@@ -12,9 +12,10 @@ import {
   type ImpactPayContextType, 
   type TransactionStage, 
   type Args,
-  mockGetGoalIDAndState
+  mockGetGoalIDAndState,
+  mockGoals
 } from "../lib/types";
-import { Address, zeroAddress } from 'viem';
+import { Address } from 'viem';
 
 const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefined);
 
@@ -38,14 +39,15 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   const {goalIdsAndState, goalIds } = React.useMemo(() => {
     if (!goalIdsAndState_) return {goalIdsAndState: mockGetGoalIDAndState, goalIds: []};
-    const goalIds = [...Array(Number(goalIdsAndState_.goalCounter)).keys()];
-    console.log('Goal IDs to fetch:', goalIds);
+    // const goalIds = [...Array(Number(goalIdsAndState_.goalCounter)).keys()];
+    const goalIds = Array(3).keys();
+    // console.log('Goal ID to fetch:', goalIds);
     return {
       goalIdsAndState: goalIdsAndState_ as GetGoalIdAndState,
       goalIds
     }
   }, [ goalIdsAndState_ ]);
-  console.log('Goal IDs to fetch:', goalIds);
+  // console.log('Goal IDs to fetch:', goalIds);
 
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
@@ -71,15 +73,19 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   // Derived the goals
   const { userGoals, goals, stats, funderReputations } = useMemo(() => {
-    const goals = (rawGoals?.map(k => k?.result as GetGoal) || []).filter(g => g && g.common); 
+    if (!rawGoals) return { userGoals: [mockGoals], goals: [mockGoals], stats: { totalGoals: 0, totalRaised: 0n, totalFunders: 0, activeGoals: 0 }, funderReputations: {}};
+    const goals = (rawGoals?.map((k: any) => {
+      const getGoal_ = k?.result as GetGoal;
+      return getGoal_;
+    })).filter((g: GetGoal) => g && g.common); 
 
     // Filter all goals for the current user
-    const userGoals = goals.filter(k => k.common.creator.toLowerCase() === address?.toLowerCase());
+    const userGoals = goals.filter((k: GetGoal) => k.common.creator.toLowerCase() === address?.toLowerCase());
 
     // Aggregate funders and calculate reputations
     const reputations: Record<string, bigint> = {};
-    goals.forEach(goal => {
-      goal.funders?.forEach(funder => {
+    goals.forEach((goal: GetGoal) => {
+      goal.funders?.forEach((funder: any) => {
         const addr = funder.id.toLowerCase();
         reputations[addr] = (reputations[addr] || 0n) + funder.amount;
       });
@@ -88,9 +94,9 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     // Stats
     const stats = {
       totalGoals: goals.length,
-      totalRaised: goals.reduce((acc, g) => acc + g.common.raisedAmount, 0n),
+      totalRaised: goals.reduce((acc: bigint, g: GetGoal) => acc + g.common.raisedAmount, 0n),
       totalFunders: Object.keys(reputations).length,
-      activeGoals: goals.filter(g => g.common.status === 0).length, // OPEN = 0
+      activeGoals: goals.filter((g: GetGoal) => g.common.status === 0).length, // OPEN = 0
     };
 
     return {

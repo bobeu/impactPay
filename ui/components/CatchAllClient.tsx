@@ -5,7 +5,7 @@ import { AppRouter } from "@/components/AppRouter";
 import { TransactionModal } from "@/components/TransactionModal";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
 
-export default function CatchAllPage() {
+export default function CatchAllClient() {
   const [mounted, setMounted] = useState(false);
   const { modal } = useImpactPay();
 
@@ -14,7 +14,11 @@ export default function CatchAllPage() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (

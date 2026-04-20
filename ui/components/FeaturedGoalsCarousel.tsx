@@ -1,11 +1,12 @@
 "use client";
 
+import { GoalStr, GoalType } from "@/lib/types";
 import Image from "next/image";
 
 type FeaturedGoal = {
   id: string;
   title: string;
-  category: "Bill" | "Scholarship";
+  category: string;
   progress: number; // 0-1
   raised: string;
   target: string;
@@ -16,7 +17,7 @@ const mockFeaturedGoals: FeaturedGoal[] = [
   {
     id: "goal-1",
     title: "Keep the lights on this month",
-    category: "Bill",
+    category: GoalStr[GoalType.BILL],
     progress: 0.78,
     raised: "$39",
     target: "$50",
@@ -25,7 +26,7 @@ const mockFeaturedGoals: FeaturedGoal[] = [
   {
     id: "goal-2",
     title: "Year 2 nursing tuition",
-    category: "Scholarship",
+    category: GoalStr[GoalType.SCHOLARSHIP],
     progress: 0.42,
     raised: "$420",
     target: "$1,000",
@@ -34,7 +35,7 @@ const mockFeaturedGoals: FeaturedGoal[] = [
   {
     id: "goal-3",
     title: "Exam fees for final term",
-    category: "Scholarship",
+    category: GoalStr[GoalType.SCHOLARSHIP],
     progress: 1,
     raised: "$120",
     target: "$120",

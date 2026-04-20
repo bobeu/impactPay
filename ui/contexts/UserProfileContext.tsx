@@ -1,9 +1,7 @@
 "use client";
 
+import { VerificationLevel } from "@/lib/types";
 import { createContext, useContext, useMemo, useState } from "react";
-
-export type VerificationLevel = 0 | 1 | 2 | 3;
-export type GoalCategory = "Bill" | "Scholarship";
 
 export type UserProfileState = {
   phoneNumber?: string;

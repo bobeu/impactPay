@@ -61,6 +61,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         bool lockedForReview;
     }
 
+    struct Verification {
+        bool lvl1;
+        bool lvl2;
+        bool lvl3;
+    }
+
     /// @notice Composite struct for goal id and state variables information retrieval
     struct GetGoalIdAndState {
         uint[] goalIds;
@@ -75,16 +81,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         uint256 goalCounter;
         uint256 maxGoal;
         address[] billServices;
-        Level level;
+        Verification verifications;
         bool restricted;
         uint reputation;
     }
-
-    // struct Verification {
-    //     bool lvl1;
-    //     bool lvl2;
-    //     bool lvl3;
-    // }
 
     /// @notice Composite struct for goal information retrieval
     struct GetGoal {
@@ -150,6 +150,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice List of registered bill service providers
     address[] public billServices;
 
+    /// @notice Flag showing whether to send fund to bill service or the creator;
+    bool internal useBillService;
+
+    /// @notice Flag showing whether to use verifier or not;
+    bool internal useVerifier;
+
     /// @notice Mapping from goal ID to Goal data
     mapping(uint256 => Goal) public goals;
 
@@ -166,7 +172,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     mapping(uint256 => mapping(address => bool)) public hasFlagged;
 
     /// @notice Tracks levels level of users
-    mapping(address => Level) public levels;
+    mapping(address => mapping(Level => bool)) public levels;
 
     /// @notice Onchain reputation
     mapping(address => uint) public reputationScores;
@@ -259,8 +265,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     }
 
     modifier isVerified(Level lvl, address user) {
-        Level vf = levels[user];
-        require(levels[user] == lvl, "Not verified");
+        if (useVerifier) require(levels[user][lvl], "Not verified");
         _;
     }   
 
@@ -279,6 +284,8 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         treasury = treasury_;
         releaseApprover = releaseApprover_;
         backendFulfillmentSigner = backendFulfillmentSigner_;
+        useBillService = false;
+        useVerifier = false;
         billListingFee = 1e16 wei;
         defaultListingFee = 1e15 wei;
         scholarshipListingFee = 1e17 wei;
@@ -299,6 +306,20 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param newListingFee The new fee amount
     function setDefaultListingFee(uint256 newListingFee) public onlyOwner returns(bool){
         defaultListingFee = newListingFee;
+        return true;
+    }
+
+    /// @notice Set the `useBillService
+    function toggleUseBillService() public onlyOwner returns(bool){
+        bool status = useBillService;
+        useBillService = !status;
+        return true;
+    }
+
+    /// @notice Set the `useVerifier`
+    function toggleUseVerifier() public onlyOwner returns(bool){
+        bool status = useVerifier;
+        useVerifier = !status;
         return true;
     }
 
@@ -608,13 +629,11 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         return true;
     }
 
-    /// @notice Relays funds from a raised bill goal to the service provider
-    /// @param goalId ID of the bill goal
-    /// @param amount Amount to relay
-    function relayBillFundsToService(uint256 goalId, uint256 amount) external onlyReleaseApprover whenNotPaused nonReentrant {
+    function _relayFund(uint256 goalId, uint256 amount, bool useBillService_) internal {
         Goal storage _g = _verifyGoalId(goalId, GoalStatus.RAISED, "Not Funded");
         CommonData storage cd = _g.cData;
         if (cd.lockedForReview) revert GoalLocked();
+        require(cd.goalType == GoalType.BILL || cd.goalType == GoalType.DEFAULT, "Scholarship Not allowed");
         
         uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
         if (amount > availableAmount) revert InvalidAmount();
@@ -630,10 +649,30 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             activeGoals[cd.creator]--;
         }
 
+        address to = useBillService_? _g.bill.billService : cd.creator;
+        require(to != address(0), "Bill service undefined");
         if (fee > 0) stableToken.safeTransfer(treasury, fee);
-        if (relayAmount > 0) stableToken.safeTransfer(_g.bill.billService, relayAmount);
-        emit BillGoalFulfilled(goalId, _g.bill.billService, cd.creator, relayAmount, _g.bill.serviceType, 100);
+        if (relayAmount > 0) stableToken.safeTransfer(to, relayAmount);
+        emit BillGoalFulfilled(goalId, to, cd.creator, relayAmount, _g.bill.serviceType, 100);
         emit ReputationUpdated(cd.creator, 100, "goal_completed");
+    } 
+
+    function claimFund() 
+        external 
+        notRestricted(_msgSender())
+        isVerified(Level.LEVEL2, _msgSender()) 
+        whenNotPaused 
+        nonReentrant 
+        returns(bool) 
+    {
+        _relayFund(goalId, amount, useBillService);
+    }
+
+    /// @notice Relays funds from a raised bill goal to the service provider
+    /// @param goalId ID of the bill goal
+    /// @param amount Amount to relay
+    function relayBillFundsToService(uint256 goalId, uint256 amount) external onlyReleaseApprover whenNotPaused nonReentrant {
+        _relayFund(goalId, amount, useBillService);
     }
 
     /// @notice Allows a donor to flag a goal for review if suspicious
@@ -712,7 +751,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     function onVerificationSuccess(address user, Level lvl) external {
         address sender = _msgSender();
         require((backendFulfillmentSigner != address(0) && sender == backendFulfillmentSigner) || sender == owner());
-        levels[user] = lvl;
+        levels[user][lvl] = true;
     }
 
     /// @notice Sets a new release approver address
@@ -761,7 +800,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Retrieves comprehensive details about a goal
     /// @param user Target user
     /// @return data Struct containing goal data and protocol settings
-    function getGoalIdAndState(address user) external view returns (GetGoalIdAndState memory data) {    
+    function getGoalIdAndState(address user) external view returns (GetGoalIdAndState memory data) {
+        bool lvl1 = levels[user][Level.LEVEL1]; 
+        bool lvl2 = levels[user][Level.LEVEL2]; 
+        bool lvl3 = levels[user][Level.LEVEL3]; 
         data = GetGoalIdAndState({
             goalIds: goalIDs[user],
             treasury: treasury,
@@ -775,7 +817,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             goalCounter:goalCounter,
             maxGoal: maxGoal,
             billServices: billServices,
-            level: levels[user],
+            verifications: Verification(lvl1, lvl2, lvl3),
             restricted: restrictions[user],
             reputation: reputationScores[user]
         });

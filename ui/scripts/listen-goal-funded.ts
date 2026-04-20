@@ -36,7 +36,7 @@ client.watchContractEvent({
   address: contractAddress,
   abi,
   eventName: "Funded",
-  onLogs: async (logs) => {
+  onLogs: async (logs: any[]) => {
     for (const log of logs) {
       const goalId = Number(log.args.goalId || BigInt(0));
       if (!goalId) continue;
