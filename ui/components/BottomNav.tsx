@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Compass, User, Shield, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "wagmi";
@@ -14,14 +15,20 @@ type NavItem = {
 };
 
 export function BottomNav() {
-  const location = useLocation();
   const { address } = useAccount();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const navAddress = mounted && address ? address : zeroAddress;
 
   const items: NavItem[] = [
     { key: "home", label: "Explore", icon: Compass, href: "/" },
     { key: "sponsor", label: "Sponsor", icon: Shield, href: "/sponsor" },
     { key: "create", label: "Create", icon: Target, href: "/create-goal" },
-    { key: "profile", label: "Profile", icon: User, href: `/profile/${address || zeroAddress}` },
+    { key: "profile", label: "Profile", icon: User, href: `/profile/${navAddress}` },
   ];
 
   const activePath = location.pathname;

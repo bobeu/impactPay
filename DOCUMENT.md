@@ -1811,3 +1811,79 @@ I have successfully reviewed and resolved the React Router DOM configuration iss
    - Solved silent typing breaks blocking the build concerning `ImpactPayContext`.
 
 The core flow works completely strictly via on-chain properties fetched natively through the Wagmi multi-calls set in Context. The `Dev Server` and Typescript pipelines evaluate successfully now.
+
+
+------------------------------------------------------------
+
+Ran command: `$Summary = @"
+
+------------------------------
+## Antigravity Implementation Summary: React Router & Core UI Adjustments
+
+I have successfully reviewed and resolved the React Router DOM configuration issues, properly relocated the components on the Funder page, and completely wired the ``CreateGoalCard`` to leverage the real ``ImpactPayContext.tsx`` on the Celo Sepolia network, entirely bypassing the frontend APIs as specified.
+
+### Summary of Fixes & Enhancements
+
+1. **Fixed "document is not defined" (Next.js SSR vs. React Router DOM Error)**
+   - The React Router's ``BrowserRouter`` relies heavily on DOM globals (``window`` and ``document``). Next.js executes Server Components logic during its build pipeline regardless of pure Static Export settings.
+   - **Fix:** Refactored ``AppProvider.tsx`` to conditionally wrap the app in ``<BrowserRouter>`` only on the client. During Next.js SSR, it now falls back safely to ``<MemoryRouter>``, resolving the fatal ``ReferenceError``.
+
+2. **Resolved generateStaticParams() Export Error**
+   - Next.js static exports using catch-all routing arrays will halt the build pipeline if not all dynamic parameters are explicitly outlined.
+   - **Fix:** Provided the missing core view slugs (``funder``, ``sponsor``, ``create-goal``, ``reputation``, ``profile``, ``verify``) to ``ui/app/[...slug]/page.tsx`` statically so NextJS ``output: export`` no longer blocks the build engine.
+
+3. **Refactored Funder Dashboard View & Profiling Views**
+   - Streamlined ``FunderDashboardView.tsx`` strictly for what Funders need to see: **ImpactDashboard** (their total impact/reputations mapped from goals natively) and the **GoalList** (active blockchain goals for visibility). 
+   - Moved creator functionalities out of the ``Funder`` dashboard (``IdentityVerificationCard``, ``PhoneLookupCard``, ``VirtualCardPortal``, ``SponsorDashboard``, ``DevSubscriptionCard``) and seamlessly injected them directly into ``ProfileClientView.tsx`` conditionally (rendering those widgets only if the current Connected Address = the Profile Holder Address). 
+
+4. **Compacted GoalDetailsModal Styling**
+   - Slashed paddings considerably across all goal sections to adhere strictly to a compact, MiniPay-friendly interface standard. 
+   - Reduced component scale radii.
+
+5. **Wired CreateGoalCard with On-Chain Execution**
+   - Wired ``CreateGoalCard`` completely into ``createGoal()`` exposed by ``ImpactPayContext.tsx``, properly parsing Ether amounts logic and pushing ``GoalCategory`` mapping.
+
+6. **Squashed tsc Implicit Typing Anomalies**
+   - Solved silent typing breaks blocking the build concerning ``ImpactPayContext``.
+
+The core flow works completely strictly via on-chain properties fetched natively through the Wagmi multi-calls set in Context. The ``Dev Server`` and Typescript pipelines evaluate successfully now.
+"@
+
+Add-Content -Path DOCUMENT.md -Value $Summary
+git add .
+git commit -m "feat(ui): fix react-router SSR crashes, re-wire UI logic to ImpactPayContext, compact components"
+git push`
+
+I have completed the tasks specified in the prompt starting from line 1745 in `DOCUMENT.md`. The modifications have been pushed upstream with a comprehensive summary. 
+
+**Here's a breakdown of the fixes integrated:**
+
+1. **React Router DOM SSR Crash (document is not defined)**
+   - The fatal build errors were caused by `<BrowserRouter>` running inside `AppProvider.tsx` during Next.js' static build generation, where `window` object execution crashes.
+   - I successfully addressed this by wrapping it in a client mount check (`typeof window !== 'undefined'`) and gracefully falling back to a dummy `<MemoryRouter>` during server-side compilation.
+
+2. **Next.js SPA Configurations & Catch-All Routing**
+   - The React-Router catch-all dynamic route `[[...slug]]` lacked its `generateStaticParams` static array required by NextJS `export` configurations. 
+   - I provided all the primary explicit slugs ensuring the output functions appropriately within the router environment without `404`ing.
+
+3. **Restructured UI Layouts for the Funder/Profile Flow**
+   - Modified the `FunderDashboardView.tsx` interface to purely display metrics relating to funders (Reputations and Goals to Fund).
+   - Migrated all Creator/Verification widgets (`IdentityVerificationCard`, `VirtualCardPortal`, Requesting Forms, and User Profile Actions) straight into conditionally rendering blocks on the `ProfileClientView.tsx` if the signed-in visitor owns that profile address.
+
+4. **Wired Interaction Logic & Aesthetics**
+   - Disconnected the dummy `toast.promise` mechanism inside `CreateGoalCard.tsx` and mapped it to accurately invoke the fully working `createGoal()` context connected to Wagmi logic.
+   - Shortened and tightened the entire padding spacing and radius blocks of the `GoalDetailsModal.tsx` to give it a compact, native "Mobile-first" application feel per the prompt description.
+
+The changes have been deployed robustly with TypeScript resolving with **zero errors**. You should now have a flawless rendering build pipeline for production!
+
+------------------------------------------------------------
+------------------------------
+## Antigravity Implementation Summary: Hydration & Wagmi Hook Fixes
+
+1. **Hydration Mismatch in BottomNav**
+   - **Issue:** The React Hydration framework warned of mismatched Server vs. Client rendering on href attributes. This occurred because useAccount()'s ddress defaults to undefined (resolving to zeroAddress) during SSR, but resolves natively to the wallet ID instantly during client hook mounting.
+   - **Fix:** Abstracted the wallet address usage into a mounted state hook natively within BottomNav.tsx. During the SSR and first-mount, it correctly stabilizes at zeroAddress, matching both node boundaries before pushing the connected user hash on the second render cycle.
+
+2. **Wagmi useReadContracts Crashing (Cannot read properties of undefined (reading 'chainId'))**
+   - **Issue:** The NextJS runtime evaluated Array(x).keys() inside ImpactPayContext.tsx strictly as an [Iterator], crashing when wagmi internals attempted to map over its contracts object deeply or expected valid standard properties from the configuration. Wait times parsing ABI structures resulted in IDE instances inferring type structures loosely as ny.
+   - **Fix:** Swapped the iterator usage in place with a proper structure leveraging [...goalIdsData.goalIds] direct off the smart contract payload (preferred path). Added a clean fallback leveraging Array.from(Array(x).keys()) strictly casting arrays if we fall back to generic indexing loops. query.enabled is now tied securely strictly to length evaluation validating array presence before calling getGoal.

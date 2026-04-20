@@ -37,27 +37,30 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     query: { enabled: !!address }
   });
 
-  const {goalIdsAndState, goalIds } = React.useMemo(() => {
-    if (!goalIdsAndState_) return {goalIdsAndState: mockGetGoalIDAndState, goalIds: []};
-    // const goalIds = [...Array(Number(goalIdsAndState_.goalCounter)).keys()];
-    const goalIds = Array(3).keys();
-    // console.log('Goal ID to fetch:', goalIds);
-    return {
-      goalIdsAndState: goalIdsAndState_ as GetGoalIdAndState,
-      goalIds
+  const { goalIdsAndState, goalIdsToFetch } = React.useMemo(() => {
+    if (!goalIdsAndState_) return { goalIdsAndState: mockGetGoalIDAndState, goalIdsToFetch: [] };
+    const goalIdsData = goalIdsAndState_ as GetGoalIdAndState;
+    let fetchedIds: bigint[] = [];
+    if (goalIdsData.goalIds && goalIdsData.goalIds.length > 0) {
+      fetchedIds = [...goalIdsData.goalIds];
+    } else if (goalIdsData.goalCounter) {
+      fetchedIds = Array.from(Array(Number(goalIdsData.goalCounter)).keys()).map(n => BigInt(n));
     }
-  }, [ goalIdsAndState_ ]);
-  // console.log('Goal IDs to fetch:', goalIds);
+    return {
+      goalIdsAndState: goalIdsData,
+      goalIdsToFetch: fetchedIds
+    };
+  }, [goalIdsAndState_]);
 
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
-    contracts: goalIds.map(k => ({
+    contracts: goalIdsToFetch.map(k => ({
       address: CONTRACTS.ImpactPay.address, 
       abi: CONTRACTS.ImpactPay.abi as any, 
       functionName: 'getGoal',
-      args: [BigInt(k)]
+      args: [k]
     })),
-    query: { enabled: !!goalIdsAndState }
+    query: { enabled: goalIdsToFetch.length > 0 }
   });
 
   // // Fetch the goals for all the goal IDs
