@@ -5,12 +5,12 @@ import { useAccount, useReadContract, useReadContracts, useWriteContract, useCon
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
-import { 
-  type CreateBillGoal, 
-  type GetGoal, 
-  type GetGoalIdAndState, 
-  type ImpactPayContextType, 
-  type TransactionStage, 
+import {
+  type CreateBillGoal,
+  type GetGoal,
+  type GetGoalIdAndState,
+  type ImpactPayContextType,
+  type TransactionStage,
   type Args,
   mockGetGoalIDAndState,
   mockGoals
@@ -39,27 +39,10 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   const { goalIdsAndState, goalIdsToFetch } = React.useMemo(() => {
     if (!goalIdsAndState_) return { goalIdsAndState: mockGetGoalIDAndState, goalIdsToFetch: [] };
-    const goalIdsData = goalIdsAndState_ as GetGoalIdAndState | readonly unknown[];
-    let fetchedIds: bigint[] = [];
-    
-    // Safely parse the wagmi return type (could be a tuple if ABI names are loose)
-    if (Array.isArray(goalIdsData)) {
-       const ids = goalIdsData[0]; // goalIds is usually index 0
-       if (Array.isArray(ids)) fetchedIds = [...ids].map(n => BigInt(n));
-       else {
-          const counter = Number(goalIdsData[9] || 0); // goalCounter index 9
-          if (counter && !isNaN(counter)) fetchedIds = Array.from(Array(counter).keys()).map(n => BigInt(n));
-       }
-    } else if (goalIdsData) {
-       const typedData = goalIdsData as GetGoalIdAndState;
-       if (typedData.goalIds && typedData.goalIds.length > 0) fetchedIds = [...typedData.goalIds].map(n => BigInt(n));
-       else if (typedData.goalCounter) {
-          const counter = Number(typedData.goalCounter);
-          if (!isNaN(counter)) fetchedIds = Array.from(Array(counter).keys()).map(n => BigInt(n));
-       }
-    }
+    const goalIdsData = goalIdsAndState_ as GetGoalIdAndState;
+    const fetchedIds: bigint[] = Array.from(Array(Number(goalIdsData.goalCounter || 0)).keys()).map(n => BigInt(n + 1));
     return {
-      goalIdsAndState: goalIdsData as GetGoalIdAndState,
+      goalIdsAndState: goalIdsData,
       goalIdsToFetch: fetchedIds
     };
   }, [goalIdsAndState_]);
@@ -67,8 +50,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
     contracts: goalIdsToFetch.map(k => ({
-      address: CONTRACTS.ImpactPay.address, 
-      abi: CONTRACTS.ImpactPay.abi as any, 
+      address: CONTRACTS.ImpactPay.address,
+      abi: CONTRACTS.ImpactPay.abi as any,
       functionName: 'getGoal',
       args: [k]
     })),
@@ -88,11 +71,11 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   // Derived the goals
   const { userGoals, goals, stats, funderReputations } = useMemo(() => {
-    if (!rawGoals) return { userGoals: [mockGoals], goals: [mockGoals], stats: { totalGoals: 0, totalRaised: 0n, totalFunders: 0, activeGoals: 0 }, funderReputations: {}};
+    if (!rawGoals) return { userGoals: [mockGoals], goals: [mockGoals], stats: { totalGoals: 0, totalRaised: 0n, totalFunders: 0, activeGoals: 0 }, funderReputations: {} };
     const goals = (rawGoals?.map((k: any) => {
       const getGoal_ = k?.result as GetGoal;
       return getGoal_;
-    })).filter((g: GetGoal) => g && g.common); 
+    })).filter((g: GetGoal) => g && g.common);
 
     // Filter all goals for the current user
     const userGoals = goals.filter((k: GetGoal) => k.common.creator.toLowerCase() === address?.toLowerCase());
@@ -121,7 +104,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       funderReputations: reputations
     }
   }, [rawGoals, address]);
- 
+
   const refresh = useCallback(() => {
     refetchIdsAndState();
     refetchGoals();
@@ -163,8 +146,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
       switch (goalType) {
         case 'BILL':
-          if (!serviceType) return; 
-          if (!billServiceIndex) return; 
+          if (!serviceType) return;
+          if (!billServiceIndex) return;
           args = [targetAmount, description, serviceType, extraInfo, billServiceIndex];
           break;
         default:
@@ -200,11 +183,11 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     const { amount, extraInfo, goalIds, recipient, user, func } = param;
     try {
       let args: any = [goalIds?.[0]];
-      let errorMessage : string | null = null;
+      let errorMessage: string | null = null;
       if (func !== 'onVerificationSuccess') {
         if (!goalIds) errorMessage = "Goal Id not provided";
         if (goalIds?.length == 0) errorMessage = "Goal Id undefined";
-      } 
+      }
 
       switch (func) {
         case 'fundGoal':
@@ -215,12 +198,12 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         case 'approveScholarshipRelease':
           args = [goalIds];
           break;
-       
+
         case 'claimScholarshipFunds':
           if (!recipient) errorMessage = "Goal Recipient not provided";
           args.push(recipient);
           break;
-        
+
         case 'relayBillFundsToService':
           if (!amount) errorMessage = "Amount not provided";
           args.push(amount);
@@ -241,7 +224,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       }
 
       setModalStage('awaiting_auth');
-      
+
       const hash = await writeTxn({
         address: CONTRACTS.ImpactPay.address,
         abi: CONTRACTS.ImpactPay.abi as any,
@@ -276,14 +259,14 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       },
       refresh,
       createGoal,
-      fundGoal: async(goalId: bigint, amount: bigint, extraInfo: string) => { await runTransaction({goalIds: [goalId], amount, extraInfo, func:'fundGoal'})},
-      flagGoal: async(goalId: bigint) => { await runTransaction({goalIds: [goalId], func:'flagGoal'})},
-      reactivateGoal: async(goalId: bigint) => { await runTransaction({goalIds: [goalId], func:'reactivateGoal'})},
-      approveScholarshipRelease: async(goalIds: bigint[]) => { await runTransaction({goalIds, func: 'approveScholarshipRelease'})},
-      claimScholarshipFunds: async(goalId: bigint, recipient: Address) => { await runTransaction({goalIds: [goalId], recipient, func: 'claimScholarshipFunds'})},
-      relayBillFundsToService: async(goalId: bigint, amount: bigint) => { await runTransaction({goalIds: [goalId], amount, func: 'relayBillFundsToService'})},
-      refundScholarship: async(goalId: bigint) => { await runTransaction({goalIds: [goalId], func: 'refundScholarship'})},
-      onVerificationSuccess: async(user: Address) => { await runTransaction({user, func: 'onVerificationSuccess'})},
+      fundGoal: async (goalId: bigint, amount: bigint, extraInfo: string) => { await runTransaction({ goalIds: [goalId], amount, extraInfo, func: 'fundGoal' }) },
+      flagGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'flagGoal' }) },
+      reactivateGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'reactivateGoal' }) },
+      approveScholarshipRelease: async (goalIds: bigint[]) => { await runTransaction({ goalIds, func: 'approveScholarshipRelease' }) },
+      claimScholarshipFunds: async (goalId: bigint, recipient: Address) => { await runTransaction({ goalIds: [goalId], recipient, func: 'claimScholarshipFunds' }) },
+      relayBillFundsToService: async (goalId: bigint, amount: bigint) => { await runTransaction({ goalIds: [goalId], amount, func: 'relayBillFundsToService' }) },
+      refundScholarship: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'refundScholarship' }) },
+      onVerificationSuccess: async (user: Address) => { await runTransaction({ user, func: 'onVerificationSuccess' }) },
       goalIdsAndState,
       goals: goals || [] as GetGoal[],
       userGoals,
