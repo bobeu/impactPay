@@ -135,6 +135,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   // Write Hooks
   const { writeContractAsync: writeCreateBillGoal } = useWriteContract();
   const { writeContractAsync: writeTxn } = useWriteContract();
+  const { writeContractAsync: writeApproval } = useWriteContract();
 
   const createGoal = async (param: CreateBillGoal) => {
     try {
@@ -193,6 +194,14 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         case 'fundGoal':
           if (!amount) errorMessage = "Please provide amount";
           args = [goalIds?.[0], amount || 0n, extraInfo || ''];
+          const txHash = await writeApproval({
+            address: CONTRACTS.MockERC20.address,
+            abi: CONTRACTS.MockERC20.abi as any,
+            functionName: 'approve',
+            args: [CONTRACTS.ImpactPay.address, amount]
+          });
+          await waitForTransactionReceipt(config, { hash: txHash });
+
           break;
 
         case 'approveScholarshipRelease':

@@ -31,7 +31,7 @@ export function DevSubscriptionCard() {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-2">
+    <section className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm space-y-2">
       <h2 className="text-sm font-semibold text-slate-800">Developer Subscription Goal</h2>
       <div className="flex justify-between w-auto items-center">
         <select className="h-11 border border-slate-200 rounded-md px-3 text-sm" value={provider} onChange={(e) => setProvider(e.target.value)}>

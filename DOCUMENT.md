@@ -2010,3 +2010,9 @@ Antigravity, below are the tasks for you:
    - Stripped away aggressive form gating components directly inside CreateGoalCard.tsx maintaining accessible states avoiding blocking initial goal launches aggressively. 
    - Adapted UserProfileContext efficiently relying dynamically upon direct blockchain returned states mapping into the provider logic safely checking goalIdsAndState.verifications should standard generic or identity APIs fail to fulfill gracefully providing high robust coverage for MiniPay environments. 
    - IdentityVerificationCard successfully synchronized erifyHuman directly pinging ABI hooks updating backend metrics securely wrapping ZK identity processes reliably back onto the underlying core solidities.
+
+------------------------------
+## Antigravity Implementation Summary: Modal Safety Improvements
+- **Close Functionality Added:** Implemented a non-blocking onClose callback capability to the <TransactionModal /> logic.
+- **Progress Timeout & Success Tracking:** If the modal stalls processing for over a minute, or lands safely on a success or error state, a Close Window button appears providing the user immediate exit control without refreshing the page.
+- Tied the onClose behavior dynamically via CatchAllClient referencing the useImpactPay() unified modal state controls seamlessly setting idle when closing.

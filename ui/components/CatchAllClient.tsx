@@ -30,6 +30,7 @@ export default function CatchAllClient() {
           stage={modal.stage} 
           txHash={modal.txHash} 
           errorMessage={modal.error} 
+          onClose={() => modal.setStage('idle')}
       />
     </>
   );

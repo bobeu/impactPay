@@ -57,7 +57,7 @@ export function CreateGoalCard() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col"
+      className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col"
     >
       <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/20">
         <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export function CreateGoalCard() {
           type="button"
           onClick={submit}
           disabled={isSubmitting}
-          className="h-14 w-full rounded-md bg-primary text-white text-sm font-bold hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+          className="h-14 w-full rounded-[2.5rem] bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Processing..." : "Create Impact Goal"}
           {!isSubmitting && <CheckCircle2 className="w-4 h-4 text-accent" />}

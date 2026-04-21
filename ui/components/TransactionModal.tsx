@@ -8,9 +8,30 @@ interface TransactionModalProps {
   stage: TransactionStage;
   txHash?: string;
   errorMessage?: string;
+  onClose?: () => void;
 }
 
-export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHash, errorMessage }) => {
+export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHash, errorMessage, onClose }) => {
+  const [showClose, setShowClose] = React.useState(false);
+
+  React.useEffect(() => {
+    if (stage === 'idle') {
+      setShowClose(false);
+      return;
+    }
+    
+    if (stage === 'success' || stage === 'error') {
+      setShowClose(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowClose(true);
+    }, 60000); // 1 minute
+    
+    return () => clearTimeout(timer);
+  }, [stage]);
+
   if (stage === 'idle') return null;
                                                             
   return (
@@ -107,11 +128,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHas
               </motion.div>
             )}
 
-            {!['success', 'error'].includes(stage) && (
+            {!['success', 'error'].includes(stage) && !showClose && (
               <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
                 Please securely keep this window open
               </div>
             )}
+            
+            {showClose && onClose && (
+              <button
+                onClick={onClose}
+                className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+               >
+                Close Window
+              </button>
+             )}
             
             {stage === 'success' && txHash && (
               <a
