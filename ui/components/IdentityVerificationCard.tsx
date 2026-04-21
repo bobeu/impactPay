@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { ShieldCheck, Phone, Share2, Fingerprint, CheckCircle2, AlertCircle } from "lucide-react";
+import { ShieldCheck, Phone, Share2, UserCheck2, Fingerprint, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { verifyPhoneWithOdis } from "@/lib/odisClient";
 import { registerPhoneMapping } from "@/lib/socialconnect";
 import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
 
 type Props = {
   address?: string | null;
@@ -16,6 +17,7 @@ type Props = {
 
 export function IdentityVerificationCard({ address }: Props) {
   const { profile, setPhoneVerified, setSocialsLinked, setHumanVerified } = useUserProfile();
+  const { onVerificationSuccess } = useImpactPay();
   const [phoneInput, setPhoneInput] = useState("");
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
@@ -92,9 +94,10 @@ export function IdentityVerificationCard({ address }: Props) {
       body: JSON.stringify({ address, proof: "self-proof-placeholder" }),
     })
       .then((r) => r.json())
-      .then((data) => {
+      .then(async (data) => {
         if (data.error) throw new Error(data.error);
         setHumanVerified();
+        await onVerificationSuccess(address as `0x${string}`);
         toast.success("Human verification anchored on-chain.");
       })
       .catch((e) => {
@@ -114,11 +117,11 @@ export function IdentityVerificationCard({ address }: Props) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col"
+      className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col"
     >
       <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/20">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-primary" />
+          <UserCheck2 className="w-5 h-5 text-primary" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Reputation Verification</h2>
         </div>
         <div className="flex gap-1.5">

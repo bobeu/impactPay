@@ -29,14 +29,14 @@ export function VirtualCardPortal({ address }: { address?: string | null }) {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-2">
+    <section className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm space-y-2">
       <h2 className="text-sm font-semibold text-slate-800">Virtual Card Portal</h2>
       {profile.verificationLevel < 3 ? (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
           Level 3 verification required before card details can be revealed.
         </p>
       ) : null}
-      <input className="h-11 border rounded-md px-3 text-sm" value={goalId} onChange={(e) => setGoalId(e.target.value)} placeholder="Goal ID" />
+      <input className="h-11 border border-slate-200 rounded-md px-3 text-sm" value={goalId} onChange={(e) => setGoalId(e.target.value)} placeholder="Goal ID" />
       <button
         type="button"
         disabled={profile.verificationLevel < 3 || loading}

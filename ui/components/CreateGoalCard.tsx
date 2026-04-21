@@ -26,11 +26,6 @@ export function CreateGoalCard() {
       setMessage("Add a short goal description.");
       return;
     }
-    if (category === "Scholarship" && !canCreateScholarship) {
-      setMessage("Scholarship goals require Level 3 verification.");
-      setShowGateModal(true);
-      return;
-    }
 
     try {
       setIsSubmitting(true);
@@ -42,7 +37,7 @@ export function CreateGoalCard() {
         extraInfo: "",
         goalType: category.toUpperCase() as "BILL" | "SCHOLARSHIP" | "DEFAULT",
         serviceType: category === "Bill" ? "General" : undefined,
-        billServiceIndex: category === "Bill" ? "0" : undefined
+        billServiceIndex: category === "Bill" ? 0 : undefined
       };
       
       await createGoal(payload);
@@ -114,31 +109,20 @@ export function CreateGoalCard() {
               </button>
               <button
                 type="button"
-                disabled={!canCreateScholarship}
                 onClick={() => setCategory("Scholarship")}
                 className={cn(
                   "h-12 rounded-md text-sm font-bold flex items-center justify-center gap-2 border transition-all relative overflow-hidden",
                   category === "Scholarship"
                     ? "border-accent bg-accent text-white"
-                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 disabled:opacity-50"
+                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
                 )}
               >
                 <GraduationCap className="w-4 h-4" />
                 Scholarship
-                {!canCreateScholarship && <div className="absolute inset-0 bg-slate-50/10 cursor-not-allowed" />}
               </button>
             </div>
           </div>
         </div>
-
-        {!canCreateScholarship && (
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-md">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />
-            <p className="text-[10px] text-amber-700 font-medium leading-normal uppercase tracking-wide">
-              Scholarship goals are gated. Complete biometric verification to unlock.
-            </p>
-          </div>
-        )}
 
         <button
           type="button"

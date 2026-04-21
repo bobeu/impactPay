@@ -50,8 +50,8 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
               </div>
             </div>
             
-            <div className="flex gap-2 w-full sm:w-auto">
-               <a
+            <div className="sm:w-auto space-y-4">
+              <a
                 href={xShareLink}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -132,7 +132,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
 
         {isOwner && (
           <>
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section className="grid grid-cols-1 gap-6">
                 <IdentityVerificationCard address={connectedAddress} />
                 <div className="space-y-6">
                     <PhoneLookupCard />
@@ -145,7 +145,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                 </div>
             </section>
 
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section className="grid grid-cols-1 gap-4">
                 <VirtualCardPortal address={connectedAddress} />
                 <SponsorDashboard />
             </section>

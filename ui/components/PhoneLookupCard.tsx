@@ -28,7 +28,7 @@ export function PhoneLookupCard() {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm space-y-2">
+    <section className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm space-y-2">
       <h2 className="text-sm font-semibold text-slate-800">Search by phone</h2>
       <p className="text-[11px] text-slate-500">
         Phone numbers are masked (ODIS-style obfuscation) before lookup.

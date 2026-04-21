@@ -114,7 +114,7 @@ export interface CreateGoal {
 
 export interface CreateBillGoal extends CreateGoal { 
     serviceType?: string;
-    billServiceIndex?: string;
+    billServiceIndex?: number;
 }
 
 export interface Args {

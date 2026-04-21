@@ -1,7 +1,9 @@
 "use client";
 
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
+
 import { VerificationLevel } from "@/lib/types";
-import { createContext, useContext, useMemo, useState } from "react";
 
 export type UserProfileState = {
   phoneNumber?: string;
@@ -63,13 +65,34 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
+  const { goalIdsAndState } = useImpactPay();
+
+  useEffect(() => {
+    if (goalIdsAndState?.verifications) {
+      setProfile((prev) => {
+        const { lvl1, lvl2, lvl3 } = goalIdsAndState.verifications;
+        const blockchainLevel = lvl3 ? 3 : lvl2 ? 2 : lvl1 ? 1 : 0;
+        if (blockchainLevel > prev.verificationLevel) {
+           return {
+             ...prev,
+             phoneVerified: prev.phoneVerified || lvl1,
+             socialsLinked: prev.socialsLinked || lvl2,
+             humanVerified: prev.humanVerified || lvl3,
+             verificationLevel: blockchainLevel as VerificationLevel,
+           };
+        }
+        return prev;
+      });
+    }
+  }, [goalIdsAndState?.verifications]);
+
   const value = useMemo<UserProfileContextType>(
     () => ({
       profile,
       setPhoneVerified,
       setSocialsLinked,
       setHumanVerified,
-      canCreateScholarship: profile.verificationLevel >= 3,
+      canCreateScholarship: true, // Gating removed per task
     }),
     [profile],
   );

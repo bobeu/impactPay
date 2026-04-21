@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Lazy load views for better performance
 const HomeView = lazy(() => import('@/views/HomeView'));
