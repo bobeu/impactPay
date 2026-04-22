@@ -38,8 +38,9 @@ const config = createConfig({
   chains: [celoSepolia, celo],
   connectors,
   transports: {
-    [celoSepolia.id]: http(process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL),
-    [celo.id]: http(process.env.NEXT_PUBLIC_CELO_RPC_URL),
+    // [celoSepolia.id]: http(process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL),
+    [celoSepolia.id]: http(),
+    [celo.id]: http(),
   },
 });
 

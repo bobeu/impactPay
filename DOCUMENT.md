@@ -2084,3 +2084,33 @@ Let's enrich the user profile with more information. Antigravity, you're to perf
    - Conditionally appended two direct operation mechanics directly onto matched cards rendered in this view exclusively:
      - **Toggle Flag**: Secured safely leveraging `flagGoal` hooks back into context parameters toggling flag states natively.
      - **Refund Scholarship**: Rendered explicitly (safeguarded strictly against `GoalType.SCHOLARSHIP`) ensuring users aren't submitting transactions mapping onto incompatible default or bill-type execution pipelines.
+
+-----------------------------------------------------------
+
+### CTO Said:
+
+- Read through the `ui/contexts/ImpactPayContext` file, simulate all state-changing transactions so that it is known ahead if transaction will fail. Return proper error message and info the user.
+
+- Modify the `createGoal` function to first send approval transaction before creating a goal. The user must approve the ImpactPay contract to spend the a certain from their wallet before they can create a goal. This amount is the creation fee. All creation fees can be extracted from the `goalIdsAndState` inside the `ImpactPayContext.tsx`.
+
+   * To create a `Default` goal, the `defaultListingFee` should be used;
+   * To create a `Bill` goal, the `billListingFee` should be used;
+   * To create a `Scholarship` goal, the `scholarshipListingFee` should be used;
+
+Note: All the aforementioned fees are inside the `goalIdsAndState` variable.
+
+- Paste your summary below when you're done. 
+- Commit and push the changes.
+
+## AI Implementation Summary
+1.  **Transaction Simulation (`simulateContract`)**:
+    -   Imported `simulateContract` from `wagmi/actions`.
+    -   Integrated pre-flight simulation checks directly into the `runTransaction` loop and the `createGoal` flow.
+    -   Wagmi catches target simulation errors beforehand (insufficient balances, role limits, missing data structure).
+    -   The `try/catch` wrapper ensures those deterministic runtime simulation crashes safely halt execution strings before `writeContractAsync` executes, firing short failure messages gracefully via the existing UI error modaling natively.
+
+2.  **Listing Fee & Approvals in `createGoal`**:
+    -   Restructured `createGoal` to deterministically infer `listingFee` mappings pulling contextual states via `goalIdsAndState`.
+    -   Depending on target `goalType`, the function assigns `defaultListingFee`, `billListingFee` or `scholarshipListingFee` correctly.
+    -   Sent a `writeApproval` to `MockERC20` delegating the inferred `listingFee` allowances mapping the `ImpactPay.address` parameter natively.
+    -   `waitForTransactionReceipt` secures the event sequentially pausing execution properly so the simulation process strictly fires *after* allowance confirmations succeed.

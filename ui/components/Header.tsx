@@ -6,12 +6,8 @@ import { injected } from "wagmi/connectors";
 import { Menu, X, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
 import { Link } from "react-router-dom";
-
-function shortenAddress(addr: string) {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
+import AddressWrapper from "./AddressFormatter/AddressWrapper";
 
 export default function Header() {
   const { address, isConnected } = useAccount();
@@ -42,7 +38,12 @@ export default function Header() {
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             <span className="text-xs font-medium text-primary">
-              {shortenAddress(address)}
+              <AddressWrapper  
+                account={address}
+                copyIconSize="6"
+                display={true}
+                size={6}
+              />
             </span>
           </div>
         ) : (

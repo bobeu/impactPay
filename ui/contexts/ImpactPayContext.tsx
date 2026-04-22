@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { useAccount, useReadContract, useReadContracts, useWriteContract, useConfig, useWatchContractEvent } from 'wagmi';
-import { waitForTransactionReceipt } from "wagmi/actions";
+import { waitForTransactionReceipt, simulateContract } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
 import {
@@ -162,6 +162,36 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           break;
       }
 
+      let listingFee = 0n;
+      switch (goalType) {
+        case 'BILL':
+          listingFee = goalIdsAndState.billListingFee;
+          break;
+        case 'SCHOLARSHIP':
+          listingFee = goalIdsAndState.scholarshipListingFee;
+          break;
+        default:
+          listingFee = goalIdsAndState.defaultListingFee;
+          break;
+      }
+
+      if (listingFee > 0n) {
+        const approveHash = await writeApproval({
+          address: CONTRACTS.MockERC20.address,
+          abi: CONTRACTS.MockERC20.abi as any,
+          functionName: 'approve',
+          args: [CONTRACTS.ImpactPay.address, listingFee]
+        });
+        await waitForTransactionReceipt(config, { hash: approveHash });
+      }
+
+      await simulateContract(config, {
+        address: CONTRACTS.ImpactPay.address,
+        abi: CONTRACTS.ImpactPay.abi as any,
+        functionName: functionName,
+        args
+      });
+
       const hash = await writeCreateBillGoal({
         address: CONTRACTS.ImpactPay.address,
         abi: CONTRACTS.ImpactPay.abi as any,
@@ -239,6 +269,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       }
 
       setModalStage('awaiting_auth');
+
+      await simulateContract(config, {
+        address: CONTRACTS.ImpactPay.address,
+        abi: CONTRACTS.ImpactPay.abi as any,
+        functionName: func,
+        args
+      });
 
       const hash = await writeTxn({
         address: CONTRACTS.ImpactPay.address,
