@@ -16,7 +16,7 @@ export type OtherFuncType =
 'approveScholarshipRelease' | 
 'claimScholarshipFunds' | 
 'relayBillFundsToService' |
-'flagGoal' |
+'toggleFlagGoal' |
 'refundScholarship' |
 'onVerificationSuccess' |
 'claimFund'
@@ -128,42 +128,41 @@ export interface Args {
 }
 
 export interface Stats {
-  totalGoals: number;
-  totalRaised: bigint;
-  totalFunders: number;
-  activeGoals: number;
+    totalGoals: number;
+    totalRaised: bigint;
+    totalFunders: number;
+    activeGoals: number;
 }
 
 export interface ImpactPayContextType {
-  goals: GetGoal[];
-  userGoals: GetGoal[] | undefined;
-  goalIdsAndState: GetGoalIdAndState;
-  stats: Stats;
-  funderReputations: Record<string, bigint>;
-  isLoading: boolean;
+    goals: GetGoal[];
+    userGoals: GetGoal[] | undefined;
+    goalIdsAndState: GetGoalIdAndState;
+    stats: Stats;
+    funderReputations: Record<string, bigint>;
+    isLoading: boolean;
 
-  // Modal State (Global for easier orchestration)
-  modal: {
-    stage: TransactionStage;
-    txHash: string;
-    error: string;
-    setStage: (s: TransactionStage) => void;
-  };
+    // Modal State (Global for easier orchestration)
+    modal: {
+        stage: TransactionStage;
+        txHash: string;
+        error: string;
+        setStage: (s: TransactionStage) => void;
+    };
  
-  // Actions
-  createGoal: (params: CreateBillGoal) => Promise<void>;
-  fundGoal: (goalId: bigint, amount: bigint, extraInfo: string) => Promise<void>;
-  reactivateGoal: (goalId: bigint) => Promise<void>;
-  approveScholarshipRelease: (goalIds: bigint[]) => Promise<void>;
-  claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;
-  relayBillFundsToService: (goalId: bigint, amount: bigint) => Promise<void>;
-  flagGoal: (goalId: bigint) => Promise<void>;
-  claimFund: (goalId: bigint) => Promise<void>;
-  refundScholarship: (goalId: bigint) => Promise<void>;
-  onVerificationSuccess: (user: Address) => Promise<void>;
-  refresh: () => void;
+    // Actions
+    createGoal: (params: CreateBillGoal) => Promise<void>;
+    fundGoal: (goalId: bigint, amount: bigint, extraInfo: string) => Promise<void>;
+    reactivateGoal: (goalId: bigint) => Promise<void>;
+    approveScholarshipRelease: (goalIds: bigint[]) => Promise<void>;
+    claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;
+    relayBillFundsToService: (goalId: bigint, amount: bigint) => Promise<void>;
+    toggleFlagGoal: (goalId: bigint) => Promise<void>;
+    claimFund: (goalId: bigint) => Promise<void>;
+    refundScholarship: (goalId: bigint) => Promise<void>;
+    onVerificationSuccess: (user: Address) => Promise<void>;
+    refresh: () => void;
 }
-
 
 export const mockGetGoalIDAndState : GetGoalIdAndState = {
     backendFulfillmentSigner: zeroAddress,

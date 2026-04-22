@@ -276,7 +276,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       createGoal,
       claimFund: async(goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'claimFund' }) },
       fundGoal: async (goalId: bigint, amount: bigint, extraInfo: string) => { await runTransaction({ goalIds: [goalId], amount, extraInfo, func: 'fundGoal' }) },
-      flagGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'flagGoal' }) },
+      toggleFlagGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'toggleFlagGoal' }) },
       reactivateGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'reactivateGoal' }) },
       approveScholarshipRelease: async (goalIds: bigint[]) => { await runTransaction({ goalIds, func: 'approveScholarshipRelease' }) },
       claimScholarshipFunds: async (goalId: bigint, recipient: Address) => { await runTransaction({ goalIds: [goalId], recipient, func: 'claimScholarshipFunds' }) },

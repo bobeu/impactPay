@@ -11,9 +11,10 @@ interface GoalListProps {
   goals: GetGoal[];
   title?: string;
   emptyMessage?: string;
+  isFunderView?: boolean;
 }
 
-export function GoalList({ goals, title, emptyMessage = "No goals found" }: GoalListProps) {
+export function GoalList({ goals, title, emptyMessage = "No goals found", isFunderView }: GoalListProps) {
   const [selectedGoal, setSelectedGoal] = useState<GetGoal | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<string>("all");
@@ -85,6 +86,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found" }: Goal
                 <GoalCard 
                   goal={goal} 
                   onClick={() => setSelectedGoal(goal)} 
+                  isFunderView={isFunderView}
                 />
               </motion.div>
             ))}

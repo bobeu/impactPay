@@ -2064,3 +2064,23 @@ Let's enrich the user profile with more information. Antigravity, you're to perf
 3. **Claim Functionalities Integration:**
    - Embedded direct fund withdrawal mechanisms specifically visible to creators traversing the newly expanded Goal details card section.
    - Hardened `claimFund` (for Bill/Default goals) alongside `claimScholarshipFunds` executing securely based on conditional evaluation of `common.goalType` passing precise dependencies seamlessly into context hooks.
+
+------------------------------------------------------------
+
+### CTO Said:
+
+- In `FunderDashboardView.tsx`, for every `goal`, the connected address should see all the goals they have funded so far (if is a funder for the goal). You should use the `funders` array for this. 
+
+- For every goal in which the connected address is a funder, there should be call-to-actions that can call `refundScholarship` and `toggleFlagGoal`. Calling `toggleFlagGoal` will always negate the status of the flag property. These call-to-actions should only be visible when the connected user is in `FunderDashboardView.tsx` component.
+
+------------------------------
+## Antigravity Implementation Summary: Funder Operations Visibility
+
+1. **Funder Dashboard Tracking:**
+   - Modified `FunderDashboardView.tsx` to directly filter the global `goals` array down strictly to instances where `address` exists within the specific goal's nested `funders` object mappings.
+
+2. **Scoped Call-To-Action Operations:**
+   - Abstracted an `isFunderView={true}` conditional prop traversing downward via `GoalList` cleanly into the `GoalCard` components bridging the UI.
+   - Conditionally appended two direct operation mechanics directly onto matched cards rendered in this view exclusively:
+     - **Toggle Flag**: Secured safely leveraging `flagGoal` hooks back into context parameters toggling flag states natively.
+     - **Refund Scholarship**: Rendered explicitly (safeguarded strictly against `GoalType.SCHOLARSHIP`) ensuring users aren't submitting transactions mapping onto incompatible default or bill-type execution pipelines.

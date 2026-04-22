@@ -39,9 +39,10 @@ export default function FunderDashboardView() {
         
         <section>
             <GoalList 
-                goals={goals} 
-                title="Active Goals"
-                emptyMessage="No goals have been created yet. Be the first to create one!" 
+                goals={goals.filter(g => address && g.funders.some(f => f.id.toLowerCase() === address.toLowerCase()))} 
+                title="Funded Goals"
+                emptyMessage="You haven't funded any goals yet." 
+                isFunderView={true}
             />
         </section>
     </div>

@@ -681,14 +681,15 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Allows a donor to flag a goal for review if suspicious
     /// @param goalId ID of the goal to flag
-    function flagGoal(uint256 goalId) external whenNotPaused {
+    function toggleFlagGoal(uint256 goalId) external whenNotPaused {
         Goal storage goal = goals[goalId];
         address sender = _msgSender();
         require (goal.cData.id > 0, "GoalNotFound");
         require (goal.isFunder[sender], "NotDonor");
         require (!hasFlagged[goalId][sender], "AlreadyFlagged");
 
-        hasFlagged[goalId][sender] = true;
+        bool status = hasFlagged[goalId][sender];
+        hasFlagged[goalId][sender] = !status;
         _editReputation(false, 0, goal.cData.creator, false);
         uint rep = reputationScores[goal.cData.creator];
         reputationScores[goal.cData.creator] = rep >= 50? rep -= 50 : 0;

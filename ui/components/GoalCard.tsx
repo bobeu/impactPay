@@ -22,10 +22,11 @@ import { useAccount } from "wagmi";
 interface GoalCardProps {
   goal: GetGoal;
   onClick?: () => void;
+  isFunderView?: boolean;
 }
 
-export function GoalCard({ goal, onClick }: GoalCardProps) {
-  const { claimScholarshipFunds, claimFund  } = useImpactPay();
+export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
+  const { claimScholarshipFunds, claimFund, flagGoal, refundScholarship  } = useImpactPay();
   const { address } = useAccount();
   const { common, bill, scholarship, funders } = goal;
   const [showFunders, setShowFunders] = useState(false);
@@ -201,6 +202,25 @@ export function GoalCard({ goal, onClick }: GoalCardProps) {
             </div>
           ) : (
             <span className="text-slate-400">No funders yet.</span>
+          )}
+        </div>
+      )}
+
+      {isFunderView && (
+        <div className="pt-3 border-t border-slate-50 flex gap-2" onClick={(e) => e.stopPropagation()}>
+          <button 
+            onClick={() => flagGoal(common.id)}
+            className="flex-1 py-1.5 px-3 bg-red-50 text-red-600 text-[10px] font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors"
+          >
+            Toggle Flag
+          </button>
+          {common.goalType === GoalType.SCHOLARSHIP && (
+            <button 
+              onClick={() => refundScholarship(common.id)}
+              className="flex-1 py-1.5 px-3 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+            >
+              Refund Scholarship
+            </button>
           )}
         </div>
       )}
