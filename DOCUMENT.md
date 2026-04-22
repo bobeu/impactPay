@@ -2016,3 +2016,18 @@ Antigravity, below are the tasks for you:
 - **Close Functionality Added:** Implemented a non-blocking onClose callback capability to the <TransactionModal /> logic.
 - **Progress Timeout & Success Tracking:** If the modal stalls processing for over a minute, or lands safely on a success or error state, a Close Window button appears providing the user immediate exit control without refreshing the page.
 - Tied the onClose behavior dynamically via CatchAllClient referencing the useImpactPay() unified modal state controls seamlessly setting idle when closing.
+
+---------------------------------------------------------------
+
+### CTO Said:
+
+In `SponsorDashboard.tsx` the funder should not be mandated to fund the whole target amount. We should be accepting the amount they're willing to fund or donate. 
+Antigravity, you need to build the input section for this. Also, provide a way for the funder to select `fundAll`.
+
+------------------------------
+## Antigravity Implementation Summary: Custom Funding Amounts
+
+1. **Flexible Funding in SponsorDashboard:**
+   - **Diagnosis:** The previous implementation forced sponsors to fund the entire remaining `targetAmount` for a goal via a single "Fund 100%" button, without allowing partial contributions.
+   - **Fix:** Added a custom input field allowing sponsors to specify partial contributions. The input parses user-provided values in ETH into `bigint` (Wei) securely utilizing `parseEther` from standard viem imports.
+   - **UX/UI Enhancements:** Integrated a `MAX` helper button inside the input field that autofills the exact remaining target balance. Retained a dedicated "Fund All" action side-by-side with the new custom "Fund" button to allow one-click goal completion.

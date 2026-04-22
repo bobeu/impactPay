@@ -144,12 +144,18 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       setModalError('');
       const { goalType, description, extraInfo, targetAmount, billServiceIndex, serviceType } = param;
       let args = [];
+      let functionName = 'createGoal';
 
       switch (goalType) {
         case 'BILL':
           if (!serviceType) return;
           if (!billServiceIndex) return;
+          functionName = 'createBillGoal'
           args = [targetAmount, description, serviceType, extraInfo, billServiceIndex];
+          break;
+        case 'SCHOLARSHIP':
+          functionName = 'createScholarshipGoal';
+          args = [targetAmount, description, extraInfo];
           break;
         default:
           args = [targetAmount, description, extraInfo];
@@ -159,7 +165,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       const hash = await writeCreateBillGoal({
         address: CONTRACTS.ImpactPay.address,
         abi: CONTRACTS.ImpactPay.abi as any,
-        functionName: 'createBill',
+        functionName: functionName,
         args
       });
 

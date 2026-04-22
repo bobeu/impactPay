@@ -3,11 +3,10 @@
 import { useMemo, useState, Fragment } from "react";
 import { cn } from "@/lib/utils";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 
 export function SponsorDashboard() {
-  const impPay = useImpactPay();
-  const { goals, funderReputations, flagGoal } = impPay;
+  const { goals, funderReputations, flagGoal, fundGoal } = useImpactPay();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const scholarshipGoals = useMemo(() => {
@@ -23,7 +22,7 @@ export function SponsorDashboard() {
 
   const developers = useMemo(() => {
      const devs: Record<string, number> = {};
-     goals.forEach(g => {
+     goals.filter(k => k.bill.serviceType === 'subscription').forEach(g => {
         const creator = g.common.creator.toLowerCase();
         if (!devs[creator]) devs[creator] = 0;
         devs[creator] += Number(formatEther(g.common.raisedAmount));
@@ -76,32 +75,81 @@ export function SponsorDashboard() {
                             {g.common.description || "No description provided."}
                           </p>
                           <div className="space-y-2 mt-4">
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <input 
+                                  type="number"
+                                  id={`fundAmount-${id}`}
+                                  placeholder="Amount in ETH (e.g. 0.01)"
+                                  min="0"
+                                  step="0.0001"
+                                  className="w-full h-10 border border-slate-200 rounded-md pl-3 pr-16 text-xs tabular-nums"
+                                />
+                                <button 
+                                  className="absolute right-1 top-1 bottom-1 px-2 bg-slate-100 text-[10px] font-bold text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                                  onClick={() => {
+                                    const amountLeft = Number(formatEther(g.common.targetAmount - g.common.raisedAmount)).toFixed(4);
+                                    const inputNode = document.getElementById(`fundAmount-${id}`) as HTMLInputElement;
+                                    if (inputNode) inputNode.value = amountLeft.toString();
+                                  }}
+                                >
+                                  MAX
+                                </button>
+                              </div>
+                            </div>
+
                             <input 
                               type="text"
                               id={`extraInfo-${id}`}
                               placeholder="Message or Extra Info (Optional)"
                               className="w-full h-10 border border-slate-200 rounded-md px-3 text-[11px]"
                             />
-                            <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-                              <span className="text-[10px] text-slate-500 font-medium">To fund fully: {Number(formatEther(g.common.targetAmount - g.common.raisedAmount)).toFixed(4)} ETH</span>
+                            
+                            <div className="flex flex-col flex-wrap sm:flex-row justify-between items-center gap-2 mt-2">
+                              <span className="text-[10px] text-slate-500 font-medium">Remaining: {Number(formatEther(g.common.targetAmount - g.common.raisedAmount)).toFixed(4)} ETH</span>
+                              
                               <div className="flex gap-2">
                                 <button 
                                   onClick={() => flagGoal(g.common.id)}
-                                  className="px-4 py-1.5 rounded-full border border-red-200 text-red-600 text-[10px] font-semibold hover:bg-red-50"
+                                  className="px-4 py-1.5 rounded-full border border-red-200 text-red-600 text-[10px] font-semibold hover:bg-red-50 transition-colors"
                                 >
                                   Flag
                                 </button>
+                                
+                                <button 
+                                  onClick={async () => {
+                                    const amountNode = document.getElementById(`fundAmount-${id}`) as HTMLInputElement;
+                                    let amountToFund = 0n;
+                                    if (amountNode && amountNode.value) {
+                                      try {
+                                        amountToFund = parseEther(amountNode.value);
+                                      } catch (e) {
+                                        console.error("Invalid amount");
+                                        return;
+                                      }
+                                    }
+                                    if (amountToFund <= 0n) return;
+                                    
+                                    const extraInfoNode = document.getElementById(`extraInfo-${id}`) as HTMLInputElement;
+                                    const extraInfo = extraInfoNode && extraInfoNode.value.trim() !== "" ? extraInfoNode.value : "Funded via SponsorDashboard";
+                                    await fundGoal(g.common.id, amountToFund, extraInfo);
+                                  }}
+                                  className="px-4 py-1.5 rounded-full bg-slate-800 text-white text-[10px] font-semibold hover:bg-slate-700 shadow-sm transition-colors"
+                                >
+                                  Fund
+                                </button>
+
                                 <button 
                                   onClick={async () => {
                                     const amountLeft = g.common.targetAmount - g.common.raisedAmount;
                                     if (amountLeft <= 0n) return;
                                     const inputNode = document.getElementById(`extraInfo-${id}`) as HTMLInputElement;
-                                    const extraInfo = inputNode ? inputNode.value : "Funded automatically via SponsorDashboard";
-                                    await impPay.fundGoal(g.common.id, amountLeft, extraInfo);
+                                    const extraInfo = inputNode && inputNode.value.trim() !== "" ? inputNode.value : "Funded 100% via SponsorDashboard";
+                                    await fundGoal(g.common.id, amountLeft, extraInfo);
                                   }}
-                                  className="px-4 py-1.5 rounded-full bg-emerald-500 text-white text-[10px] font-semibold hover:bg-emerald-600 shadow-sm"
+                                  className="px-4 py-1.5 rounded-full bg-emerald-500 text-white text-[10px] font-semibold hover:bg-emerald-600 shadow-sm transition-colors"
                                 >
-                                  Fund 100%
+                                  Fund All
                                 </button>
                               </div>
                             </div>

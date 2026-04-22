@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { SponsorDashboard } from '@/components/SponsorDashboard';
-import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
 
 export default function SponsorView() {

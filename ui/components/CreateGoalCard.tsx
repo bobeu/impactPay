@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { PlusCircle, CreditCard, GraduationCap, AlertCircle, CheckCircle2 } from "lucide-react";
+import { PlusCircle, CreditCard, Infinity, GraduationCap, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { useUserProfile } from "@/contexts/UserProfileContext";
-import { GoalCategory } from "@/lib/types";
+import { CreateBillGoal, GoalCategory, GoalTypeStr } from "@/lib/types";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
 import { parseEther } from "viem";
 
 export function CreateGoalCard() {
-  const { canCreateScholarship } = useUserProfile();
+  // const { canCreateScholarship } = useUserProfile();
   const { createGoal } = useImpactPay();
   const [goalTitle, setGoalTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Bill");
@@ -31,13 +31,13 @@ export function CreateGoalCard() {
       setIsSubmitting(true);
       setMessage("Preparing transaction...");
       
-      const payload = {
+      const payload : CreateBillGoal = {
         targetAmount: parseEther(amount),
         description: goalTitle,
         extraInfo: "",
-        goalType: category.toUpperCase() as "BILL" | "SCHOLARSHIP" | "DEFAULT",
+        goalType: category.toUpperCase() as GoalTypeStr,
         serviceType: category === "Bill" ? "General" : undefined,
-        billServiceIndex: category === "Bill" ? 0 : undefined
+        billServiceIndex: 0
       };
       
       await createGoal(payload);
@@ -93,33 +93,48 @@ export function CreateGoalCard() {
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setCategory("Bill")}
-                className={cn(
-                  "h-12 rounded-md text-sm font-bold flex items-center justify-center gap-2 border transition-all",
-                  category === "Bill"
-                    ? "border-primary bg-primary text-white"
-                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-                )}
-              >
-                <CreditCard className="w-4 h-4" />
-                Bill
-              </button>
-              <button
-                type="button"
-                onClick={() => setCategory("Scholarship")}
-                className={cn(
-                  "h-12 rounded-md text-sm font-bold flex items-center justify-center gap-2 border transition-all relative overflow-hidden",
-                  category === "Scholarship"
-                    ? "border-accent bg-accent text-white"
-                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-                )}
-              >
-                <GraduationCap className="w-4 h-4" />
-                Scholarship
-              </button>
+            <div className="grid grid-cols-3 gap-2">
+              {
+                [
+                  {
+                    text: 'Default',
+                    icon: <Infinity className="w-4 h-4" />,
+                    className: cn("h-12 rounded-md text-[10px] font-semibold px-3 flex items-center justify-center gap-2 border transition-all",
+                      category === "Default"
+                        ? "border-primary bg-primary text-white"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                    )
+                  },
+                  {
+                    text: 'Bill',
+                    icon: <CreditCard className="w-4 h-4" />,
+                    className: cn("h-12 rounded-md text-[10px] font-semibold px-3 flex items-center justify-center gap-2 border transition-all",
+                      category === "Bill"
+                        ? "border-primary bg-primary text-white"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                    )
+                  },
+                  {
+                    text: 'Scholarship',
+                    icon: <GraduationCap className="w-4 h-4" />,
+                    className: cn("h-12 rounded-md text-[10px] font-semibold px-3 flex items-center justify-center gap-2 border transition-all relative overflow-hidden",
+                      category === "Scholarship"
+                        ? "border-accent bg-accent text-white"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                    )
+                  },
+                ].map(({text, icon, className}) => (
+                  <button
+                    key={text}
+                    type="button"
+                    onClick={() => setCategory(text as GoalCategory)}
+                    className={className}
+                  >
+                    { icon }
+                    { text.toUpperCase() }
+                  </button>
+                ))
+              }
             </div>
           </div>
         </div>
