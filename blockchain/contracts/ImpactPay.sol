@@ -206,7 +206,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     );
 
     /// @notice Emitted whenever a user's reputation score is updated
-    event ReputationUpdated(address indexed user, int256 change, string reason);
+    event ReputationUpdated(address indexed user, uint16 change, string reason);
     
     /// @notice Emitted when a scholarship milestone is withdrawn
     event ScholarshipWithdrawal(
@@ -666,10 +666,11 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         returns(bool) 
     {
         bool useBillService_ = useBillService;
-        Goal memory goal = goals[goalId];
-        CommonData memory cd = goal.cData;
+        CommonData memory cd = goals[goalId].cData;
         uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
         _relayFund(goalId, availableAmount, useBillService_);
+
+        return true;
     }
 
     /// @notice Relays funds from a raised bill goal to the service provider
@@ -683,10 +684,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param goalId ID of the goal to flag
     function toggleFlagGoal(uint256 goalId) external whenNotPaused {
         Goal storage goal = goals[goalId];
+        uint256 id = goal.cData.id;
+        require (id > 0, "GoalNotFound");
+        require(uint8(goal.cData.status) < uint8(GoalStatus.FULFILLED), "Fulfilled/Canceled");
+        
         address sender = _msgSender();
-        require (goal.cData.id > 0, "GoalNotFound");
         require (goal.isFunder[sender], "NotDonor");
-        require (!hasFlagged[goalId][sender], "AlreadyFlagged");
 
         bool status = hasFlagged[goalId][sender];
         hasFlagged[goalId][sender] = !status;
@@ -697,9 +700,9 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         goal.cData.flagsCount += 1;
         if (goal.cData.flagsCount >= 3) {
             if (goal.cData.goalType == GoalType.SCHOLARSHIP) {
-                goal.scholarship.disputed = true;
+                goal.scholarship.disputed = !status;
             } else {
-                goal.cData.lockedForReview = true;
+                goal.cData.lockedForReview = !status;
             }
         }
 
@@ -710,10 +713,10 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             goal.cData.lockedForReview, 
             goal.cData.goalType,
             goal.cData.creator,
-            -500,
-            "goal_flagged"
+            50,
+            status? "goal_unflagged" : "goal_flagged"
         );
-        emit ReputationUpdated(goal.cData.creator, -500, "goal_flagged");
+        emit ReputationUpdated(goal.cData.creator, 50, status? "goal_unflagged" : "goal_flagged");
     }
 
     /// @notice Allows donors to claim a proportional refund if scholarship milestones are not met
@@ -748,7 +751,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         }
         stableToken.safeTransfer(sender, donorShare);
         emit Refunded(goalId, sender, donorShare, goal.cData.creator, -200, "proof_unmet");
-        emit ReputationUpdated(goal.cData.creator, -200, "proof_unmet");
+        emit ReputationUpdated(goal.cData.creator, 200, "refunded_proof_unmet");
     }
 
     /// @notice Updates user levels status. Only callable by signer or owner.

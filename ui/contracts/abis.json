@@ -396,9 +396,9 @@
         },
         {
           "indexed": false,
-          "internalType": "int256",
+          "internalType": "uint16",
           "name": "change",
-          "type": "int256"
+          "type": "uint16"
         },
         {
           "indexed": false,
@@ -587,6 +587,25 @@
           "internalType": "uint256",
           "name": "goalId",
           "type": "uint256"
+        }
+      ],
+      "name": "claimFund",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "goalId",
+          "type": "uint256"
         },
         {
           "internalType": "address",
@@ -713,19 +732,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "goalId",
-          "type": "uint256"
-        }
-      ],
-      "name": "flagGoal",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1003,9 +1009,26 @@
               "type": "address[]"
             },
             {
-              "internalType": "enum ImpactPay.Level",
-              "name": "level",
-              "type": "uint8"
+              "components": [
+                {
+                  "internalType": "bool",
+                  "name": "lvl1",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "lvl2",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "lvl3",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ImpactPay.Verification",
+              "name": "verifications",
+              "type": "tuple"
             },
             {
               "internalType": "bool",
@@ -1208,14 +1231,19 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        },
+        {
+          "internalType": "enum ImpactPay.Level",
+          "name": "",
+          "type": "uint8"
         }
       ],
       "name": "levels",
       "outputs": [
         {
-          "internalType": "enum ImpactPay.Level",
+          "internalType": "bool",
           "name": "",
-          "type": "uint8"
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -1588,6 +1616,45 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "goalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "toggleFlagGoal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "toggleUseBillService",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "toggleUseVerifier",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

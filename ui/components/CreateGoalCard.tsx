@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import { PlusCircle, CreditCard, Infinity, GraduationCap, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useAccount } from "wagmi";
 
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { CreateBillGoal, GoalCategory, GoalTypeStr } from "@/lib/types";
@@ -14,6 +16,8 @@ import { parseEther } from "viem";
 export function CreateGoalCard() {
   // const { canCreateScholarship } = useUserProfile();
   const { createGoal } = useImpactPay();
+  const navigate = useNavigate();
+  const { address } = useAccount();
   const [goalTitle, setGoalTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Bill");
   const [amount, setAmount] = useState("50");
@@ -45,6 +49,10 @@ export function CreateGoalCard() {
       setGoalTitle("");
       setAmount("50");
       setMessage("Goal created successfully!");
+      
+      if (address) {
+        navigate(`/profile/${address}`);
+      }
     } catch (err: any) {
       setMessage(err.shortMessage || err.message || "Failed to create goal.");
     } finally {
