@@ -24,6 +24,9 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
   const { address: connectedAddress } = useAccount();
   const isOwner = connectedAddress?.toLowerCase() === address.toLowerCase();
   
+  const activeGoals = userGoals ? userGoals.filter(g => g.common.status === 0 || g.common.status === 1) : [];
+  const pastGoals = userGoals ? userGoals.filter(g => g.common.status === 2 || g.common.status === 3) : [];
+  
   // const profileGoals = goals.filter(g => g.common.creator.toLowerCase() === address.toLowerCase());
   const shareText = encodeURIComponent(`Check out my verified impact on ImpactPay! 🌍💚\n${window.location.href}`);
   const xShareLink = `https://twitter.com/intent/tweet?text=${shareText}`;
@@ -74,40 +77,56 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
             <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-3xl" />
           </div>
 
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Impact Goals Created</h3>
-              <div className="h-px flex-1 bg-slate-100 mx-4" />
-              <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{userGoals?.length || 0}</span>
+          <div className="space-y-12">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Goals</h3>
+                <div className="h-px flex-1 bg-slate-100 mx-4" />
+                <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{activeGoals.length}/3</span>
+              </div>
+
+              {(activeGoals && activeGoals.length > 0) ? (
+                <GoalList 
+                  goals={activeGoals} 
+                  emptyMessage="No active goals found for this address."
+                />
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="py-16 flex flex-col items-center text-center space-y-6"
+                >
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
+                    <PlusCircle className="w-10 h-10 text-slate-200" />
+                  </div>
+                  <div className="space-y-2 max-w-[240px]">
+                    <h4 className="text-lg font-bold text-slate-800">No active goals yet</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                      Start your impact journey by creating a goal for yourself or your community. Max 3 active.
+                    </p>
+                  </div>
+                  <Link 
+                    to="/create-goal" 
+                    className="inline-flex items-center gap-2 bg-accent text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors uppercase tracking-widest text-[11px]"
+                  >
+                    Create Your First Goal <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </motion.div>
+              )}
             </div>
 
-            {(userGoals && userGoals.length > 0) ? (
-              <GoalList 
-                goals={userGoals} 
-                emptyMessage="No goals found for this address."
-              />
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="py-16 flex flex-col items-center text-center space-y-6"
-              >
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
-                  <PlusCircle className="w-10 h-10 text-slate-200" />
+            {pastGoals.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Past Goals</h3>
+                  <div className="h-px flex-1 bg-slate-100 mx-4" />
+                  <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{pastGoals.length}</span>
                 </div>
-                <div className="space-y-2 max-w-[240px]">
-                  <h4 className="text-lg font-bold text-slate-800">No active goals yet</h4>
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                    Start your impact journey by creating a goal for yourself or your community.
-                  </p>
-                </div>
-                <Link 
-                  to="/create-goal" 
-                  className="inline-flex items-center gap-2 bg-accent text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors uppercase tracking-widest text-[11px]"
-                >
-                  Create Your First Goal <ExternalLink className="w-3.5 h-3.5" />
-                </Link>
-              </motion.div>
+                <GoalList 
+                  goals={pastGoals} 
+                  emptyMessage="No past goals found."
+                />
+              </div>
             )}
           </div>
         </div>

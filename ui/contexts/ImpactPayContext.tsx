@@ -274,6 +274,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       },
       refresh,
       createGoal,
+      claimFund: async(goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'claimFund' }) },
       fundGoal: async (goalId: bigint, amount: bigint, extraInfo: string) => { await runTransaction({ goalIds: [goalId], amount, extraInfo, func: 'fundGoal' }) },
       flagGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'flagGoal' }) },
       reactivateGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'reactivateGoal' }) },

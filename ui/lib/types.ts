@@ -18,7 +18,8 @@ export type OtherFuncType =
 'relayBillFundsToService' |
 'flagGoal' |
 'refundScholarship' |
-'onVerificationSuccess'
+'onVerificationSuccess' |
+'claimFund'
 
 export enum GoalStatus {
     OPEN,
@@ -157,6 +158,7 @@ export interface ImpactPayContextType {
   claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;
   relayBillFundsToService: (goalId: bigint, amount: bigint) => Promise<void>;
   flagGoal: (goalId: bigint) => Promise<void>;
+  claimFund: (goalId: bigint) => Promise<void>;
   refundScholarship: (goalId: bigint) => Promise<void>;
   onVerificationSuccess: (user: Address) => Promise<void>;
   refresh: () => void;

@@ -657,7 +657,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         emit ReputationUpdated(cd.creator, 100, "goal_completed");
     } 
 
-    function claimFund() 
+    function claimFund(uint256 goalId) 
         external 
         notRestricted(_msgSender())
         isVerified(Level.LEVEL2, _msgSender()) 
@@ -665,7 +665,11 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         nonReentrant 
         returns(bool) 
     {
-        _relayFund(goalId, amount, useBillService);
+        bool useBillService_ = useBillService;
+        Goal memory goal = goals[goalId];
+        CommonData memory cd = goal.cData;
+        uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
+        _relayFund(goalId, availableAmount, useBillService_);
     }
 
     /// @notice Relays funds from a raised bill goal to the service provider

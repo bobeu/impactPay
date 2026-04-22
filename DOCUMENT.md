@@ -2031,3 +2031,36 @@ Antigravity, you need to build the input section for this. Also, provide a way f
    - **Diagnosis:** The previous implementation forced sponsors to fund the entire remaining `targetAmount` for a goal via a single "Fund 100%" button, without allowing partial contributions.
    - **Fix:** Added a custom input field allowing sponsors to specify partial contributions. The input parses user-provided values in ETH into `bigint` (Wei) securely utilizing `parseEther` from standard viem imports.
    - **UX/UI Enhancements:** Integrated a `MAX` helper button inside the input field that autofills the exact remaining target balance. Retained a dedicated "Fund All" action side-by-side with the new custom "Fund" button to allow one-click goal completion.
+
+-------------------------------------------------------------
+
+## CTO Said:
+
+Let's enrich the user profile with more information. Antigravity, you're to perform the following tasks:
+
+- Modify the `GoalCard.tsx` component to diplay information/properties inside the three objects: 
+   * bill
+   * scholarship
+   * common
+   * funders
+  
+  Display these information appropriately for the user to view. For every goal, map the funders in a Collapsible component so it can be revealed and hidden when toggled.
+
+- Format the `userGoals` to display completed/past goals and active gaols. At any point in time, based on the smart contract implementation, a user can have a maximum of three active goals even though they could have more completed goals.
+
+- For now, users can withdraw the funded amount directly into their wallet hence implement the `claimFund` and `claimScholarship` functions. User will be able to call `claimFund` only if the `common.goalType` is either `BILL` or `DEFAULT` otherwise `claimScholarship`.
+
+------------------------------
+## Antigravity Implementation Summary: User Profile Enrichment
+
+1. **Enhanced GoalCard Details and Layout:**
+   - Appended a toggleable "View details" expanding section to cleanly output properties associated with the `bill`, `scholarship`, and `common` scopes (Service Type, Milestone state, Withdrawn amounts, etc.) without cluttering the primary card view.
+   - Restructured the funders preview section to act as a Collapsible component mapping full funder subsets efficiently when interacted with.
+   
+2. **Profile View Refactoring:**
+   - Segmented mapped states inside `ProfileClientView.tsx` processing `userGoals` dynamically into `activeGoals` (Open/Raised) and `pastGoals` (Fulfilled/Canceled).
+   - Displayed parallel lists reinforcing the constraint allowing users only a maximum of 3 concurrent active goals, matching on-chain behavior visually. 
+
+3. **Claim Functionalities Integration:**
+   - Embedded direct fund withdrawal mechanisms specifically visible to creators traversing the newly expanded Goal details card section.
+   - Hardened `claimFund` (for Bill/Default goals) alongside `claimScholarshipFunds` executing securely based on conditional evaluation of `common.goalType` passing precise dependencies seamlessly into context hooks.

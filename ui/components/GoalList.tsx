@@ -5,7 +5,7 @@ import { GetGoal } from "../lib/types";
 import { GoalCard } from "./GoalCard";
 import { GoalDetailsModal } from "./GoalDetailsModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, Layers } from "lucide-react";
+import { Search, Layers } from "lucide-react";
 
 interface GoalListProps {
   goals: GetGoal[];
