@@ -145,6 +145,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       const { goalType, description, extraInfo, targetAmount, billServiceIndex, serviceType } = param;
       let args = [];
       let functionName = 'createGoal';
+      let listingFee = 0n;
 
       switch (goalType) {
         case 'BILL':
@@ -152,28 +153,21 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           if (!billServiceIndex) return;
           functionName = 'createBillGoal'
           args = [targetAmount, description, serviceType, extraInfo, billServiceIndex];
+          listingFee = goalIdsAndState.billListingFee;
           break;
         case 'SCHOLARSHIP':
           functionName = 'createScholarshipGoal';
           args = [targetAmount, description, extraInfo];
-          break;
-        default:
-          args = [targetAmount, description, extraInfo];
-          break;
-      }
-
-      let listingFee = 0n;
-      switch (goalType) {
-        case 'BILL':
-          listingFee = goalIdsAndState.billListingFee;
-          break;
-        case 'SCHOLARSHIP':
           listingFee = goalIdsAndState.scholarshipListingFee;
           break;
         default:
+          args = [targetAmount, description, extraInfo];
           listingFee = goalIdsAndState.defaultListingFee;
           break;
       }
+
+      console.log("listingFee", listingFee.toString());
+      console.log("CONTRACTS.ImpactPay.address", CONTRACTS.ImpactPay.address);
 
       if (listingFee > 0n) {
         const approveHash = await writeApproval({

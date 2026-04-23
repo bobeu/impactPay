@@ -102,6 +102,7 @@ export type Funder = {
     id: Address;
     extraInfo: string; //  bytes;
     fundedAt: bigint;
+    hasFlagged: boolean;
 }
 
 export type TransactionStage = 'idle' | 'awaiting_auth' | 'tx_included' | 'verifying' | 'success' | 'error';
@@ -213,6 +214,7 @@ export const mockGoals : GetGoal = {
         amount: 0n,
         extraInfo: "",
         fundedAt: 0n,
-        id: zeroAddress
+        id: zeroAddress,
+        hasFlagged: false
     }]
 }

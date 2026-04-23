@@ -3,12 +3,12 @@
 import React from 'react';
 import { ImpactDashboard } from '@/components/ImpactDashboard';
 import { GoalList } from '@/components/GoalList';
-import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
-import { PhoneLookupCard } from '@/components/PhoneLookupCard';
-import { CreateGoalCard } from '@/components/CreateGoalCard';
-import { VirtualCardPortal } from '@/components/VirtualCardPortal';
-import { SponsorDashboard } from '@/components/SponsorDashboard';
-import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
+// import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
+// import { PhoneLookupCard } from '@/components/PhoneLookupCard';
+// import { CreateGoalCard } from '@/components/CreateGoalCard';
+// import { VirtualCardPortal } from '@/components/VirtualCardPortal';
+// import { SponsorDashboard } from '@/components/SponsorDashboard';
+// import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { useAccount } from 'wagmi';
 import { useReputation } from '@/hooks/useReputation';
@@ -16,7 +16,7 @@ import { formatEther, zeroAddress } from 'viem';
 import { Link } from 'react-router-dom';
 
 export default function FunderDashboardView() {
-  const { stats, goals, funderReputations } = useImpactPay();
+  const { goals, funderReputations } = useImpactPay();
   const { address } = useAccount();
   const { data: reputationData } = useReputation(address ?? zeroAddress);
   
@@ -37,10 +37,20 @@ export default function FunderDashboardView() {
             className="mb-4"
         />
         
-        <section>
+        <section className="">
+            {/* <h1 className="text-xl font-black text-slate-900">Funded Goals</h1> */}
             <GoalList 
                 goals={goals.filter(g => address && g.funders.some(f => f.id.toLowerCase() === address.toLowerCase()))} 
                 title="Funded Goals"
+                emptyMessage="You haven't funded any goals yet." 
+                isFunderView={true}
+            />
+        </section>
+        <section className="">
+            {/* <h1 className="text-xl font-black text-slate-900">All Goals</h1> */}
+            <GoalList 
+                goals={goals} 
+                title="All Goals"
                 emptyMessage="You haven't funded any goals yet." 
                 isFunderView={true}
             />

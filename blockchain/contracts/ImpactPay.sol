@@ -100,6 +100,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         address id;
         bytes extraInfo;
         uint64 fundedAt;
+        bool hasFlagged;
+    }
+
+    struct FunderFlag {
+        uint index;
+        bool isFunder;
     }
 
     /// @notice Internal storage representation of a Goal
@@ -108,7 +114,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         BillGoal bill;
         ScholarshipGoal scholarship;
         Funder[] funders;
-        mapping(address => bool) isFunder;
+        mapping(address => FunderFlag) funderFlag;
     }
 
     /// @notice The stable token used for all transactions (e.g., USDT/USDC)
@@ -169,7 +175,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     mapping(address => bool) public restrictions;
 
     /// @notice Tracks if a donor has already flagged a specific goal
-    mapping(uint256 => mapping(address => bool)) public hasFlagged;
+    // mapping(uint256 => mapping(address => bool)) public hasFlagged;
 
     /// @notice Tracks levels level of users
     mapping(address => mapping(Level => bool)) public levels;
@@ -480,7 +486,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             reputationScores[target] += isFunder? amount > mantissa? (amount / mantissa) : 1 : 5;
         } else {
             uint rep = reputationScores[target];
-            reputationScores[target] = isFunder? rep >= 50? rep - 50 : 0 : rep >= 5? rep - 5 : 0; 
+            reputationScores[target] = rep >= 5? rep - 5 : 0; 
         }
     }
 
@@ -499,8 +505,11 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         
         CommonData storage _c = goal.cData;
         _c.raisedAmount += amount;
-        goal.funders.push(Funder(amount, sender, abi.encode(bytes(extraInfo)), uint64(block.timestamp)));
-        if(!goal.isFunder[sender]) goal.isFunder[sender] = true;
+        uint index = goal.funders.length;
+        goal.funders.push(Funder(amount, sender, abi.encode(bytes(extraInfo)), uint64(block.timestamp), false));
+        if(!goal.funderFlag[sender].isFunder) {
+            goal.funderFlag[sender] = FunderFlag(index, true);
+        }
         if (_c.raisedAmount >= _c.targetAmount) {
             _c.status = GoalStatus.RAISED;
         }
@@ -689,20 +698,27 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         require(uint8(goal.cData.status) < uint8(GoalStatus.FULFILLED), "Fulfilled/Canceled");
         
         address sender = _msgSender();
-        require (goal.isFunder[sender], "NotDonor");
-
-        bool status = hasFlagged[goalId][sender];
-        hasFlagged[goalId][sender] = !status;
-        _editReputation(false, 0, goal.cData.creator, false);
-        uint rep = reputationScores[goal.cData.creator];
-        reputationScores[goal.cData.creator] = rep >= 50? rep -= 50 : 0;
+        FunderFlag memory ff = goal.funderFlag[sender];
+        require (ff.isFunder, "NotDonor");
+        Funder memory fd = goal.funders[ff.index];
+        bool status = false;
+        if (!fd.hasFlagged) {
+            status = true;
+            goal.cData.flagsCount += 1;
+            _editReputation(false, 0, goal.cData.creator, false);
+        } else {
+            
+            goal.cData.flagsCount -= 1;
+            _editReputation(true, 0, goal.cData.creator, false);
+        }
+        goal.funders[ff.index].hasFlagged = status;
+        bool isScholarship = goal.cData.goalType == GoalType.SCHOLARSHIP;
         
-        goal.cData.flagsCount += 1;
         if (goal.cData.flagsCount >= 3) {
-            if (goal.cData.goalType == GoalType.SCHOLARSHIP) {
-                goal.scholarship.disputed = !status;
+            if (isScholarship) {
+                goal.scholarship.disputed = true;
             } else {
-                goal.cData.lockedForReview = !status;
+                goal.cData.lockedForReview = true;
             }
         }
 
@@ -710,13 +726,13 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             goalId, 
             sender, 
             goal.cData.flagsCount, 
-            goal.cData.lockedForReview, 
+            isScholarship? goal.scholarship.disputed : goal.cData.lockedForReview, 
             goal.cData.goalType,
             goal.cData.creator,
-            50,
-            status? "goal_unflagged" : "goal_flagged"
+            5,
+            !status? "goal_unflagged" : "goal_flagged"
         );
-        emit ReputationUpdated(goal.cData.creator, 50, status? "goal_unflagged" : "goal_flagged");
+        emit ReputationUpdated(goal.cData.creator, 50, !status? "goal_unflagged" : "goal_flagged");
     }
 
     /// @notice Allows donors to claim a proportional refund if scholarship milestones are not met

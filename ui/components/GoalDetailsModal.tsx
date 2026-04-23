@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { GetGoal, GoalStatus, GoalType, Milestone } from "../lib/types";
 import { useImpactPay } from "../contexts/ImpactPayContext";
 import { useAccount } from "wagmi";
-import { formatEther, parseEther } from "viem";
+import { formatEther, parseEther, hexToString } from "viem";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -29,7 +29,7 @@ interface GoalDetailsModalProps {
 }
 
 export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProps) {
-  const { fundGoal, reactivateGoal, flagGoal, refundScholarship, relayBillFundsToService, claimScholarshipFunds } = useImpactPay();
+  const { fundGoal, reactivateGoal, toggleFlagGoal, refundScholarship, relayBillFundsToService, claimScholarshipFunds, claimFund } = useImpactPay();
   const { address } = useAccount();
   const [fundingAmount, setFundingAmount] = useState<string>("");
   const [extraInfo, setExtraInfo] = useState<string>("");
@@ -39,6 +39,9 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
   const { common, bill, scholarship, funders } = goal;
   const isCreator = address?.toLowerCase() === common.creator.toLowerCase();
+  
+  const userFunder = funders.find(f => f.id.toLowerCase() === address?.toLowerCase());
+  const hasFlagged = userFunder?.hasFlagged ?? false;
   
   const handleFund = async () => {
     if (!fundingAmount || isNaN(Number(fundingAmount))) {
@@ -95,19 +98,19 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            <div className="flex-1 overflow-y-auto p-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {/* Description Section */}
-              <section className="space-y-2">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Story</h3>
-                <p className="text-slate-700 leading-relaxed font-medium">
-                  {common.description}
+              <section className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Story</h3>
+                <p className="text-slate-700 leading-relaxed font-medium break-words">
+                  {hexToString(common.description as unknown as `0x${string}`)}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                   <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
+                   <div className="px-2.5 py-1 rounded-lg bg-white border border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
                       <Clock className="w-3.5 h-3.5" />
                       Status: {GoalStatus[common.status]}
                    </div>
-                   <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                   <div className="px-2.5 py-1 rounded-lg bg-white border border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
                       <ShieldCheck className="w-3.5 h-3.5" />
                       {common.flagsCount} Flags
                    </div>
@@ -216,13 +219,13 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
               {/* Creator Actions */}
               {isCreator && (
-                 <section className="p-3 bg-slate-900 rounded-xl space-y-2">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Creator Tools</h4>
+                 <section className="p-4 bg-slate-900 rounded-xl space-y-3 shadow-lg">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Creator Tools</h4>
                     <div className="grid grid-cols-2 gap-2">
                        {common.status === GoalStatus.CANCELED && (
                           <button 
                             onClick={() => reactivateGoal(common.id)}
-                            className="bg-white/10 text-white text-[11px] font-bold py-2 rounded-lg hover:bg-white/20"
+                            className="bg-white/10 text-white text-[11px] font-bold py-2.5 rounded-lg hover:bg-white/20 transition-colors"
                           >
                              Reactivate
                           </button>
@@ -230,22 +233,66 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                        {common.status === GoalStatus.RAISED && common.goalType === GoalType.BILL && (
                           <button 
                             onClick={() => relayBillFundsToService(common.id, common.raisedAmount)}
-                            className="bg-accent text-white text-[11px] font-bold py-2 rounded-lg"
+                            className="bg-accent text-white text-[11px] font-bold py-2.5 rounded-lg hover:bg-emerald-600 transition-colors"
                           >
                              Relay Funds
                           </button>
                        )}
                     </div>
+                    {common.raisedAmount > common.withdrawnAmount && (
+                        <div className="pt-2 border-t border-slate-800">
+                          <button 
+                            onClick={async () => {
+                              if (common.goalType === GoalType.BILL || common.goalType === GoalType.DEFAULT) {
+                                await claimFund(common.id);
+                              } else {
+                                if (address) await claimScholarshipFunds(common.id, address);
+                              }
+                            }}
+                            className="w-full py-2.5 bg-emerald-500 text-white font-bold text-[12px] rounded-lg hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Wallet className="w-4 h-4" /> Claim Funds to Wallet
+                          </button>
+                        </div>
+                    )}
                  </section>
               )}
               
               {!isCreator && common.status === GoalStatus.OPEN && (
-                 <button 
-                  onClick={() => flagGoal(common.id)}
-                  className="w-full py-2 text-[10px] font-bold text-red-400 uppercase tracking-widest hover:text-red-500 flex items-center justify-center gap-1"
-                 >
-                   <Info className="w-3 h-3" /> Report or Flag Issue
-                 </button>
+                 <section className="space-y-3 pt-2">
+                    <div className="grid grid-cols-2 gap-2">
+                       <button 
+                          onClick={() => toggleFlagGoal(common.id)}
+                          disabled={hasFlagged}
+                          className={cn("w-full py-2.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all border", 
+                            hasFlagged 
+                            ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" 
+                            : "bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100")}
+                       >
+                         <Info className="w-3.5 h-3.5" /> Flag Goal
+                       </button>
+
+                       <button 
+                          onClick={() => toggleFlagGoal(common.id)}
+                          disabled={!hasFlagged}
+                          className={cn("w-full py-2.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all border", 
+                            !hasFlagged 
+                            ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" 
+                            : "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200")}
+                       >
+                         <ShieldCheck className="w-3.5 h-3.5" /> Unflag
+                       </button>
+                    </div>
+
+                    {common.goalType === GoalType.SCHOLARSHIP && (
+                       <button 
+                          onClick={() => refundScholarship(common.id)}
+                          className="w-full py-2.5 bg-blue-50 border border-blue-200 text-blue-600 text-[11px] font-bold rounded-xl hover:bg-blue-100 transition-colors"
+                       >
+                         Refund Scholarship
+                       </button>
+                    )}
+                 </section>
               )}
             </div>
           </motion.div>

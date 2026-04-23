@@ -15,7 +15,7 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react";
-import { formatEther } from "viem";
+import { formatEther, hexToString } from "viem";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
 import { useAccount } from "wagmi";
 
@@ -26,11 +26,10 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
-  const { claimScholarshipFunds, claimFund, flagGoal, refundScholarship  } = useImpactPay();
+  const { claimScholarshipFunds, claimFund, toggleFlagGoal, refundScholarship  } = useImpactPay();
   const { address } = useAccount();
   const { common, bill, scholarship, funders } = goal;
   const [showFunders, setShowFunders] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
 
   const isCreator = address?.toLowerCase() === common.creator.toLowerCase();
   
@@ -58,10 +57,13 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
     }
   };
 
-  const getGoalTypeLabel = (type: GoalType) => {
-    switch (type) {
+  const getGoalTypeLabel = (gType: GoalType) => {
+    switch (gType) {
       case GoalType.SCHOLARSHIP: return "Scholarship";
-      default: return bill.serviceType;
+      default: 
+        const res = hexToString(bill.serviceType);
+        if (res === '') return 'General';
+        else return res;
     }
   };
 
@@ -73,21 +75,20 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
       className="group cursor-pointer bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-4"
     >
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+      <div className="space-y-1">
+        <div className="flex justify-between items-start items-center">
+          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
             {getGoalTypeLabel(common.goalType)}
           </span>
-          <h3 className="text-sm font-bold text-slate-800 line-clamp-2 leading-relaxed h-10">
-            {common.description}
-          </h3>
-        </div>
-        <div className={cn(
-          "px-2 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1",
-          getStatusColor(common.status)
-        )}>
-          {getStatusIcon(common.status)}
-          {GoalStatus[common.status]}
+
+          <div className={cn(
+            "px-2 py-1 rounded-full text-[9px] font-bold border flex items-center gap-1",
+            getStatusColor(common.status)
+            )}
+          >
+            {getStatusIcon(common.status)}
+            {GoalStatus[common.status]}
+          </div>
         </div>
       </div>
 
@@ -140,53 +141,15 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
         
         <div className="flex items-center gap-2">
           <div 
-            onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }}
+            onClick={(e) => { e.stopPropagation(); if(onClick) onClick(); }}
             className="flex items-center gap-1 text-[11px] font-bold text-accent hover:text-emerald-700 transition-all cursor-pointer"
           >
-            {showDetails ? "Hide details" : "View details"} {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            View details <ArrowRight className="w-3 h-3" />
           </div>
         </div>
       </div>
 
-      {showDetails && (
-        <div className="pt-4 border-t border-slate-100 text-xs space-y-3" onClick={(e) => e.stopPropagation()}>
-          <div className="grid grid-cols-2 gap-2 text-slate-500">
-            <div><strong className="text-slate-700">Type:</strong> {GoalType[common.goalType]}</div>
-            <div><strong className="text-slate-700">Flags:</strong> {common.flagsCount}</div>
-            <div><strong className="text-slate-700">Withdrawn:</strong> {Number(formatEther(common.withdrawnAmount)).toFixed(4)} CELO</div>
-            {common.goalType === GoalType.BILL && (
-              <>
-                <div><strong className="text-slate-700">Service:</strong> {bill.serviceType}</div>
-                <div className="col-span-2 truncate"><strong className="text-slate-700">Service Addr:</strong> {bill.billService}</div>
-              </>
-            )}
-            {common.goalType === GoalType.SCHOLARSHIP && (
-              <>
-                 <div><strong className="text-slate-700">Milestone:</strong> {scholarship.milestone}</div>
-                 <div><strong className="text-slate-700">Disputed:</strong> {scholarship.disputed ? 'Yes' : 'No'}</div>
-              </>
-            )}
-          </div>
-          
-          {isCreator && (common.raisedAmount > common.withdrawnAmount) && (
-            <div className="pt-2">
-              <button 
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  if (common.goalType === GoalType.BILL || common.goalType === GoalType.DEFAULT) {
-                    await claimFund(common.id);
-                  } else {
-                    if (address) await claimScholarshipFunds(common.id, address);
-                  }
-                }}
-                className="w-full py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
-              >
-                Claim Funds to Wallet
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+
 
       {showFunders && (
         <div className="pt-4 border-t border-slate-100 text-xs" onClick={(e) => e.stopPropagation()}>
@@ -209,19 +172,11 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
       {isFunderView && (
         <div className="pt-3 border-t border-slate-50 flex gap-2" onClick={(e) => e.stopPropagation()}>
           <button 
-            onClick={() => flagGoal(common.id)}
-            className="flex-1 py-1.5 px-3 bg-red-50 text-red-600 text-[10px] font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors"
+            onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
+            className="flex-1 py-1.5 px-3 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-lg border border-emerald-100 hover:bg-emerald-100 transition-colors flex justify-center items-center gap-1.5"
           >
-            Toggle Flag
+            Fund Goal <Heart className="w-3 h-3" />
           </button>
-          {common.goalType === GoalType.SCHOLARSHIP && (
-            <button 
-              onClick={() => refundScholarship(common.id)}
-              className="flex-1 py-1.5 px-3 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
-            >
-              Refund Scholarship
-            </button>
-          )}
         </div>
       )}
     </motion.div>

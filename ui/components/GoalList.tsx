@@ -6,6 +6,7 @@ import { GoalCard } from "./GoalCard";
 import { GoalDetailsModal } from "./GoalDetailsModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Layers } from "lucide-react";
+import { hexToString } from "viem";
 
 interface GoalListProps {
   goals: GetGoal[];
@@ -73,7 +74,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found", isFund
       </div>
 
       {filteredGoals.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <AnimatePresence>
             {filteredGoals.map((goal) => (
               <motion.div

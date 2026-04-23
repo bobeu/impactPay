@@ -2114,3 +2114,37 @@ Note: All the aforementioned fees are inside the `goalIdsAndState` variable.
     -   Depending on target `goalType`, the function assigns `defaultListingFee`, `billListingFee` or `scholarshipListingFee` correctly.
     -   Sent a `writeApproval` to `MockERC20` delegating the inferred `listingFee` allowances mapping the `ImpactPay.address` parameter natively.
     -   `waitForTransactionReceipt` secures the event sequentially pausing execution properly so the simulation process strictly fires *after* allowance confirmations succeed.
+
+--------------------------------------------------------------
+
+### CTO Said:
+
+Restructure the project as follows:
+
+In `GoalCard.tsx`,
+
+- Move the description into `GoalDetailsModal` component. Clicking the `view details` should not expand the card, instead, it should open the GoalDetailsModal and display the rest of the information to the modal.
+
+- The toggle flag button should be replaced with `fund goal`. Move the toggle flag button into the `GoalDetailsModal`. The toggle flag button should be splitted into:
+   * `Flag`
+   * `Unflag`
+
+Using the `hasFlagged` property in the `Funder` interface (see ui/lib/types.ts),
+   * The `Flag` button should be disabled when `hasFlagged` is true vice versa.
+   * The `Unflag` button should be disabled when `hasFlagged` false vice versa.
+
+- Move the `Refund Scholarship` button into the `GoalDetailsModal` component. 
+
+- Currently the `GoalDetailsModal` is not well styled. Restyle it properly so all the items align properly with professional look and feel. it should not show the scrollbar. The description should remain in the contain and never overflow. Give it a subtle background color to differentiate it from other items.
+
+## AI Implementation Summary (Goal Restructuring)
+1. **GoalCard Cleanup**:
+   - Stripped the `description` block natively from the card layout, preventing clutter.
+   - Entirely removed the redundant `showDetails` expanding accordion state. Clicking "View details" now directly references the modal handler.
+   - Refactored `FunderView` button map leaving strictly a highly-converting "Fund Goal" CTA bridging directly into modal invocation. Duplicate state declarations were correctly identified and destroyed.
+2. **GoalDetailsModal Overhaul**:
+   - Mapped `hexToString(common.description)` into a pristine, scroll-locked `break-words` layout encapsulated within a uniquely colored `bg-slate-50` Story container block differentiating it sharply from data tables.
+   - Enforced `no-scrollbar` rendering across the modal body via native webkit pseudoclass `[&::-webkit-scrollbar]:hidden`.
+   - Transferred and wired up the `Claim Funds to Wallet` operation for Goal Creators when limits are surpassed seamlessly.
+   - Decoupled Flagging into a dual `Flag Goal` / `Unflag` UX mapping. Programmatically assessed the user's explicit inclusion into `funders` validating `hasFlagged` state natively to handle dynamic disabled states.
+   - Moved `Refund Scholarship` button safely into the `GoalDetailsModal` underneath flag operations guaranteeing cleaner space conservation on generic goal listings.

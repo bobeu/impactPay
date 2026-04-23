@@ -921,6 +921,11 @@
                   "internalType": "uint64",
                   "name": "fundedAt",
                   "type": "uint64"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hasFlagged",
+                  "type": "bool"
                 }
               ],
               "internalType": "struct ImpactPay.Funder[]",
@@ -1196,30 +1201,6 @@
           "internalType": "struct ImpactPay.ScholarshipGoal",
           "name": "scholarship",
           "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "hasFlagged",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
         }
       ],
       "stateMutability": "view",
