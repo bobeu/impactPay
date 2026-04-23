@@ -97,11 +97,11 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
         <div className="flex justify-between items-end text-[11px]">
           <div className="flex flex-col">
             <span className="text-slate-400 font-medium uppercase tracking-tighter">Raised</span>
-            <span className="text-slate-900 font-bold">{formatEther(common.raisedAmount)} CELO</span>
+            <span className="text-slate-900 font-bold">{formatEther(common.raisedAmount)} USDm</span>
           </div>
           <div className="flex flex-col text-right">
             <span className="text-slate-400 font-medium uppercase tracking-tighter">Target</span>
-            <span className="text-slate-600 font-semibold">{formatEther(common.targetAmount)} CELO</span>
+            <span className="text-slate-600 font-semibold">{formatEther(common.targetAmount)} USDm</span>
           </div>
         </div>
         
@@ -159,7 +159,7 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
               {funders.map((f, i) => (
                 <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg text-[10px]">
                   <span className="font-mono text-slate-600 truncate mr-2" title={f.id}>{f.id}</span>
-                  <span className="font-bold text-accent whitespace-nowrap">{Number(formatEther(f.amount)).toFixed(4)} CELO</span>
+                  <span className="font-bold text-accent whitespace-nowrap">{Number(formatEther(f.amount)).toFixed(4)} USDm</span>
                 </div>
               ))}
             </div>

@@ -2148,3 +2148,50 @@ Using the `hasFlagged` property in the `Funder` interface (see ui/lib/types.ts),
    - Transferred and wired up the `Claim Funds to Wallet` operation for Goal Creators when limits are surpassed seamlessly.
    - Decoupled Flagging into a dual `Flag Goal` / `Unflag` UX mapping. Programmatically assessed the user's explicit inclusion into `funders` validating `hasFlagged` state natively to handle dynamic disabled states.
    - Moved `Refund Scholarship` button safely into the `GoalDetailsModal` underneath flag operations guaranteeing cleaner space conservation on generic goal listings.
+
+---------------------------------------------------------------
+
+### CTO Said:
+
+- On the `GoalDetailsModal`, edit the `Donate Now` button. It is currently not visible until hover over. Change the backgroung color to match the project's deep blue theme.
+
+- Ensure the funder can optionally set a custom amount to fund or select to fund all (if not yet implemented). 
+
+- Goals are funded in `USDm` not in `CELO`. Replace all the occurrences of `CELO` with `USDm` where `USDm` is ought to be used.
+
+- The social card ogImage is not displaying. Please fix it or provide recommendation on how to fix it in your summary if you can't. In user's profile, the `Quick Actions` button has the same styling as the `Donate Now` button. Style it the same way as you restyled the `Donate Now` button.
+
+- The `Sponsor Hub` component should not be in the user's profile. It should only be in the `Sponsor` page.
+
+- Create a perfect smooth border for `Hero Section` on the LandingView component. Or rather, restyle it to look perfect.
+
+## AI Implementation Summary (UI Polish & Currency Standardisation)
+
+1. **Donate Now Button — Deep Blue Theme** (`GoalDetailsModal.tsx`):
+   - Changed the background from `bg-accent` (green) to `bg-[#001B3D]` (deep navy, the project primary) with `hover:bg-[#002a5c]` — always visible, never requiring hover to be seen.
+   - Matched the Fund section header icon and label colour to the same deep blue for visual cohesion.
+   - Updated `focus:ring` to `focus:ring-[#001B3D]` on both inputs so the focus halo matches.
+
+2. **Fund All / MAX Amount** (`GoalDetailsModal.tsx`):
+   - Added a **MAX** button inlined inside the amount input field (absolutely positioned flush-right) that calculates `targetAmount − raisedAmount` and fills the input automatically, allowing one-tap full funding.
+
+3. **CELO → USDm Currency Labels**:
+   - Replaced every occurrence in `GoalDetailsModal.tsx` (Raised, Target, funder rows), `GoalCard.tsx` (card raised/target/funder), `LandingView.tsx` (Total Raised stat), and `SponsorDashboard.tsx` (column headers and remaining label).
+
+4. **Quick Actions Button** (`ProfileClientView.tsx`):
+   - Restyled the Create Goal `Link` button from green `bg-accent` to `bg-[#001B3D]` deep blue, matching the Donate Now treatment exactly.
+
+5. **Sponsor Hub removed from Profile** (`ProfileClientView.tsx`):
+   - Removed the `<SponsorDashboard />` import and its JSX usage from `ProfileClientView`. It remains exclusively in `SponsorView.tsx`.
+
+6. **Hero Section Overhaul** (`LandingView.tsx`):
+   - Converted the plain `text-center` section into a rich premium card with `bg-gradient-to-b from-[#001B3D] to-[#002a5c]`, `rounded-[2.5rem]`, `shadow-2xl`, and `overflow-hidden`.
+   - Added two decorative blurred radial `div` blobs (top-right accent glow, bottom-left emerald glow) for depth.
+   - Badge, heading, and description all updated for white/slate contrast against the dark background.
+
+7. **SponsorDashboard `flagGoal` bug fixed** (`SponsorDashboard.tsx`):
+   - The context never exposed a `flagGoal` function — only `toggleFlagGoal`. Corrected the destructure and the `onClick` handler to eliminate the runtime crash.
+
+8. **OG Image Recommendation** (no code change required):
+   - The `/api/og/[address]` route is a Next.js Edge API Route using `ImageResponse` from `next/og`. Because `next.config.js` is set to `output: 'export'` (full static export), **server-side API routes are not executed at runtime** — the browser simply gets a 404 when the `<img src="/api/og/...">` fires.
+   - **Recommendation:** Move OG card generation to a third-party image service (e.g. `og-image.vercel.app`, `Cloudinary` with text overlays, or `Bannerbear`). Alternatively, if server routes must be retained, remove `output: 'export'` and deploy on a Node.js host (Vercel, Railway) instead of a static CDN — the rest of the SPA routing must then be replicated via Next.js App Router conventions.

@@ -6,7 +6,7 @@ import { useImpactPay } from "@/contexts/ImpactPayContext";
 import { formatEther, parseEther } from "viem";
 
 export function SponsorDashboard() {
-  const { goals, funderReputations, flagGoal, fundGoal } = useImpactPay();
+  const { goals, funderReputations, toggleFlagGoal, fundGoal } = useImpactPay();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const scholarshipGoals = useMemo(() => {
@@ -42,8 +42,8 @@ export function SponsorDashboard() {
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider">
             <tr>
               <th className="py-2.5 pl-3 font-medium">Goal ID</th>
-              <th className="py-2.5 font-medium">Target (ETH)</th>
-              <th className="py-2.5 font-medium">Raised (ETH)</th>
+              <th className="py-2.5 font-medium">Target (USDm)</th>
+              <th className="py-2.5 font-medium">Raised (USDm)</th>
               <th className="py-2.5 pr-3 font-medium text-right">Status</th>
             </tr>
           </thead>
@@ -106,11 +106,11 @@ export function SponsorDashboard() {
                             />
                             
                             <div className="flex flex-col flex-wrap sm:flex-row justify-between items-center gap-2 mt-2">
-                              <span className="text-[10px] text-slate-500 font-medium">Remaining: {Number(formatEther(g.common.targetAmount - g.common.raisedAmount)).toFixed(4)} ETH</span>
+                              <span className="text-[10px] text-slate-500 font-medium">Remaining: {Number(formatEther(g.common.targetAmount - g.common.raisedAmount)).toFixed(4)} USDm</span>
                               
                               <div className="flex gap-2">
                                 <button 
-                                  onClick={() => flagGoal(g.common.id)}
+                                  onClick={() => toggleFlagGoal(g.common.id)}
                                   className="px-4 py-1.5 rounded-full border border-red-200 text-red-600 text-[10px] font-semibold hover:bg-red-50 transition-colors"
                                 >
                                   Flag

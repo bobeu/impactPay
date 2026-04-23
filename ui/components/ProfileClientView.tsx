@@ -11,7 +11,6 @@ import { useAccount } from 'wagmi';
 import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
 import { PhoneLookupCard } from '@/components/PhoneLookupCard';
 import { VirtualCardPortal } from '@/components/VirtualCardPortal';
-import { SponsorDashboard } from '@/components/SponsorDashboard';
 import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
 
 interface ProfileClientViewProps {
@@ -157,7 +156,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                     <PhoneLookupCard />
                     <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
                         <h3 className="text-sm font-bold text-slate-800">Quick Actions</h3>
-                        <Link to="/create-goal" className="flex items-center justify-center w-full py-3 bg-accent text-white font-bold rounded-2xl text-[11px] uppercase tracking-widest hover:bg-emerald-600 transition-colors">
+                        <Link to="/create-goal" className="flex items-center justify-center w-full py-3 bg-[#001B3D] text-white font-bold rounded-2xl text-[11px] uppercase tracking-widest hover:bg-[#002a5c] transition-colors shadow-lg shadow-slate-300">
                             Create Goal
                         </Link>
                     </div>
@@ -166,7 +165,6 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
 
             <section className="grid grid-cols-1 gap-4">
                 <VirtualCardPortal address={connectedAddress} />
-                <SponsorDashboard />
             </section>
             
             <DevSubscriptionCard />

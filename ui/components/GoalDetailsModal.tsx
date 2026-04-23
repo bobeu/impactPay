@@ -121,11 +121,11 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               <section className="bg-slate-50 rounded-xl p-4 grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Raised</span>
-                  <div className="text-xl font-bold text-slate-900">{formatEther(common.raisedAmount)} CELO</div>
+                  <div className="text-xl font-bold text-slate-900">{formatEther(common.raisedAmount)} USDm</div>
                 </div>
                 <div className="space-y-1 text-right">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Target</span>
-                  <div className="text-xl font-bold text-slate-600">{formatEther(common.targetAmount)} CELO</div>
+                  <div className="text-xl font-bold text-slate-600">{formatEther(common.targetAmount)} USDm</div>
                 </div>
                 {common.goalType === GoalType.BILL && (
                   <div className="col-span-2 pt-2 border-t border-slate-200">
@@ -170,7 +170,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                            </div>
                         </div>
                         <div className="text-[11px] font-bold text-emerald-600">
-                          +{formatEther(funder.amount)} CELO
+                          +{formatEther(funder.amount)} USDm
                         </div>
                       </div>
                     ))}
@@ -185,30 +185,42 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
               {/* Action Area */}
               {common.status === GoalStatus.OPEN && !isCreator && (
-                <section className="space-y-3 bg-accent/5 p-4 rounded-xl border border-accent/10">
+                <section className="space-y-3 bg-[#001B3D]/5 p-4 rounded-xl border border-[#001B3D]/10">
                   <div className="flex items-center gap-2 mb-1">
-                    <Wallet className="w-4 h-4 text-accent" />
-                    <h3 className="text-[11px] font-bold text-accent uppercase tracking-widest">Fund this Impact</h3>
+                    <Wallet className="w-4 h-4 text-[#001B3D]" />
+                    <h3 className="text-[11px] font-bold text-[#001B3D] uppercase tracking-widest">Fund this Impact</h3>
                   </div>
                   <div className="space-y-2">
-                    <input 
-                      type="number" 
-                      placeholder="Amount in CELO"
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none font-bold"
-                      value={fundingAmount}
-                      onChange={(e) => setFundingAmount(e.target.value)}
-                    />
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        placeholder="Amount in USDm"
+                        className="w-full px-3 py-2.5 pr-20 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-[#001B3D] outline-none font-bold"
+                        value={fundingAmount}
+                        onChange={(e) => setFundingAmount(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const remaining = common.targetAmount - common.raisedAmount;
+                          setFundingAmount(formatEther(remaining > 0n ? remaining : 0n));
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-slate-100 text-[10px] font-bold text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                      >
+                        MAX
+                      </button>
+                    </div>
                     <input 
                       type="text" 
                       placeholder="Add a support message (optional)"
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent outline-none"
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-[#001B3D] outline-none"
                       value={extraInfo}
                       onChange={(e) => setExtraInfo(e.target.value)}
                     />
                     <button 
                       onClick={handleFund}
                       disabled={isSubmitting}
-                      className="w-full py-3 bg-accent text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 active:scale-[0.98]"
+                      className="w-full py-3 bg-[#001B3D] text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#002a5c] transition-colors shadow-lg shadow-slate-300 active:scale-[0.98]"
                     >
                       {isSubmitting ? 'Sending...' : 'Donate Now'}
                       {!isSubmitting && <ArrowRight className="w-4 h-4" />}
