@@ -2195,3 +2195,56 @@ Using the `hasFlagged` property in the `Funder` interface (see ui/lib/types.ts),
 8. **OG Image Recommendation** (no code change required):
    - The `/api/og/[address]` route is a Next.js Edge API Route using `ImageResponse` from `next/og`. Because `next.config.js` is set to `output: 'export'` (full static export), **server-side API routes are not executed at runtime** — the browser simply gets a 404 when the `<img src="/api/og/...">` fires.
    - **Recommendation:** Move OG card generation to a third-party image service (e.g. `og-image.vercel.app`, `Cloudinary` with text overlays, or `Bannerbear`). Alternatively, if server routes must be retained, remove `output: 'export'` and deploy on a Node.js host (Vercel, Railway) instead of a static CDN — the rest of the SPA routing must then be replicated via Next.js App Router conventions.
+
+-------------------------------------------------------------
+
+### CTO Said:
+
+The `CreateGoalCard` is not properly implemented. To get the full gist on how to properly implement the goals, take a deeper look into `createGoal` function inside `context/ImpactPayContext`. The function specifies the expected parameters from different types of create than can be created.
+
+1. To create a `Bill` goal type, the required parameters are: 
+
+- `targetAmount`: Amount user is willing to raise. (The input has already been implemented).
+
+- `description`: The goal description. (Input already created)
+- `serviceType`: The type of service user wants to create. This can ramge from `subscription`, `electricity`, `hospital`, `accomodation`, `schoolfees`, `examination`, `careergrowth`, `bootcamps` to `scholarship`. You should create these serviceType as array of strings and map it using `select` for the user to select their choice. 
+
+Note: If the user picks `scholarship`, this should automatically select the `scholarship` category. Users cannot set the `scholarship` serviceType for either `Bill` or `Default` category.
+
+- `extraInfo`: This is any additional information the goal creator wants the funders to know. It is optional and should be a maximum of 500 words.
+ 
+- `billServiceIndex`: In future, we plan to automatically fulfill goals such as **subscription**, **electricity**, etc directly via services like BitGifty, Chimmoney, etc, hence we will explicitly add these bill service provider on the frontend for the users to select their choice of providers. For now, since we are yet to implement this, no need to create an input component for this. You can simply set this parameter to 0.
+
+2. To create a `Scholarship` goal type, the required parameters are the same as `Default` type. 
+
+- `targetAmount`: Amount user is willing to raise.
+- `description`: The goal description.
+- `extraInfo`: This is any additional information the goal creator wants the funders to know. It is optional and should be a maximum of 500 words.
+
+Ensure the required arguments for the type of goal selected are properly passed to their respective function.
+
+## AI Implementation Summary (CreateGoalCard Overhaul)
+
+### `CreateGoalCard.tsx` — Full Rewrite
+
+1. **Category Selector** — Retained the 3-button grid (`Default`, `Bill`, `Scholarship`) but redesigned with deep-blue active state (`bg-[#001B3D]`) matching the project theme.
+
+2. **Service Type Dropdown (Bill-only)** — Added an animated `<select>` dropdown that appears/disappears with `AnimatePresence` whenever the `Bill` category is active. Options mapped from the `BILL_SERVICE_TYPES` array:
+   - `subscription`, `electricity`, `hospital`, `accommodation`, `schoolfees`, `examination`, `careergrowth`, `bootcamps`
+   - A special `Scholarship (switch category)` option is appended. Selecting it triggers `handleServiceTypeChange` which auto-switches the category to `Scholarship` and resets `serviceType` to the first real option — per the CTO note that users cannot set `scholarship` as a serviceType for Bill/Default.
+
+3. **Extra Info textarea** — Added a 500-word live counter displayed beside the label. The textarea border turns red when over-limit; the submit button is disabled; a precise word count is shown in real-time using a `countWords()` helper.
+
+4. **Payload construction** — Each category now sends exactly the right arguments to `createGoal`:
+   - `Bill`: `targetAmount`, `description`, `serviceType`, `extraInfo`, `billServiceIndex: 0`
+   - `Scholarship`: `targetAmount`, `description`, `extraInfo` (no serviceType)
+   - `Default`: same as Scholarship
+
+5. **Status messages** — Replaced the plain `<p>` with a styled message block showing a green success box or a red error box with icons, giving immediate visual feedback.
+
+6. **All inputs** — Restyled to use `rounded-xl`, deep-blue focus rings (`focus:ring-[#001B3D]/20`), and consistent sizing.
+
+### `ImpactPayContext.tsx` — Critical Bug Fix
+
+- **`billServiceIndex` guard was broken**: `if (!billServiceIndex) return;` evaluated `0` (the only current value) as falsy, meaning **every Bill goal creation silently aborted**. Fixed to `if (billServiceIndex === undefined) return;` so `0` is accepted as a valid provider index.
+- Removed two stale `console.log` debug statements left from earlier development.

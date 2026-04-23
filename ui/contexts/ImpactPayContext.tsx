@@ -150,8 +150,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       switch (goalType) {
         case 'BILL':
           if (!serviceType) return;
-          if (!billServiceIndex) return;
-          functionName = 'createBillGoal'
+          if (billServiceIndex === undefined) return;
+          functionName = 'createBillGoal';
           args = [targetAmount, description, serviceType, extraInfo, billServiceIndex];
           listingFee = goalIdsAndState.billListingFee;
           break;
@@ -165,9 +165,6 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           listingFee = goalIdsAndState.defaultListingFee;
           break;
       }
-
-      console.log("listingFee", listingFee.toString());
-      console.log("CONTRACTS.ImpactPay.address", CONTRACTS.ImpactPay.address);
 
       if (listingFee > 0n) {
         const approveHash = await writeApproval({

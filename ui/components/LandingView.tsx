@@ -10,7 +10,8 @@ import {
   Users, 
   CheckCircle2, 
   Globe,
-  ArrowRight
+  ArrowRight,
+  Verified
 } from "lucide-react";
 import { formatEther } from "viem";
 
@@ -24,7 +25,7 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
   return (
     <div className="space-y-10 py-4">
       {/* Hero Section */}
-      <section className="relative text-center space-y-5 bg-gradient-to-b from-[#001B3D] to-[#002a5c] rounded-[2.5rem] px-6 py-10 shadow-2xl shadow-slate-300 overflow-hidden">
+      <section className="relative text-center space-y-5 bg-gradient-to-b from-slate-900 to-slate-800 rounded-[2.5rem] px-6 py-10 shadow-2xl shadow-slate-300 overflow-hidden">
         {/* Decorative blobs */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-accent/20 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#10B981]/20 rounded-full -ml-10 -mb-10 blur-2xl pointer-events-none" />
@@ -32,12 +33,12 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm"
         >
-          <Globe className="w-3 h-3" /> Blockchain Verified Impact
+          <Verified className="w-6 h-6" /> Blockchain Verified Impact
         </motion.div>
         <h1 className="text-3xl font-black text-white leading-tight">
-          Direct Help. <br/><span className="text-accent underline decoration-emerald-400/40 underline-offset-4">Verified Stories.</span>
+          Direct Help. <br/><span className="text-accent decoration-emerald-400/40">Verified Stories.</span>
         </h1>
         <p className="text-sm text-slate-300 font-medium max-w-xs mx-auto">
           The most transparent and verified way to support essential needs and education on Celo.
