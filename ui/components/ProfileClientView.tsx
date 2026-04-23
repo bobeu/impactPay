@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
-import { PlusCircle, Wallet, ShieldCheck, Share2, ExternalLink } from 'lucide-react';
+import { PlusCircle, Wallet, Fingerprint, Share2, ExternalLink, BadgeCheck, Twitter } from 'lucide-react';
 import AddressWrapper from './AddressFormatter/AddressWrapper';
 import { useAccount } from 'wagmi';
 import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
@@ -37,32 +37,56 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
         
         {/* Profile Card */}
         <div className="bg-white shadow-sm border border-slate-200 rounded-[2.5rem] p-6 sm:p-10">
-          <header className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Public Profile</h1>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full font-mono text-[11px] text-slate-500 border border-slate-200">
-                <Wallet className="w-3.5 h-3.5" />
-                <AddressWrapper 
-                  display={true}
-                  account={address}
-                  copyIconSize='6'
-                  size={6}
-                  overrideClassName='text-slate-500 font-mono text-[11px]'
-                />
+          {/* ── Compact profile header ── */}
+          <header className="flex items-center justify-between gap-4 mb-8">
+            {/* Avatar + address */}
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                {/* Generated avatar from address */}
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-black shadow-md"
+                  style={{
+                    background: `linear-gradient(135deg, #001B3D ${address.slice(2,4)}%, #10B981)`
+                  }}
+                >
+                  {address.slice(2, 4).toUpperCase()}
+                </div>
+                {/* Online dot */}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white" />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">On-chain Profile</p>
+                <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
+                  <Wallet className="w-3 h-3 text-slate-400 shrink-0" />
+                  <AddressWrapper
+                    display={true}
+                    account={address}
+                    copyIconSize='6'
+                    size={6}
+                    overrideClassName='text-slate-600 font-mono text-[11px]'
+                  />
+                </div>
               </div>
             </div>
-            
-            <div className="sm:w-auto space-y-4">
+
+            {/* Action buttons — compact icon pills */}
+            <div className="flex items-center gap-2 shrink-0">
               <a
                 href={xShareLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-2.5 px-5 rounded-2xl hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+                title="Share on X"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#001B3D] text-white hover:bg-[#002a5c] transition shadow-sm"
               >
-                <Share2 className="w-4 h-4" /> Share
+                <Twitter className="w-4 h-4" />
               </a>
-              <Link to={verifyLink} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 px-5 rounded-2xl hover:border-slate-300 transition">
-                <ShieldCheck className="w-4 h-4 text-accent" /> Verify
+              <Link
+                to={verifyLink}
+                title="Verify identity"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100 transition"
+              >
+                <BadgeCheck className="w-4 h-4 text-emerald-500" />
               </Link>
             </div>
           </header>
@@ -131,17 +155,17 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
         </div>
 
         {/* SocialConnect Info Block */}
-        <section className="bg-white border border-accent/20 p-8 rounded-[2.5rem] flex flex-col sm:flex-row gap-6 items-center sm:items-start shadow-sm">
-          <div className="w-14 h-14 bg-accent/10 text-accent rounded-full shrink-0 flex items-center justify-center shadow-inner">
-             <ShieldCheck className="w-7 h-7" />
+        <section className="bg-white p-6 rounded-[2.5rem] flex flex-col sm:flex-row gap-5 items-center sm:items-start shadow-sm">
+          <div className="w-12 h-12 bg-[#001B3D]/8 rounded-2xl shrink-0 flex items-center justify-center">
+            <Fingerprint className="w-6 h-6 text-[#001B3D]" />
           </div>
           <div className="text-center sm:text-left space-y-1">
-            <h3 className="text-xl font-black text-slate-900">Make your reputation portable</h3>
-            <p className="text-sm text-slate-500 font-medium">
+            <h3 className="text-base font-black text-slate-900">Make your reputation portable</h3>
+            <p className="text-sm text-slate-500 font-medium leading-relaxed">
               Link your X or Instagram handle via SocialConnect to display your reputation across Web3 dApps.
             </p>
-            <div className="pt-4">
-              <button className="bg-slate-900 text-white font-bold text-xs py-3 px-6 rounded-2xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+            <div className="pt-3">
+              <button className="bg-[#001B3D] text-white font-bold text-[11px] py-2.5 px-5 rounded-xl hover:bg-[#002a5c] transition-all uppercase tracking-widest shadow-sm">
                 Link with SocialConnect
               </button>
             </div>

@@ -2247,4 +2247,57 @@ Ensure the required arguments for the type of goal selected are properly passed 
 ### `ImpactPayContext.tsx` — Critical Bug Fix
 
 - **`billServiceIndex` guard was broken**: `if (!billServiceIndex) return;` evaluated `0` (the only current value) as falsy, meaning **every Bill goal creation silently aborted**. Fixed to `if (billServiceIndex === undefined) return;` so `0` is accepted as a valid provider index.
-- Removed two stale `console.log` debug statements left from earlier development.
+- Removed two stale `console.log` debug statements left from earlier development.
+
+
+-------------------------------------------------------------
+
+### CTO Said:
+
+Where there are so many goals, displaying them using the card style will clog the UI causing the users to scroll downwards before seeing other goals. 
+
+Antigravity, perform the following tasks:
+
+- Instead of mapping the goals to a card, let's use a better and optimize approach using table. Be sure to style the table very well avoiding bright and visible borders. Each of the goal cells should display the relevant information that the current card system shows.
+
+- Each row should be clickable. Clicking a row should pop up the goal detail modal just as the current card style does. The table should look very professional with the data properly aligned and displayed.
+
+- The table should be styles with mobile-first in mind.
+- Use `tab` style where users can filter `open`, `raised`, and `fulfiled` goals.
+- Users should be able to search goals using fields like `amount`, `funder`, `creator`, `type` i.e goal type. By typing a few initials of an address, the system should match it with either the creator or any of the funders address.
+
+- Style the table properly using the project's theme. The table may have either a slight `shadow`, `background` but not `border`.
+
+- Under the `SocialConnect Info Block` section in `ProfileClientView` component, replace the `Shield` icon with a better and professional icon from `lucide-react`. The `Shield` icon often shows that the code is AI-generated.
+
+- In `ProfileClientView`, the header is not looking professional. Redesign and restyle the header. Replace the `Public Profile` text with a well-styled user icon or avatar. Replace the `Shield` icon with better and professionally looking icon. The `share` and `verify` buttons should optimized and their size reduced.
+
+## AI Implementation Summary (Table Layout & Profile Overhaul)
+
+### `GoalList.tsx` — Full Rewrite (Card Grid → Professional Table)
+
+1. **Table layout** — Replaced the `grid grid-cols-2` card grid with a `<table>` featuring visually separated rows. No visible borders — only `divide-y divide-slate-50` and a `shadow-sm` on the container for depth, per the CTO requirement.
+
+2. **Columns** — Each row displays: `#` (goal ID), Type (icon badge), Description (truncated), Creator (shortened address), Raised (with inline mini-progress bar), Target (USDm), Funders (stacked avatar initials), and Status (coloured dot + label).
+
+3. **Status tabs** — Implemented four tabs: `All`, `Open`, `Raised`, `Fulfilled` with deep-blue `bg-[#001B3D]` active state. Renders as a pill group beside the search bar.
+
+4. **Multi-field search** — Query matches against: description text (`hexToString`), creator address, any funder address, raised/target amounts, and goal type label. Partial address matching works by checking `.includes(q)` on every funder's `.id`.
+
+5. **Mobile-first fallback** — The `<table>` is hidden on mobile (`hidden sm:block`). A stacked card-row layout (`sm:hidden`) renders instead: shows type + status badges, description, progress bar, and funder count — all in a tap-friendly row with a chevron affordance.
+
+6. **Row click → modal** — Every desktop `<tr>` and mobile row `<div>` calls `setSelectedGoal(goal)`, opening the existing `GoalDetailsModal` unchanged.
+
+7. **Footer** — A count footer shows "Showing X of Y goals" and a "Clear search" button when a query is active.
+
+8. **Empty state** — Redesigned with a `TrendingUp` icon and a "Clear search" shortcut when a query is the reason for zero results.
+
+### `ProfileClientView.tsx` — Header & SocialConnect Redesign
+
+1. **Header avatar** — Removed the generic `<h1>Public Profile</h1>`. Replaced with a gradient avatar square (`w-14 h-14 rounded-2xl`) whose gradient angle is seeded from the wallet address hex characters, making it unique per user. An emerald "active" dot sits at the bottom-right.
+
+2. **Address chip** — Compact `bg-slate-50` pill with `Wallet` icon and address, replacing the large pill from before.
+
+3. **Action buttons** — Shrunk from full-width pill links to `w-9 h-9` icon-only rounded squares: `Twitter` icon (share, deep navy) and `BadgeCheck` icon (verify, emerald) — both with tooltips via `title=""`.
+
+4. **SocialConnect block** — Replaced `ShieldCheck` (the generic AI-tell icon) with `Fingerprint` from lucide-react — a far more premium and semantically appropriate icon for identity/biometric reputation. Container tightened from `p-8` to `p-6`, icon from `rounded-full` to `rounded-2xl`, button restyled to deep navy matching project theme.
