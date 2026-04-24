@@ -155,7 +155,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15, delay: idx * 0.03 }}
                         onClick={() => setSelectedGoal(goal)}
-                        className="cursor-pointer hover:bg-[#001B3D]/[0.03] transition-colors group"
+                        className="cursor-pointer even:bg-slate-50/40 hover:bg-[#001B3D]/[0.03] transition-colors group"
                       >
                         <td className="py-3.5 pl-5 pr-3 text-slate-300 font-mono text-[10px]">
                           {common.id.toString()}
@@ -218,7 +218,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
           </div>
 
           {/* Mobile card-rows */}
-          <div className="sm:hidden divide-y divide-slate-50">
+          <div className="sm:hidden p-2">
             {filteredGoals.map((goal, idx) => {
               const { common, funders } = goal;
               const { label: typeLabel, Icon: TypeIcon } = TYPE_META[common.goalType];
@@ -235,7 +235,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15, delay: idx * 0.03 }}
                   onClick={() => setSelectedGoal(goal)}
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#001B3D]/[0.03] active:bg-slate-50 transition-colors"
+                  className="flex items-center justify-between p-4 mb-2 bg-white border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-50 active:bg-slate-100 transition-all shadow-sm"
                 >
                   <div className="flex-1 min-w-0 space-y-1.5">
                     {/* Top row */}

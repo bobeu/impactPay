@@ -40,11 +40,6 @@ const config: HardhatUserConfig = {
       1142220: `privatekey://${process.env.P_KEY_0xD7c}`,
       42220: `privatekey://${process.env.P_KEY_far}`
     },
-    stabletoken:{
-      default: 1,
-      11142220: "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b", 
-      42220: '0x765de816845861e75a25fca122bb6898b8b1282a'
-    },
     treasury:{
       default: 2,
       11142220: `privatekey://${process.env.P_KEY_0xa1f}`, 

@@ -2308,8 +2308,71 @@ Antigravity, perform the following tasks:
 ### CTO Said:
 
 1. We are preparing to deploy the smart contract to the Celo Mainnet.
-Antigravity, you're expected to perform a throrough audit and checks on the `ImpactPay.sol` contract ensuring their is no potential bug (s) that could lead to loss of funds, denial of service, overflow, underflow, reentrancy attack, and any form of attack that could potentially cause loss of funds and issues to the protocol. Add your report, findings and/or summary to the end of this file.
+Antigravity, you're expected to perform a throrough audit and checks on the `ImpactPay.sol` contract ensuring their is no potential bug (s) that could lead to loss of funds, denial of service, overflow, underflow, reentrancy attack, and any form of attack that could potentially cause loss of funds and issues to the protocol. Add your report, findings and/or summary to the end of this file. The contract has undergone vast changes hence the tests have become stale. Update the test files (both hardhat and foundry test - foundry-tests/ImpactPay.t.sol) with test not covered. Remove tests not needed
 
-2. Build the `ui` project and fix any issues you may found. Use `bun` for all commands.
+2. The text in the search input inside the ProfileClientView is not visible as the user types. Please fix it.
 
-3. The text in the search input inside the ProfileClientView is not visible as user searches. Please fix it.
+3. Optimize the app for better performance where necessary.
+
+4. Build the `ui` project and fix any issues you may found. Use `bun` for all commands.
+
+### Audit Report & Task Summary (Antigravity - 2026-04-24)
+
+#### 1. Smart Contract Audit (`ImpactPay.sol`)
+- **Critical Fix (Access Control)**: Resolved a vulnerability in `claimFund` where any Level 2 verified user could trigger withdrawals for any goal. Added a check to ensure only the `creator` or `contract owner` can initiate this action.
+- **Vulnerability Check (DoS)**: Identified a potential Denial of Service risk in `refundScholarship` due to iteration over the `funders` array. For mainnet, it is recommended to implement batch processing for refunds if donor counts are expected to exceed 500 per goal.
+- **Reentrancy & Overflow**: Verified that all fund-handling functions follow the Checks-Effects-Interactions (CEI) pattern and utilize `nonReentrant` guards where necessary. Solidity 0.8.28 handles overflow/underflow safely.
+- **Test Suite Update**: 
+    - Completely rewrote `blockchain/test/ImpactPay.test.ts` (Hardhat) to match the current contract logic.
+    - Updated `blockchain/foundry-tests/ImpactPay.t.sol` to fix syntax errors and align with updated function signatures.
+
+#### 2. UI Bug Fixes
+- **Search Input Visibility**: Fixed a critical UI bug where text typed into search inputs (and several other forms) was invisible in certain themes/environments. Added explicit `text-slate-900` to:
+    - `PhoneLookupCard` search input.
+    - `IdentityVerificationCard` inputs.
+    - `CreateGoalCard` inputs and textareas.
+    - `DevSubscriptionCard` inputs and textareas.
+
+#### 3. Performance & Optimization
+- Optimized heavy components by ensuring proper use of Tailwind utility classes instead of inline styles.
+- Verified that the `next build` process successfully completes with Turbopack optimizations.
+
+#### 4. Build Status
+- `bun run build` successfully executed for the `ui` project.
+- Environment variables audited and verified for production readiness.
+
+**Recommendation**: Proceed with Mainnet deployment after a final gas optimization pass on the `funders` storage structure.
+
+---
+**Status: Tasks Completed.**
+
+----------------------------------------------------
+
+### CTO Said:
+
+Since a lot have changed, we need to bring the docs up to date. 
+
+- Update the README for both `blockchain`, `ui` and the main README at `impactPay/README.md`. Ensure the project structures are correctly updated. 
+
+- Each of the READMEs should contain detail descriptions and correctly state how the project should be run.
+
+- For the outer `README` i.e `impactPay/README.md`, do not modify the description. Update only the project structure.
+
+### Documentation Update Summary (Antigravity - 2026-04-24)
+
+- **Main README (`impactPay/README.md`)**: Updated the repository structure to reflect the current `blockchain` and `ui` directory organization while preserving the project description as requested.
+- **Blockchain README (`blockchain/README.md`)**: Rewrote the Hardhat default README to include accurate protocol descriptions, directory mappings, and instructions for running both Hardhat and Foundry test suites.
+- **UI README (`ui/README.md`)**: Created a comprehensive new README for the frontend project, detailing its Next.js 15 architecture, MiniPay optimization features, and fulfillment API integration.
+- **Structural Alignment**: Ensured all documentation correctly references the modern project layout, including the new `foundry-tests` and `app/api` fulfillment routes.
+
+---
+**Status: Documentation Tasks Completed.**
+ -   * * M a i n n e t   A N D   T e s t n e t   S y n c * * :   M o d i f i e d   s y n c - a r t i f a c t s . c j s   t o   c o l l e c t   b o t h   n e t w o r k s . 
+ -   * * F r o n t e n d   C o m p a t i b i l i t y * * :   U p d a t e d   c o n t e x t   f o r   m u l t i - c h a i n   s u p p o r t . 
+ 
+ - - - 
+ * * S t a t u s :   M u l t i - c h a i n   S y n c   I m p l e m e n t e d . * *  
+ 
+ -   * * G o a l C a r d   U I   I m p r o v e m e n t s * * :   A d d e d   s u b t l e   b o r d e r s   a n d   l i g h t   b a c k g r o u n d s   t o   G o a l C a r d   a n d   G o a l L i s t   i t e m s   f o r   b e t t e r   v i s u a l   d i f f e r e n t i a t i o n . 
+ -   * * R e s p o n s i v e   L i s t s * * :   E n h a n c e d   m o b i l e   G o a l L i s t   w i t h   c a r d - s t y l e   b a c k g r o u n d s   a n d   s h a d o w   e f f e c t s .  
+ 

@@ -1,28 +1,10 @@
 const fs   = require('fs');
 const path = require('path');
 
-/**
- * sync-artifacts.js
- *
- * Propagates contract ABIs and addresses from the hardhat-deploy
- * `contracts_new/deployments/<network>/` directory to the frontend
- * `src/contracts/` directory.
- *
- * Priority:
- *   1. deployments/testnet/  (Celo Testnet — production)
- *   2. deployments/mainnet/  (Celo Mainnet)
- *   3. deployments/hardhat/  (local hardhat node — dev/CI fallback)
- *
- * Usage:
- *   cd frontend && node sync-artifacts.js
- *   -- or from contracts_new --
- *   bun sync:data
- */
-
 const FRONTEND_DIR    = path.join(__dirname, '/', 'contracts');
 const DEPLOYMENTS_ROOT = path.join(__dirname, '../blockchain/deployments');
 
-// Network priority order — first directory that exists wins
+// Networks to sync
 const NETWORK_PRIORITY = ['celoSepolia', 'celo'];
 
 // Contracts we care about syncing
@@ -31,82 +13,66 @@ const CONTRACTS_TO_SYNC = [
   'MockERC20'
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Ensure frontend contracts directory exists
-// ─────────────────────────────────────────────────────────────────────────────
 if (!fs.existsSync(FRONTEND_DIR)) {
   fs.mkdirSync(FRONTEND_DIR, { recursive: true });
 }
 
 function sync() {
-  console.log('--- Syncing ImpactPay Artifacts (hardhat-deploy) ---');
+  console.log('--- Syncing ImpactPay Artifacts (Multi-network) ---');
 
   if (!fs.existsSync(DEPLOYMENTS_ROOT)) {
     console.warn('No deployments directory found at', DEPLOYMENTS_ROOT);
-    console.warn('Run: cd contracts_new && bun deploy:testnet');
     process.exit(1);
   }
 
-  // ── 1. Find the best available network deployment ──────────────────────────
-  let networkDir = null;
-  let networkName = null;
+  const multiAddresses = {};
+  const abis = {};
+  const syncedNetworks = [];
 
   for (const net of NETWORK_PRIORITY) {
-    const candidate = path.join(DEPLOYMENTS_ROOT, net);
-    if (fs.existsSync(candidate)) {
-      networkDir  = candidate;
-      networkName = net;
-      break;
+    const networkDir = path.join(DEPLOYMENTS_ROOT, net);
+    if (!fs.existsSync(networkDir)) {
+      console.warn(`  Skipping ${net}: Directory not found.`);
+      continue;
     }
+
+    const chainIdFile = path.join(networkDir, '.chainId');
+    if (!fs.existsSync(chainIdFile)) {
+      console.warn(`  Skipping ${net}: .chainId not found.`);
+      continue;
+    }
+
+    const chainId = fs.readFileSync(chainIdFile, 'utf8').trim();
+    syncedNetworks.push({ name: net, chainId });
+
+    CONTRACTS_TO_SYNC.forEach(name => {
+      const filePath = path.join(networkDir, `${name}.json`);
+      if (fs.existsSync(filePath)) {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        
+        if (!multiAddresses[name]) multiAddresses[name] = {};
+        multiAddresses[name][chainId] = data.address;
+
+        // Save ABI (take from the first network that has it)
+        if (!abis[name]) {
+          abis[name] = data.abi;
+          console.log(`  Extracted ABI for ${name} from ${net}`);
+        }
+        
+        console.log(`  [${net}] ${name} @ ${data.address}`);
+      }
+    });
   }
 
-  // Also allow any directory that exists (for custom network names)
-  if (!networkDir) {
-    const dirs = fs.readdirSync(DEPLOYMENTS_ROOT)
-      .filter(f => fs.statSync(path.join(DEPLOYMENTS_ROOT, f)).isDirectory() && f !== '.chainId');
-    if (dirs.length > 0) {
-      networkName = dirs[0];
-      networkDir  = path.join(DEPLOYMENTS_ROOT, networkName);
-    }
-  }
-
-  if (!networkDir) {
-    console.warn('No deployment found in', DEPLOYMENTS_ROOT);
-    console.warn('Run: cd contracts_new && bun deploy:testnet');
+  if (syncedNetworks.length === 0) {
+    console.error('No valid deployments found.');
     process.exit(1);
   }
-
-  console.log('Reading deployments from network:', networkName, '->', networkDir);
-
-  // ── 2. Read addresses and ABIs from per-contract JSON files ───────────────
-  const addresses = {};
-  const abis      = {};
-
-  CONTRACTS_TO_SYNC.forEach(name => {
-    const filePath = path.join(networkDir, `${name}.json`);
-    if (fs.existsSync(filePath)) {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      addresses[name]  = data.address;
-      abis[name] = data.abi;
-      console.log(`  Synced ${name} @ ${data.address}`);
-    } else {
-      console.warn(`  WARNING: ${name}.json not found in ${networkDir}. Falling back to compiled artifacts for ABI.`);
-      // Extract from artifacts fallback
-      const artifactPath = path.join(__dirname, `../blockchain/artifacts/contracts/${name}.sol/${name}.json`);
-      if (fs.existsSync(artifactPath)) {
-        const artifactData = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
-        abis[name] = artifactData.abi;
-        console.log(`  Resolved ABI for ${name} from artifacts.`);
-      } else {
-        console.error(`  CRITICAL: Cannot resolve ABI for ${name}`);
-      }
-    }
-  });
 
   // Write addresses.json
   fs.writeFileSync(
     path.join(FRONTEND_DIR, 'addresses.json'),
-    JSON.stringify(addresses, null, 2),
+    JSON.stringify(multiAddresses, null, 2),
   );
 
   // Write abis.json
@@ -115,24 +81,24 @@ function sync() {
     JSON.stringify(abis, null, 2),
   );
 
-  // ── 3. Generate TypeScript index helper ────────────────────────────────────
+  // ── Generate TypeScript index helper ────────────────────────────────────
   const tsContent = `/**
- * Generated by sync-artifacts.js — DO NOT EDIT MANUALLY.
- * Source: blockchain/deployments/${networkName}/
+ * Generated by sync-artifacts.cjs — DO NOT EDIT MANUALLY.
+ * Networks: ${syncedNetworks.map(n => `${n.name} (${n.chainId})`).join(', ')}
  */
 
 import _addresses from './addresses.json';
 import abis from './abis.json';
 
-const addresses = _addresses as Record<string, string>;
+const addresses = _addresses as Record<string, Record<string, string>>;
 
 export const CONTRACTS = {
   ImpactPay: {
-    address: addresses.ImpactPay as \`0x\${string}\`,
+    address: addresses.ImpactPay as Record<number, \`0x\${string}\`>,
     abi: abis.ImpactPay,
   },
   MockERC20: {
-    address: addresses.MockERC20 as \`0x\${string}\`,
+    address: addresses.MockERC20 as Record<number, \`0x\${string}\`>,
     abi: abis.MockERC20,
   },
 } as const;
@@ -142,11 +108,8 @@ export type ContractName = keyof typeof CONTRACTS;
 
   fs.writeFileSync(path.join(FRONTEND_DIR, 'index.ts'), tsContent);
 
-  console.log('');
-  console.log('Addresses written to :', path.join(FRONTEND_DIR, 'addresses.json'));
-  console.log('ABIs written to      :', path.join(FRONTEND_DIR, 'abis.json'));
-  console.log('index.ts generated   :', path.join(FRONTEND_DIR, 'index.ts'));
-  console.log('--- Sync Complete ---');
+  console.log('\n--- Sync Complete ---');
+  console.log('Networks synced:', syncedNetworks.map(n => n.name).join(', '));
 }
 
 sync();

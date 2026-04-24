@@ -34,7 +34,7 @@ export function PhoneLookupCard() {
         Phone numbers are masked (ODIS-style obfuscation) before lookup.
       </p>
       <input
-        className="h-11 w-full rounded-md border border-slate-200 px-3 text-sm"
+        className="h-11 w-full rounded-md border border-slate-200 px-3 text-sm text-slate-900"
         placeholder="+234..."
         value={queryPhone}
         onChange={(e) => setQueryPhone(e.target.value)}

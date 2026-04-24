@@ -168,8 +168,8 @@ export interface ImpactPayContextType {
 export const mockGetGoalIDAndState : GetGoalIdAndState = {
     backendFulfillmentSigner: zeroAddress,
     billListingFee: 0n,
-    billServices: zeroAddress,
-    billSuccessFeeBP: 0n,
+    billServices: [zeroAddress],
+    billSuccessFeeBP: 0n,   
     defaultListingFee: 0n,
     goalCounter: 0n,
     goalIds: [0n],

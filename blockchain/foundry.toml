@@ -1,0 +1,10 @@
+[profile.default]
+src = "contracts"
+test = "foundry-tests"
+out = "out"
+libs = ["node_modules"]
+remappings = [
+    "forge-std/=node_modules/@thirdweb-dev/dynamic-contracts/lib/forge-std/src/",
+    "ds-test/=node_modules/@thirdweb-dev/dynamic-contracts/lib/forge-std/lib/ds-test/src/",
+    "@openzeppelin/=node_modules/@openzeppelin/"
+]

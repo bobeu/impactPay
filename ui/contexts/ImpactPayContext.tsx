@@ -20,8 +20,9 @@ import { Address } from 'viem';
 const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefined);
 
 export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
-  const { address } = useAccount();
+  const { address, chain } = useAccount();
   const config = useConfig();
+  const chainId = chain?.id || 42220; // Default to Celo Mainnet
 
   // Global UI States
   const [modalStage, setModalStage] = useState<TransactionStage>('idle');
@@ -30,7 +31,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   // 1. Fetch user goal IDs and state
   const { data: goalIdsAndState_, refetch: refetchIdsAndState } = useReadContract({
-    address: CONTRACTS.ImpactPay.address,
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
     abi: CONTRACTS.ImpactPay.abi as any,
     functionName: 'getGoalIdAndState',
     args: [address as `0x${string}`],
@@ -50,7 +51,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
     contracts: goalIdsToFetch.map(k => ({
-      address: CONTRACTS.ImpactPay.address,
+      address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
       abi: CONTRACTS.ImpactPay.abi as any,
       functionName: 'getGoal',
       args: [k]
@@ -61,7 +62,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   // // Fetch the goals for all the goal IDs
   // const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
   //   contracts: goalIdsAndState.goalIds.map(k => ({
-  //     address: CONTRACTS.ImpactPay.address, 
+  //     address: CONTRACTS.ImpactPay.address[chainId], 
   //     abi: CONTRACTS.ImpactPay.abi as any, 
   //     functionName: 'getGoal',
   //     args: [k]
@@ -112,21 +113,21 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   // Watch for events to auto-refresh
   useWatchContractEvent({
-    address: CONTRACTS.ImpactPay.address,
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
     abi: CONTRACTS.ImpactPay.abi as any,
     eventName: 'GoalCreated',
     onLogs: () => refresh()
   });
 
   useWatchContractEvent({
-    address: CONTRACTS.ImpactPay.address,
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
     abi: CONTRACTS.ImpactPay.abi as any,
     eventName: 'Funded',
     onLogs: () => refresh()
   });
 
   useWatchContractEvent({
-    address: CONTRACTS.ImpactPay.address,
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
     abi: CONTRACTS.ImpactPay.abi as any,
     eventName: 'ReputationUpdated',
     onLogs: () => refresh()
@@ -168,23 +169,23 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
       if (listingFee > 0n) {
         const approveHash = await writeApproval({
-          address: CONTRACTS.MockERC20.address,
+          address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
           abi: CONTRACTS.MockERC20.abi as any,
           functionName: 'approve',
-          args: [CONTRACTS.ImpactPay.address, listingFee]
+          args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee]
         });
         await waitForTransactionReceipt(config, { hash: approveHash });
       }
 
       await simulateContract(config, {
-        address: CONTRACTS.ImpactPay.address,
+        address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: functionName,
         args
       });
 
       const hash = await writeCreateBillGoal({
-        address: CONTRACTS.ImpactPay.address,
+        address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: functionName,
         args
@@ -222,10 +223,10 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           if (!amount) errorMessage = "Please provide amount";
           args = [goalIds?.[0], amount || 0n, extraInfo || ''];
           const txHash = await writeApproval({
-            address: CONTRACTS.MockERC20.address,
+            address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
             abi: CONTRACTS.MockERC20.abi as any,
             functionName: 'approve',
-            args: [CONTRACTS.ImpactPay.address, amount]
+            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n]
           });
           await waitForTransactionReceipt(config, { hash: txHash });
 
@@ -262,14 +263,14 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       setModalStage('awaiting_auth');
 
       await simulateContract(config, {
-        address: CONTRACTS.ImpactPay.address,
+        address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: func,
         args
       });
 
       const hash = await writeTxn({
-        address: CONTRACTS.ImpactPay.address,
+        address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: func,
         args

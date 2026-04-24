@@ -54,21 +54,21 @@ ImpactPay is split into four primary layers:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 impactPay/
-├── app/                      # Next.js 15 App Router (Pages, Layouts, APIs)
-│   ├── api/                  # Fulfillment, Credential, Leaderboard REST pipelines
-│   ├── docs/                 # Public API Leaderboard Documentation
-│   ├── profile/              # Trust Profile dynamic OG image endpoints
-│   └── verify/               # Public Verifiable Credential Validation Routes
-├── components/               # React UI Components (Flat, Fintech-styled)
-├── contracts/                # Foundry Smart Contracts and Tests 
-├── hooks/                    # Web3 custom hooks for contract/graph reads
-├── lib/                      # Utilities, Webhooks, Chimoney/BitGifty stores
-├── subgraph/                 # The Graph setup (schema.graphql, mappings)
-└── public/                   # PWA Manifest & static assets
+├── blockchain/               # Smart Contracts (Hardhat & Foundry)
+│   ├── contracts/            # Core Protocol Logic (ImpactPay.sol)
+│   ├── foundry-tests/        # Foundry Test Suite (Security & Compliance)
+│   ├── test/                 # Hardhat Tests (Integration)
+│   └── script/               # Deployment & Management Scripts
+├── ui/                       # Next.js 15 MiniPay Optimized Frontend
+│   ├── app/                  # App Router Pages & Fulfillment APIs
+│   ├── components/           # UI Components (Neo-brutalist / Fintech style)
+│   ├── lib/                  # Webhooks & Third-party Integrations
+│   └── public/               # PWA Assets & Favicons
+└── DOCUMENT.md               # Detailed Development Log & CTO Briefs
 ```
 
 ---

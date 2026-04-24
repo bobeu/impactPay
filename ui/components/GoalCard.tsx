@@ -11,11 +11,9 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle,
-  ArrowRight,
-  ChevronDown,
-  ChevronUp
+  ArrowRight
 } from "lucide-react";
-import { formatEther, hexToString } from "viem";
+import { formatEther, Hex, hexToString } from "viem";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
 import { useAccount } from "wagmi";
 
@@ -61,7 +59,7 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
     switch (gType) {
       case GoalType.SCHOLARSHIP: return "Scholarship";
       default: 
-        const res = hexToString(bill.serviceType);
+        const res = hexToString(bill.serviceType as unknown as Hex);
         if (res === '') return 'General';
         else return res;
     }
@@ -72,7 +70,7 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group cursor-pointer bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-4"
+      className="group cursor-pointer bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-300/80 transition-all duration-300 flex flex-col gap-4"
     >
       {/* Header */}
       <div className="space-y-1">

@@ -184,7 +184,7 @@ export function CreateGoalCard() {
             Goal Description
           </label>
           <input
-            className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all placeholder:text-slate-300"
+            className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-900 focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all placeholder:text-slate-300"
             value={form.description}
             onChange={(e) => setField("description")(e.target.value)}
             placeholder="What do you need help with?"
@@ -202,7 +202,7 @@ export function CreateGoalCard() {
               type="number"
               min="0"
               step="any"
-              className="h-12 w-full rounded-xl border border-slate-200 pl-8 pr-4 text-sm focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all font-semibold"
+              className="h-12 w-full rounded-xl border border-slate-200 pl-8 pr-4 text-sm text-slate-900 focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all font-semibold"
               value={form.amount}
               onChange={(e) => setField("amount")(e.target.value)}
               placeholder="50"
@@ -264,7 +264,7 @@ export function CreateGoalCard() {
             rows={3}
             maxLength={3200}
             className={cn(
-              "w-full rounded-xl border px-4 py-3 text-sm resize-none focus:ring-2 outline-none transition-all placeholder:text-slate-300",
+              "w-full rounded-xl border px-4 py-3 text-sm text-slate-900 resize-none focus:ring-2 outline-none transition-all placeholder:text-slate-300",
               isOverLimit
                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
                 : "border-slate-200 focus:border-[#001B3D] focus:ring-[#001B3D]/20"

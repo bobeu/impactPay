@@ -29,9 +29,8 @@ residue.md
 ignition/deployments/chain-31337
 
 # Dev files
-_d_.json
-/_d_.json
-/residue.md
-/runContract.ts
 /test.ts
-/hashes.ts
+# Foundry files
+/out
+/cache
+/broadcast

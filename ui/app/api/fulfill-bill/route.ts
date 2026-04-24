@@ -107,8 +107,9 @@ async function markGoalFulfilledOnChain(goalId: number, amount: bigint) {
     transport: http(process.env.CELO_RPC_URL || "https://forno.celo-sepolia.celo-testnet.org"),
   });
 
+  const chainId = 11142220; // Default to Celo Sepolia for this fulfillment logic
   const txHash = await client.writeContract({
-    address: CONTRACTS.ImpactPay.address,
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
     abi: CONTRACTS.ImpactPay.abi,
     functionName: "relayBillFundsToService",
     args: [BigInt(goalId), amount],
