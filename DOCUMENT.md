@@ -2373,3 +2373,6 @@ Since a lot have changed, we need to bring the docs up to date.
  - - - 
  * * S t a t u s :   M u l t i - c h a i n   S y n c   I m p l e m e n t e d . * *  
  
+ -   * * G o a l C a r d   U I   I m p r o v e m e n t s * * :   A d d e d   s u b t l e   b o r d e r s   a n d   l i g h t   b a c k g r o u n d s   t o   G o a l C a r d   a n d   G o a l L i s t   i t e m s   f o r   b e t t e r   v i s u a l   d i f f e r e n t i a t i o n . 
+ -   * * R e s p o n s i v e   L i s t s * * :   E n h a n c e d   m o b i l e   G o a l L i s t   w i t h   c a r d - s t y l e   b a c k g r o u n d s   a n d   s h a d o w   e f f e c t s .  
+ 
