@@ -54,7 +54,7 @@ ImpactPay is split into four primary layers:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 impactPay/

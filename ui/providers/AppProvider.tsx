@@ -3,7 +3,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { celo, celoSepolia } from "wagmi/chains";
-// import { injected } from "wagmi/connectors";
 import { defineChain } from "viem";
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
@@ -26,13 +25,6 @@ const connectors = connectorsForWallets(
     projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
   }
 );
-
-// const celoSepolia = defineChain({
-//   id: 11142220,
-//   name: "Celo Sepolia",
-//   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-//   rpcUrls: { default: { http: [process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL??"https://forno.celo-sepolia.celo-testnet.org"] } },
-// });
 
 const config = createConfig({
   chains: [celoSepolia, celo],
@@ -57,7 +49,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 accentColorForeground: 'white',
                 borderRadius: 'medium',
               })}
-              initialChain={celoSepolia.id}
+              initialChain={celo.id}
         >
           <ImpactPayProvider>
             {typeof window !== 'undefined' ? (

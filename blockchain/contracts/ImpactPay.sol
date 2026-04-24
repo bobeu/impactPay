@@ -266,12 +266,14 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Ensures the target address is not restricted
     /// @param target The address to check
     modifier notRestricted(address target) {
-        require(!restrictions[target], "Restricted");
+        if (target != owner()) require(!restrictions[target], "Restricted");
         _;
     }
 
     modifier isVerified(Level lvl, address user) {
-        if (useVerifier) require(levels[user][lvl], "Not verified");
+        if (user != owner()) {
+            if (useVerifier) require(levels[user][lvl], "Not verified");
+        }
         _;
     }   
 

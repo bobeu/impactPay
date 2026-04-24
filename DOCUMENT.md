@@ -2367,3 +2367,9 @@ Since a lot have changed, we need to bring the docs up to date.
 
 ---
 **Status: Documentation Tasks Completed.**
+ -   * * M a i n n e t   A N D   T e s t n e t   S y n c * * :   M o d i f i e d   s y n c - a r t i f a c t s . c j s   t o   c o l l e c t   b o t h   n e t w o r k s . 
+ -   * * F r o n t e n d   C o m p a t i b i l i t y * * :   U p d a t e d   c o n t e x t   f o r   m u l t i - c h a i n   s u p p o r t . 
+ 
+ - - - 
+ * * S t a t u s :   M u l t i - c h a i n   S y n c   I m p l e m e n t e d . * *  
+ 

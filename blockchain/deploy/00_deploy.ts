@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
+import { DeployFunction, DeployResult } from 'hardhat-deploy/types';
 import { config as dotconfig } from 'dotenv';
 import { parseUnits } from 'ethers';
 import { Address, zeroAddress } from 'viem';
@@ -26,20 +26,19 @@ interface ScholarshipGoal {
     disputed: boolean;
 }
 
-    /// @notice Common data shared by all goal types
-    interface CommonData {
-        id: bigint;
-        creator: Address;
-        targetAmount: bigint;
-        raisedAmount: bigint;
-        withdrawnAmount: bigint;
-        description: string;
-        status: number;
-        goalType: number;
-        flagsCount: number;
-        lockedForReview: boolean;
-    }
-
+/// @notice Common data shared by all goal types
+interface CommonData {
+  id: bigint;
+  creator: Address;
+  targetAmount: bigint;
+  raisedAmount: bigint;
+  withdrawnAmount: bigint;
+  description: string;
+  status: number;
+  goalType: number;
+  flagsCount: number;
+  lockedForReview: boolean;
+}
 
 interface GetGoal {
   bill: BillGoal;
@@ -59,13 +58,20 @@ interface GetGoal {
   billServices: Address[];
 }
 
+const STABLETOKEN : Record<string, string> = {
+  '11142220': "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b", 
+  '42220': "0x765de816845861e75a25fca122bb6898b8b1282a",
+  '1337': zeroAddress.toString()
+}
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, getChainId } = hre;
   const { deploy, execute, read } = deployments;
 
   // Pull named accounts defined in hardhat.config.ts
-  const { deployer, stableToken, treasury, releaseApprover, backendFulfillmentSigner } = await getNamedAccounts();
+  const { deployer, treasury, releaseApprover, backendFulfillmentSigner } = await getNamedAccounts();
   const chainId = await getChainId();
+  const stableToken = STABLETOKEN[chainId];
   const isTestnet = chainId === "11142220";
 
   console.log('======================================');
@@ -84,14 +90,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // ===========================================================================
   console.log('\n--- Phase 1: Deployment ---');
 
-  // MockERC20 — institutional entry point (constructor: token, escrow)
-  const mockERC20 = await deploy('MockERC20', {
-    from: deployer,
-    args: [],
-    log: true,
-  });
-  console.log('MockERC20 deployed:', mockERC20.address);
+  let mockERC20: DeployResult;
 
+  // MockERC20 — institutional entry point (constructor: token, escrow)
+   if(isTestnet){
+    mockERC20 = await deploy('MockERC20', {
+      from: deployer,
+      args: [],
+      log: true,
+    });
+    console.log('MockERC20 deployed:', mockERC20.address);
+  }
   // ERC-4626 yield vault (MockVault — constructor: asset, owner)
   const impactPay = await deploy('ImpactPay', {
     from: deployer,

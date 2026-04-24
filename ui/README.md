@@ -13,7 +13,7 @@ ImpactPay's frontend is a high-performance Next.js 15 application designed speci
 - `public/`: Static assets, including the updated branding and PWA manifest.
 - `subgraph/`: Configuration and queries for The Graph indexing.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - [Bun](https://bun.sh/)
@@ -34,13 +34,13 @@ bun run dev
 bun run build
 ```
 
-## 📱 MiniPay Integration
+## MiniPay Integration
 The UI natively detects the MiniPay environment via `window.ethereum.isMiniPay`. 
 - **Responsive Design**: Tailored for screens `< 360px`.
 - **Identity**: Seamlessly integrates with SocialConnect (ODIS) and Self Protocol.
 - **Transactions**: Optimized for the MiniPay wallet flow.
 
-## 🔗 Fulfillment APIs
+## Fulfillment APIs
 The backend (located in `app/api/`) handles secure relays to:
 - **BitGifty**: Automated utility bill settlement.
 - **Chimoney**: Instant virtual card issuance for developers.
