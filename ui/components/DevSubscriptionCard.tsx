@@ -33,21 +33,26 @@ export function DevSubscriptionCard() {
   return (
     <section className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm space-y-2">
       <h2 className="text-sm font-semibold text-slate-800">Developer Subscription Goal</h2>
-      <div className="flex justify-between w-auto items-center">
-        <select className="h-11 border border-slate-200 rounded-md px-3 text-sm" value={provider} onChange={(e) => setProvider(e.target.value)}>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <select className="h-11 flex-1 border border-slate-200 rounded-md px-3 text-sm text-slate-900 bg-white" value={provider} onChange={(e) => setProvider(e.target.value)}>
           <option>Cursor</option>
           <option>OpenAI</option>
           <option>GitHub</option>
           <option>Notion</option>
         </select>
-        <input
-          className="h-11 border border-slate-200 rounded-md px-3 text-sm text-slate-900"
-          value={amount}
-          type="number"
-          min="1"
-          onChange={(e) => setAmount(Number(e.target.value))}
-          placeholder="Plan amount in USD"
-        />
+        <div className="relative flex-1">
+          <input
+            className="h-11 w-full border border-slate-200 rounded-md pl-3 pr-12 text-sm text-slate-900"
+            value={amount}
+            type="number"
+            min="1"
+            onChange={(e) => setAmount(Number(e.target.value))}
+            placeholder="Amount"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">
+            USDm
+          </div>
+        </div>
       </div>
 
       <div className="space-y-1">

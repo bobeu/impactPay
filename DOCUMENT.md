@@ -2365,14 +2365,23 @@ Since a lot have changed, we need to bring the docs up to date.
 - **UI README (`ui/README.md`)**: Created a comprehensive new README for the frontend project, detailing its Next.js 15 architecture, MiniPay optimization features, and fulfillment API integration.
 - **Structural Alignment**: Ensured all documentation correctly references the modern project layout, including the new `foundry-tests` and `app/api` fulfillment routes.
 
----
-**Status: Documentation Tasks Completed.**
- -   * * M a i n n e t   A N D   T e s t n e t   S y n c * * :   M o d i f i e d   s y n c - a r t i f a c t s . c j s   t o   c o l l e c t   b o t h   n e t w o r k s . 
- -   * * F r o n t e n d   C o m p a t i b i l i t y * * :   U p d a t e d   c o n t e x t   f o r   m u l t i - c h a i n   s u p p o r t . 
+-------------------------------------------------
+
+### CTO Said:
+
+In `ProfileClientView.tsx`, the contents inside the header overflows to the right on mobile view especially the `Verified` icon. Rearrange it to align properly at the center. 
+
+- The `Amount input section` in `DevSubscriptionCard` also overflow to the right on mobile view.
+
+- The impactPay logo is not visible on mobile view.
+- When scrolling, the main `Header` scrolls with the app. Fix it to avoid scrolling together with the app.
+ # # #   U I   V i s i b i l i t y   &   L a y o u t   F i x e s   ( A n t i g r a v i t y   -   2 0 2 6 - 0 4 - 2 4 ) 
+ 
+ -   * * P r o f i l e   H e a d e r * * :   R e d e s i g n e d   t h e   h e a d e r   i n   \ P r o f i l e C l i e n t V i e w . t s x \   t o   b e   m o b i l e - r e s p o n s i v e .   C o n t e n t   n o w   s t a c k s   v e r t i c a l l y   o n   s m a l l   s c r e e n s   a n d   a l i g n s   c e n t e r e d ,   p r e v e n t i n g   t h e   ' V e r i f i e d '   i c o n   a n d   a d d r e s s   f r o m   o v e r f l o w i n g . 
+ -   * * D e v S u b s c r i p t i o n C a r d * * :   S t a c k e d   i n p u t   f i e l d s   o n   m o b i l e   a n d   a d d e d   a   s u f f i x   ( U S D m )   t o   t h e   a m o u n t   i n p u t   f o r   b e t t e r   c l a r i t y   a n d   t o   p r e v e n t   h o r i z o n t a l   o v e r f l o w . 
+ -   * * H e a d e r   V i s i b i l i t y * * :   F i x e d   t h e   m a i n   \ H e a d e r \   t o   t h e   t o p   o f   t h e   s c r e e n   u s i n g   \  i x e d \   a n d   \  a c k d r o p - b l u r \ .   U p d a t e d   \ L a y o u t . t s x \   w i t h   t o p   p a d d i n g   t o   e n s u r e   c o n t e n t   i s   n o t   o b s c u r e d . 
+ -   * * L o g o   O p t i m i z a t i o n * * :   O p t i m i z e d   t h e   h e a d e r   l o g o   v i s i b i l i t y   o n   m o b i l e   b y   h i d i n g   t h e   ' I m p a c t P a y '   t e x t   o n   s m a l l   s c r e e n s ,   p r i o r i t i z i n g   t h e   i c o n   a n d   u s e r   a c c o u n t   s t a t u s . 
  
  - - - 
- * * S t a t u s :   M u l t i - c h a i n   S y n c   I m p l e m e n t e d . * *  
- 
- -   * * G o a l C a r d   U I   I m p r o v e m e n t s * * :   A d d e d   s u b t l e   b o r d e r s   a n d   l i g h t   b a c k g r o u n d s   t o   G o a l C a r d   a n d   G o a l L i s t   i t e m s   f o r   b e t t e r   v i s u a l   d i f f e r e n t i a t i o n . 
- -   * * R e s p o n s i v e   L i s t s * * :   E n h a n c e d   m o b i l e   G o a l L i s t   w i t h   c a r d - s t y l e   b a c k g r o u n d s   a n d   s h a d o w   e f f e c t s .  
+ * * S t a t u s :   M o b i l e   L a y o u t   T a s k s   C o m p l e t e d . * *  
  
