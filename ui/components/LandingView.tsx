@@ -37,9 +37,18 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
         >
           <Verified className="w-6 h-6" /> Blockchain Verified Impact
         </motion.div>
-        <h1 className="text-3xl font-black text-white leading-tight">
-          Direct Help. <br/><span className="text-accent decoration-emerald-400/40">Verified Stories.</span>
-        </h1>
+        <div className="space-y-3">
+          <motion.h2 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="text-5xl font-black text-white tracking-tighter"
+          >
+            ImpactPay
+          </motion.h2>
+          <h1 className="text-2xl font-bold text-slate-300 leading-tight">
+            Direct Help. <span className="text-accent decoration-emerald-400/40 underline underline-offset-4">Verified Stories.</span>
+          </h1>
+        </div>
         <p className="text-sm text-slate-300 font-medium max-w-xs mx-auto">
           The most transparent and verified way to support essential needs and education on Celo.
         </p>
