@@ -8,10 +8,11 @@ interface TransactionModalProps {
   stage: TransactionStage;
   txHash?: string;
   errorMessage?: string;
+  fee?: bigint;
   onClose?: () => void;
 }
 
-export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHash, errorMessage, onClose }) => {
+export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHash, errorMessage, fee, onClose }) => {
   const [showClose, setShowClose] = React.useState(false);
 
   React.useEffect(() => {
@@ -104,6 +105,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHas
               pulse={stage === 'verifying'}
             />
           </div>
+
+          {/* Fee Information (if applicable) */}
+          {fee && fee > 0n && (
+            <div className="px-8 py-3 bg-slate-50 border-y border-slate-100 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Protocol Fee</span>
+              <span className="text-xs font-black text-[#001B3D]">${(Number(fee) / 1e18).toFixed(2)} USDm</span>
+            </div>
+          )}
 
           {/* Footer & Progress Bar */}
           <div className="bg-slate-50 p-6 border-t border-slate-100 flex flex-col items-center">

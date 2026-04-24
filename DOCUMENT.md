@@ -2476,7 +2476,22 @@ I have executed the mobile layout and visibility tasks requested by the CTO.
 
 ----------------------------------------------------
 
+### CTO Said:
 
- -   * * H e r o   S e c t i o n   B r a n d i n g * * :   A d d e d   b o l d   ' I m p a c t P a y '   p r o j e c t   t i t l e   t o   t h e   H e r o   s e c t i o n   i n   \ L a n d i n g V i e w . t s x \   t o   e n s u r e   b r a n d   v i s i b i l i t y   o n   m o b i l e   d e v i c e s . 
- -   * * V i s u a l   P o l i s h * * :   R e f i n e d   t h e   h e r o   t y p o g r a p h y   w i t h   b e t t e r   s p a c i n g   a n d   a   s u b t l e   a n i m a t i o n   f o r   t h e   m a i n   t i t l e .  
+In `CreateGoalCard.tsx`, we need to properly inform users the fee they will pay when creating a goal. The three categories of goals have their respective listing fee destructured in the `useImpactPay` hook.
+
+- If goal type is `Bill` use `billListingFee`;
+- If goal type is `Scholarship` use `scholarshipListingFee`;
+- If goal type is `Default` use `defaultListingFee`. Ensure that the correct fee is parsed to the `approve` function as the amount inside the `ImpactPayContext` if not already done.
+
+The total fee should be calculated and displayed on the `TransactionModal`. Ensure to properly calculate the gas using either `viem` or `wagmi`.Minipay allows users to pay fee either in Celo or USD. Since we are dealing with `USDm`, it is crucial to allow users pay in `USDm`. So, ensure you have the information on how Minipay works to better implement this task. Users don't have to pay gas in `celo` native asset. Since stablecoin is also `native` on Celo, it makes sense to allow users pay fee in `USDm`.
+ # # #   P r o t o c o l   F e e   V i s i b i l i t y   &   N a t i v e   S t a b l e c o i n   G a s   ( A n t i g r a v i t y   -   2 0 2 6 - 0 4 - 2 4 ) 
+ 
+ -   * * F e e   T r a n s p a r e n c y * * :   U p d a t e d   \ C r e a t e G o a l C a r d . t s x \   t o   d y n a m i c a l l y   d i s p l a y   t h e   r e q u i r e d   l i s t i n g   f e e   b a s e d   o n   t h e   s e l e c t e d   g o a l   c a t e g o r y   ( B i l l ,   S c h o l a r s h i p ,   o r   D e f a u l t ) . 
+ -   * * T r a n s a c t i o n   C o n t e x t * * :   M o d i f i e d   \ I m p a c t P a y C o n t e x t . t s x \   t o   t r a c k   t h e   c u r r e n t   t r a n s a c t i o n   f e e   a n d   p a s s   i t   t o   t h e   g l o b a l   \ T r a n s a c t i o n M o d a l \ . 
+ -   * * M i n i P a y   O p t i m i z a t i o n * * :   I n t e g r a t e d   \  e e C u r r e n c y \   s u p p o r t   i n   a l l   w r i t e   o p e r a t i o n s .   A l l   p r o t o c o l   t r a n s a c t i o n s   ( i n c l u d i n g   a p p r o v a l s   a n d   g o a l   c r e a t i o n )   a r e   n o w   c o n f i g u r e d   t o   p a y   g a s   i n   \ U S D m \   ( c U S D ) ,   a l i g n i n g   w i t h   M i n i P a y ' s   b e s t   p r a c t i c e s   f o r   s t a b l e c o i n - n a t i v e   U X . 
+ -   * * U I   F e e d b a c k * * :   E n h a n c e d   \ T r a n s a c t i o n M o d a l . t s x \   t o   s h o w   t h e   p r o t o c o l   f e e   d u r i n g   t h e   a u t h o r i z a t i o n   a n d   s e t t l e m e n t   s t a g e s . 
+ 
+ - - - 
+ * * S t a t u s :   L i s t i n g   F e e   a n d   S t a b l e c o i n   G a s   T a s k s   C o m p l e t e d . * *  
  

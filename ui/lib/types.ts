@@ -148,6 +148,7 @@ export interface ImpactPayContextType {
         stage: TransactionStage;
         txHash: string;
         error: string;
+        fee: bigint;
         setStage: (s: TransactionStage) => void;
     };
  

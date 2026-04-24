@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { LandingView } from '@/components/LandingView';
 import { useNavigate } from 'react-router-dom';
+import Image from 'next/image';
 
 export default function HomeView() {
   const { isConnected, address } = useAccount();
@@ -15,8 +16,14 @@ export default function HomeView() {
     return (
       <div className="flex flex-col gap-5 px-4 py-12">
         <section className="rounded-[2.5rem] border border-slate-200 bg-white px-8 py-12 shadow-xl shadow-slate-100 space-y-6 text-center max-w-sm mx-auto">
-          <div className="w-16 h-16 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto">
-            <span className="text-3xl">🌍</span>
+          <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-slate-100 overflow-hidden">
+            <Image 
+              src="/logo.png" 
+              alt="ImpactPay Logo" 
+              width={64} 
+              height={64}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">

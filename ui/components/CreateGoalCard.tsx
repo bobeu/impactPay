@@ -51,7 +51,14 @@ function countWords(text: string): number {
 }
 
 export function CreateGoalCard() {
-  const { createGoal } = useImpactPay();
+  const { 
+    createGoal, 
+    goalIdsAndState: {
+      billListingFee,
+      scholarshipListingFee,
+      defaultListingFee
+    } 
+  } = useImpactPay();
   const navigate = useNavigate();
   const { address } = useAccount();
 
@@ -273,6 +280,24 @@ export function CreateGoalCard() {
             onChange={(e) => setField("extraInfo")(e.target.value)}
             placeholder="Any extra context, links, or details the funder should know…"
           />
+        </div>
+
+        {/* ── Fee Information ── */}
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Listing Fee</p>
+            <p className="text-xs font-semibold text-slate-600">Payable in USDm</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-black text-[#001B3D]">
+              ${Number(
+                form.category === "Bill" ? (billListingFee ? Number(billListingFee) / 1e18 : 0) :
+                form.category === "Scholarship" ? (scholarshipListingFee ? Number(scholarshipListingFee) / 1e18 : 0) :
+                (defaultListingFee ? Number(defaultListingFee) / 1e18 : 0)
+              ).toFixed(2)}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 ml-1 uppercase">USDm</span>
+          </div>
         </div>
 
         {/* ── Submit Button ── */}

@@ -28,6 +28,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   const [modalStage, setModalStage] = useState<TransactionStage>('idle');
   const [modalTxHash, setModalTxHash] = useState<string>('');
   const [modalError, setModalError] = useState<string>('');
+  const [modalFee, setModalFee] = useState<bigint>(0n);
 
   // 1. Fetch user goal IDs and state
   const { data: goalIdsAndState_, refetch: refetchIdsAndState } = useReadContract({
@@ -143,11 +144,11 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       setModalStage('awaiting_auth');
       setModalTxHash('');
       setModalError('');
+      setModalFee(0n);
       const { goalType, description, extraInfo, targetAmount, billServiceIndex, serviceType } = param;
       let args = [];
       let functionName = 'createGoal';
       let listingFee = 0n;
-
       switch (goalType) {
         case 'BILL':
           if (!serviceType) return;
@@ -167,12 +168,16 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           break;
       }
 
+      setModalFee(listingFee);
+      const feeCurrency = CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address] as Address;
+
       if (listingFee > 0n) {
         const approveHash = await writeApproval({
           address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
           abi: CONTRACTS.MockERC20.abi as any,
           functionName: 'approve',
-          args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee]
+          args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee],
+          feeCurrency
         });
         await waitForTransactionReceipt(config, { hash: approveHash });
       }
@@ -188,7 +193,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: functionName,
-        args
+        args,
+        feeCurrency
       });
 
       setModalTxHash(hash);
@@ -210,6 +216,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
   const runTransaction = async (param: Args) => {
     const { amount, extraInfo, goalIds, recipient, user, func } = param;
+    const feeCurrency = CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address] as Address;
     try {
       let args: any = [goalIds?.[0]];
       let errorMessage: string | null = null;
@@ -226,7 +233,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
             address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
             abi: CONTRACTS.MockERC20.abi as any,
             functionName: 'approve',
-            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n]
+            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n],
+            feeCurrency
           });
           await waitForTransactionReceipt(config, { hash: txHash });
 
@@ -273,7 +281,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: func,
-        args
+        args,
+        feeCurrency
       });
       setModalTxHash(hash);
       setModalStage('tx_included');
@@ -299,6 +308,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         stage: modalStage,
         txHash: modalTxHash,
         error: modalError,
+        fee: modalFee,
         setStage: setModalStage
       },
       refresh,
