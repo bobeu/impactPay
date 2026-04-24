@@ -226,7 +226,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
             address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
             abi: CONTRACTS.MockERC20.abi as any,
             functionName: 'approve',
-            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount]
+            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n]
           });
           await waitForTransactionReceipt(config, { hash: txHash });
 
