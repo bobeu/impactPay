@@ -674,8 +674,12 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         nonReentrant 
         returns(bool) 
     {
+        Goal storage goal = goals[goalId];
+        address creator = goal.cData.creator;
+        require(msg.sender == creator || msg.sender == owner(), "Not authorized");
+        
         bool useBillService_ = useBillService;
-        CommonData memory cd = goals[goalId].cData;
+        CommonData memory cd = goal.cData;
         uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
         _relayFund(goalId, availableAmount, useBillService_);
 

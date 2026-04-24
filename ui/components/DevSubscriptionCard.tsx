@@ -41,7 +41,7 @@ export function DevSubscriptionCard() {
           <option>Notion</option>
         </select>
         <input
-          className="h-11 border border-slate-200 rounded-md px-3 text-sm"
+          className="h-11 border border-slate-200 rounded-md px-3 text-sm text-slate-900"
           value={amount}
           type="number"
           min="1"
@@ -54,7 +54,7 @@ export function DevSubscriptionCard() {
         <label className="text-xs font-semibold text-slate-700">Description</label>
         <p className="text-[10px] text-slate-500">Please be elaborate but keep it short (max 500 words).</p>
         <textarea
-          className="w-full border border-slate-200 rounded-md p-3 text-sm resize-none h-24"
+          className="w-full border border-slate-200 rounded-md p-3 text-sm text-slate-900 resize-none h-24"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Why do you need this subscription?"
@@ -68,7 +68,7 @@ export function DevSubscriptionCard() {
         <label className="text-xs font-semibold text-slate-700">Extra Information (Optional)</label>
         <p className="text-[10px] text-slate-500">Additional links or details (max 500 words).</p>
         <textarea
-          className="w-full border border-slate-200 rounded-md p-3 text-sm resize-none h-20"
+          className="w-full border border-slate-200 rounded-md p-3 text-sm text-slate-900 resize-none h-20"
           value={extraInfo}
           onChange={(e) => setExtraInfo(e.target.value)}
           placeholder="Any extra context or links?"

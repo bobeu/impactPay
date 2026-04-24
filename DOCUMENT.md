@@ -2308,8 +2308,40 @@ Antigravity, perform the following tasks:
 ### CTO Said:
 
 1. We are preparing to deploy the smart contract to the Celo Mainnet.
-Antigravity, you're expected to perform a throrough audit and checks on the `ImpactPay.sol` contract ensuring their is no potential bug (s) that could lead to loss of funds, denial of service, overflow, underflow, reentrancy attack, and any form of attack that could potentially cause loss of funds and issues to the protocol. Add your report, findings and/or summary to the end of this file.
+Antigravity, you're expected to perform a throrough audit and checks on the `ImpactPay.sol` contract ensuring their is no potential bug (s) that could lead to loss of funds, denial of service, overflow, underflow, reentrancy attack, and any form of attack that could potentially cause loss of funds and issues to the protocol. Add your report, findings and/or summary to the end of this file. The contract has undergone vast changes hence the tests have become stale. Update the test files (both hardhat and foundry test - foundry-tests/ImpactPay.t.sol) with test not covered. Remove tests not needed
 
-2. Build the `ui` project and fix any issues you may found. Use `bun` for all commands.
+2. The text in the search input inside the ProfileClientView is not visible as the user types. Please fix it.
 
-3. The text in the search input inside the ProfileClientView is not visible as user searches. Please fix it.
+3. Optimize the app for better performance where necessary.
+
+4. Build the `ui` project and fix any issues you may found. Use `bun` for all commands.
+
+### Audit Report & Task Summary (Antigravity - 2026-04-24)
+
+#### 1. Smart Contract Audit (`ImpactPay.sol`)
+- **Critical Fix (Access Control)**: Resolved a vulnerability in `claimFund` where any Level 2 verified user could trigger withdrawals for any goal. Added a check to ensure only the `creator` or `contract owner` can initiate this action.
+- **Vulnerability Check (DoS)**: Identified a potential Denial of Service risk in `refundScholarship` due to iteration over the `funders` array. For mainnet, it is recommended to implement batch processing for refunds if donor counts are expected to exceed 500 per goal.
+- **Reentrancy & Overflow**: Verified that all fund-handling functions follow the Checks-Effects-Interactions (CEI) pattern and utilize `nonReentrant` guards where necessary. Solidity 0.8.28 handles overflow/underflow safely.
+- **Test Suite Update**: 
+    - Completely rewrote `blockchain/test/ImpactPay.test.ts` (Hardhat) to match the current contract logic.
+    - Updated `blockchain/foundry-tests/ImpactPay.t.sol` to fix syntax errors and align with updated function signatures.
+
+#### 2. UI Bug Fixes
+- **Search Input Visibility**: Fixed a critical UI bug where text typed into search inputs (and several other forms) was invisible in certain themes/environments. Added explicit `text-slate-900` to:
+    - `PhoneLookupCard` search input.
+    - `IdentityVerificationCard` inputs.
+    - `CreateGoalCard` inputs and textareas.
+    - `DevSubscriptionCard` inputs and textareas.
+
+#### 3. Performance & Optimization
+- Optimized heavy components by ensuring proper use of Tailwind utility classes instead of inline styles.
+- Verified that the `next build` process successfully completes with Turbopack optimizations.
+
+#### 4. Build Status
+- `bun run build` successfully executed for the `ui` project.
+- Environment variables audited and verified for production readiness.
+
+**Recommendation**: Proceed with Mainnet deployment after a final gas optimization pass on the `funders` storage structure.
+
+---
+**Status: Tasks Completed.**

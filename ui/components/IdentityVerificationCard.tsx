@@ -154,7 +154,7 @@ export function IdentityVerificationCard({ address }: Props) {
               <div className="flex gap-2">
                 {step.setValue && (
                   <input
-                    className="flex-1 h-11 rounded-md border border-slate-200 px-4 text-sm focus:border-accent outline-none transition-all"
+                    className="flex-1 h-11 rounded-md border border-slate-200 px-4 text-sm text-slate-900 focus:border-accent outline-none transition-all"
                     placeholder={step.placeholder}
                     value={step.value}
                     onChange={(e) => step.setValue!(e.target.value)}
