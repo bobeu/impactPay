@@ -2365,14 +2365,118 @@ Since a lot have changed, we need to bring the docs up to date.
 - **UI README (`ui/README.md`)**: Created a comprehensive new README for the frontend project, detailing its Next.js 15 architecture, MiniPay optimization features, and fulfillment API integration.
 - **Structural Alignment**: Ensured all documentation correctly references the modern project layout, including the new `foundry-tests` and `app/api` fulfillment routes.
 
----
-**Status: Documentation Tasks Completed.**
- -   * * M a i n n e t   A N D   T e s t n e t   S y n c * * :   M o d i f i e d   s y n c - a r t i f a c t s . c j s   t o   c o l l e c t   b o t h   n e t w o r k s . 
- -   * * F r o n t e n d   C o m p a t i b i l i t y * * :   U p d a t e d   c o n t e x t   f o r   m u l t i - c h a i n   s u p p o r t . 
- 
- - - - 
- * * S t a t u s :   M u l t i - c h a i n   S y n c   I m p l e m e n t e d . * *  
- 
- -   * * G o a l C a r d   U I   I m p r o v e m e n t s * * :   A d d e d   s u b t l e   b o r d e r s   a n d   l i g h t   b a c k g r o u n d s   t o   G o a l C a r d   a n d   G o a l L i s t   i t e m s   f o r   b e t t e r   v i s u a l   d i f f e r e n t i a t i o n . 
- -   * * R e s p o n s i v e   L i s t s * * :   E n h a n c e d   m o b i l e   G o a l L i s t   w i t h   c a r d - s t y l e   b a c k g r o u n d s   a n d   s h a d o w   e f f e c t s .  
+-------------------------------------------------
+
+### CTO Said:
+
+In `ProfileClientView.tsx`, the contents inside the header overflows to the right on mobile view especially the `Verified` icon. Rearrange it to align properly at the center. 
+
+- The `Amount input section` in `DevSubscriptionCard` also overflow to the right on mobile view.
+
+- The impactPay logo is not visible on mobile view.
+- When scrolling, the main `Header` scrolls with the app. Fix it to avoid scrolling together with the app.
+
+--------------------------------------------------
+
+Edited DevSubscriptionCard.tsx
+Viewed Layout.tsx:1-23
+Viewed DOCUMENT.md:2370-2377
+Viewed ProfileClientView.tsx:1-187
+Viewed DevSubscriptionCard.tsx:1-99
+Viewed Header.tsx:1-98
+Ran command: `ls ui/public/logo.png`
+Edited ProfileClientView.tsx
+Edited DevSubscriptionCard.tsx
+Edited Header.tsx
+Edited Layout.tsx
+Ran command: `echo "`n### UI Visibility & Layout Fixes (Antigravity - 2026-04-24)`n`n- **Profile Header**: Redesigned the header in \`ProfileClientView.tsx\` to be mobile-responsive. Content now stacks vertically on small screens and aligns centered, preventing the 'Verified' icon and address from overflowing.`n- **DevSubscriptionCard**: Stacked input fields on mobile and added a suffix (USDm) to the amount input for better clarity and to prevent horizontal overflow.`n- **Header Visibility**: Fixed the main \`Header\` to the top of the screen using \`fixed\` and \`backdrop-blur\`. Updated \`Layout.tsx\` with top padding to ensure content is not obscured.`n- **Logo Optimization**: Optimized the header logo visibility on mobile by hiding the 'ImpactPay' text on small screens, prioritizing the icon and user account status.`n`n---`n**Status: Mobile Layout Tasks Completed.**" >> DOCUMENT.md`
+Ran command: `git add .
+git commit -m "UI: Fix mobile layout overflows and header visibility
+
+- Centered profile header on mobile in ProfileClientView.
+- Stacked DevSubscriptionCard inputs for mobile.
+- Fixed main Header to top and optimized logo visibility.
+- Adjusted Layout for fixed header."
+git push origin optimize`
+
+I have executed the mobile layout and visibility tasks requested by the CTO.
+
+### **UI & Layout Fixes Summary**
+
+1.  **Profile Header Optimization (`ProfileClientView.tsx`)**:
+    *   Redesigned the header to be fully mobile-responsive. 
+    *   The profile picture, address, and action buttons now stack vertically and align to the center on small screens, preventing the `Verified` icon from overflowing.
+    *   Enhanced the action buttons on mobile to include descriptive text labels (Share Profile, Verified) for better accessibility.
+
+2.  **DevSubscriptionCard Fix (`DevSubscriptionCard.tsx`)**:
+    *   Converted the horizontal input row into a responsive flex layout.
+    *   The subscription provider dropdown and amount input now stack on mobile, ensuring full visibility within narrow viewports.
+    *   Added a clear `USDm` suffix to the amount input field.
+
+3.  **Sticky Header & Logo Visibility (`Header.tsx` & `Layout.tsx`)**:
+    *   Converted the `Header` from `sticky` to `fixed` to ensure it stays at the top of the viewport regardless of the scroll container state.
+    *   Added `backdrop-blur-md` for a premium, semi-transparent fintech look.
+    *   Optimized logo visibility on mobile by hiding the "ImpactPay" text on small screens, prioritizing the logo icon and account status.
+    *   Updated the main `Layout.tsx` with `pt-20` to compensate for the fixed header height.
+
+4.  **Repository Sync**:
+    *   Updated `DOCUMENT.md` with the task completion summary.
+    *   All changes have been committed and pushed to the `optimize` branch (Commit `f4d67ff`).
+
+**Status: Mobile layout and visibility tasks completed.**
+
+------------------------------------------------
+
+Edited DevSubscriptionCard.tsx
+Viewed Layout.tsx:1-23
+Viewed DOCUMENT.md:2370-2377
+Viewed ProfileClientView.tsx:1-187
+Viewed DevSubscriptionCard.tsx:1-99
+Viewed Header.tsx:1-98
+Ran command: `ls ui/public/logo.png`
+Edited ProfileClientView.tsx
+Edited DevSubscriptionCard.tsx
+Edited Header.tsx
+Edited Layout.tsx
+Ran command: `echo "`n### UI Visibility & Layout Fixes (Antigravity - 2026-04-24)`n`n- **Profile Header**: Redesigned the header in \`ProfileClientView.tsx\` to be mobile-responsive. Content now stacks vertically on small screens and aligns centered, preventing the 'Verified' icon and address from overflowing.`n- **DevSubscriptionCard**: Stacked input fields on mobile and added a suffix (USDm) to the amount input for better clarity and to prevent horizontal overflow.`n- **Header Visibility**: Fixed the main \`Header\` to the top of the screen using \`fixed\` and \`backdrop-blur\`. Updated \`Layout.tsx\` with top padding to ensure content is not obscured.`n- **Logo Optimization**: Optimized the header logo visibility on mobile by hiding the 'ImpactPay' text on small screens, prioritizing the icon and user account status.`n`n---`n**Status: Mobile Layout Tasks Completed.**" >> DOCUMENT.md`
+Ran command: `git add .
+git commit -m "UI: Fix mobile layout overflows and header visibility
+
+- Centered profile header on mobile in ProfileClientView.
+- Stacked DevSubscriptionCard inputs for mobile.
+- Fixed main Header to top and optimized logo visibility.
+- Adjusted Layout for fixed header."
+git push origin optimize`
+
+I have executed the mobile layout and visibility tasks requested by the CTO.
+
+### **UI & Layout Fixes Summary**
+
+1.  **Profile Header Optimization (`ProfileClientView.tsx`)**:
+    *   Redesigned the header to be fully mobile-responsive. 
+    *   The profile picture, address, and action buttons now stack vertically and align to the center on small screens, preventing the `Verified` icon from overflowing.
+    *   Enhanced the action buttons on mobile to include descriptive text labels (Share Profile, Verified) for better accessibility.
+
+2.  **DevSubscriptionCard Fix (`DevSubscriptionCard.tsx`)**:
+    *   Converted the horizontal input row into a responsive flex layout.
+    *   The subscription provider dropdown and amount input now stack on mobile, ensuring full visibility within narrow viewports.
+    *   Added a clear `USDm` suffix to the amount input field.
+
+3.  **Sticky Header & Logo Visibility (`Header.tsx` & `Layout.tsx`)**:
+    *   Converted the `Header` from `sticky` to `fixed` to ensure it stays at the top of the viewport regardless of the scroll container state.
+    *   Added `backdrop-blur-md` for a premium, semi-transparent fintech look.
+    *   Optimized logo visibility on mobile by hiding the "ImpactPay" text on small screens, prioritizing the logo icon and account status.
+    *   Updated the main `Layout.tsx` with `pt-20` to compensate for the fixed header height.
+
+4.  **Repository Sync**:
+    *   Updated `DOCUMENT.md` with the task completion summary.
+    *   All changes have been committed and pushed to the `optimize` branch (Commit `f4d67ff`).
+
+**Status: Mobile layout and visibility tasks completed.**
+
+----------------------------------------------------
+
+
+ -   * * H e r o   S e c t i o n   B r a n d i n g * * :   A d d e d   b o l d   ' I m p a c t P a y '   p r o j e c t   t i t l e   t o   t h e   H e r o   s e c t i o n   i n   \ L a n d i n g V i e w . t s x \   t o   e n s u r e   b r a n d   v i s i b i l i t y   o n   m o b i l e   d e v i c e s . 
+ -   * * V i s u a l   P o l i s h * * :   R e f i n e d   t h e   h e r o   t y p o g r a p h y   w i t h   b e t t e r   s p a c i n g   a n d   a   s u b t l e   a n i m a t i o n   f o r   t h e   m a i n   t i t l e .  
  

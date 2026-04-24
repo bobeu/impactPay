@@ -38,41 +38,45 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
         {/* Profile Card */}
         <div className="bg-white shadow-sm border border-slate-200 rounded-[2.5rem] p-6 sm:p-10">
           {/* ── Compact profile header ── */}
-          <header className="flex items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <User2 className="w-8 h-8 text-slate-500" />
+          <header className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-10">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
+                <User2 className="w-8 h-8 text-slate-400" />
+              </div>
 
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">On-chain Profile</p>
-                <div className="flex items-center bg-slate-50 rounded-2xl px-2 py-1 border border-slate-100">
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">On-chain Profile</p>
+                <div className="flex items-center bg-slate-50 rounded-2xl px-3 py-1.5 border border-slate-100 shadow-sm">
                   <AddressWrapper
                     display={true}
                     account={address}
-                    copyIconSize='6'
-                    size={6}
-                    overrideClassName='text-slate-600 font-mono text-[11px]'
+                    copyIconSize='5'
+                    size={5}
+                    overrideClassName='text-slate-600 font-mono text-[12px] font-bold'
                   />
                 </div>
               </div>
             </div>
 
-            {/* Action buttons — compact icon pills */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Action buttons — centered on mobile */}
+            <div className="flex items-center gap-3 shrink-0">
               <a
                 href={xShareLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Share on X"
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#001B3D] text-white hover:bg-[#002a5c] transition shadow-sm"
+                className="flex-1 sm:flex-none h-11 px-6 sm:px-0 sm:w-11 flex items-center justify-center rounded-2xl bg-[#001B3D] text-white hover:bg-[#002a5c] transition-all shadow-md active:scale-95"
               >
                 <Share className="w-4 h-4" />
+                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider sm:hidden">Share Profile</span>
               </a>
               <Link
                 to={verifyLink}
                 title="Verify identity"
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100 transition"
+                className="flex-1 sm:flex-none h-11 px-6 sm:px-0 sm:w-11 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
               >
-                <Verified className="w-6 h-6 text-slate-500" />
+                <Verified className="w-5 h-5 text-accent" />
+                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider sm:hidden text-slate-600">Verified</span>
               </Link>
             </div>
           </header>
