@@ -34,4 +34,7 @@ _d_.json
 /residue.md
 /runContract.ts
 /test.ts
-/hashes.ts
+# Foundry files
+/out
+/cache
+/broadcast
