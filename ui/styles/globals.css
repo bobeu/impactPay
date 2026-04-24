@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #F8FAFC;
+    --foreground: #001B3D;
+    --primary: #001B3D;
+    --accent: #10B981;
+    --warning: #F59E0B;
+    --border: #E2E8F0;
+    --card: #FFFFFF;
+    
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: #001B3D;
+    --foreground: #F8FAFC;
+    --primary: #F8FAFC;
+    --accent: #10B981;
+    --warning: #F59E0B;
+    --border: #1E293B;
+    --card: #0F172A;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] antialiased font-sans;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+  
+  .zebra-table tr:nth-child(even) {
+    background: rgba(226, 232, 240, 0.2);
+  }
+
+  .fintech-card {
+    @apply p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all hover:shadow-md;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all font-medium;
+  }
+
+  .btn-accent {
+    @apply bg-[var(--accent)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all font-medium;
+  }
+}

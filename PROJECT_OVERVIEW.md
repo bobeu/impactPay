@@ -1,10 +1,10 @@
-# 🌍 ImpactPay Technical Overview & Onboarding Guide
+# ImpactPay Technical Overview & Onboarding Guide
 
 Welcome to **ImpactPay**, a decentralized, reputation-based micro-philanthropy platform designed specifically for the **Celo MiniPay** ecosystem. This document provides a high-level technical breakdown of the system architecture, how components interact, and how to get started as a developer.
 
 ---
 
-## 🏗️ 1. High-Level Architecture
+## 1. High-Level Architecture
 
 ImpactPay follows a "Decentralized Backend" pattern where the source of truth is the blockchain, but a specialized indexer (The Graph) and a high-performance REST API layer provide the speed needed for a modern mobile app.
 
@@ -16,11 +16,11 @@ ImpactPay follows a "Decentralized Backend" pattern where the source of truth is
 
 ---
 
-## 🔗 2. Component Interactions
+## 2. Component Interactions
 
 ### A. The "Donation to Fulfillment" Flow
 1.  **Frontend:** User clicks "Fund Goal" on a campaign.
-2.  **Smart Contract:** Receives $cUSD$, emits a `Funded` event.
+2.  **Smart Contract:** Receives $USDm$, emits a `Funded` event.
 3.  **The Listener (Worker):** A background script detects the `Funded` event.
 4.  **Backend API:** Triggered by the listener, it calls the **BitGifty API** (for utility bills) or **Chimoney API** (for virtual cards).
 5.  **Smart Contract:** Once the provider confirms the payment, the backend calls `markBillFulfilled` to settle the goal on-chain.
@@ -32,9 +32,9 @@ ImpactPay follows a "Decentralized Backend" pattern where the source of truth is
 
 ---
 
-## 🛠️ 3. Section-by-Section Deep Dive
+## 3. Section-by-Section Deep Dive
 
-### 🟦 Smart Contracts (`contracts/`)
+### Smart Contracts (`contracts/`)
 *   **Framework:** Foundry (Solidity).
 *   **Key Contract:** `ImpactPay.sol`.
 *   **Core Concepts:**
@@ -42,23 +42,23 @@ ImpactPay follows a "Decentralized Backend" pattern where the source of truth is
     *   **Milestones:** Releasing funds in stages (e.g., 20/40/40) for education/scholarship goals.
     *   **Flagging:** A decentralized reporting system where 3 flags from unique donors freeze a goal.
 
-### 🟨 The Subgraph (`subgraph/`)
+### The Subgraph (`subgraph/`)
 *   **Role:** Transforms a stream of blockchain events into an API that supports sorting, filtering, and aggregation.
 *   **Key Files:** `schema.graphql` (defines data structure) and `mapping.ts` (contains assemblyscript logic to process events).
 
-### 🟩 Backend / API Routes (`app/api/`)
+### Backend / API Routes (`app/api/`)
 *   **Fulfillment:** `fulfill-bill/` (BitGifty) and `issue-virtual-card/` (Chimoney).
 *   **Identity:** `identity/` handles **SocialConnect** (mapping phone numbers to wallets) and **Self Protocol** (ZK-biometric verification).
 *   **OG Generation:** `og/` creates those professional looking cards you see on social media using `@vercel/og`.
 
-### 🟪 Frontend (`app/` & `components/`)
+### Frontend (`app/` & `components/`)
 *   **Framework:** Next.js 15 + Tailwind CSS.
 *   **PWA:** Uses Service Workers and a `manifest.json` to allow "Install to Home Screen" behavior in MiniPay.
 *   **Connectivity:** Uses **Wagmi** and **Viem** for seamless interaction with the Celo blockchain.
 
 ---
 
-## 🚀 4. Deployment Workflow
+## 4. Deployment Workflow
 
 ### 1. Smart Contracts
 ```bash
@@ -78,7 +78,7 @@ forge script scripts/Deploy.s.sol --rpc-url $CELO_RPC_URL --broadcast
 
 ---
 
-## 📘 5. Technical Glossary (For Onboarding)
+## 5. Technical Glossary (For Onboarding)
 
 *   **MiniPay:** a wallet inside the Opera Mini browser for African/Emerging markets. It requires "Auto-Connect" (no connect button).
 *   **SocialConnect / ODIS:** A Celo service that lets you find a wallet address using a phone number or social handle without exposing the private number.
@@ -89,8 +89,8 @@ forge script scripts/Deploy.s.sol --rpc-url $CELO_RPC_URL --broadcast
 
 ---
 
-## 🚦 6. Getting Started as a New Developer
+<!-- ## 6. Getting Started as a New Developer
 1.  **Clone** the repo and run `bun install`.
 2.  **Copy** `.env.example` to `.env` and fill in your keys.
 3.  **Start** the dev server: `bun run dev`.
-4.  **Start** the event listener (for fulfillment testing): `bun run listen:funded`.
+4.  **Start** the event listener (for fulfillment testing): `bun run listen:funded`. -->

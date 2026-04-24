@@ -1,0 +1,110 @@
+"use client";
+
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
+
+import { VerificationLevel } from "@/lib/types";
+
+export type UserProfileState = {
+  phoneNumber?: string;
+  phoneVerified: boolean;
+  xHandle?: string;
+  instagramHandle?: string;
+  socialsLinked: boolean;
+  humanVerified: boolean;
+  verificationLevel: VerificationLevel;
+};
+
+type UserProfileContextType = {
+  profile: UserProfileState;
+  setPhoneVerified: (phoneNumber: string) => void;
+  setSocialsLinked: (xHandle: string, instagramHandle: string) => void;
+  setHumanVerified: () => void;
+  canCreateScholarship: boolean;
+};
+
+const UserProfileContext = createContext<UserProfileContextType | null>(null);
+
+const INITIAL_STATE: UserProfileState = {
+  phoneNumber: undefined,
+  phoneVerified: false,
+  xHandle: undefined,
+  instagramHandle: undefined,
+  socialsLinked: false,
+  humanVerified: false,
+  verificationLevel: 0,
+};
+
+export function UserProfileProvider({ children }: { children: React.ReactNode }) {
+  const [profile, setProfile] = useState<UserProfileState>(INITIAL_STATE);
+
+  const setPhoneVerified = (phoneNumber: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      phoneNumber,
+      phoneVerified: true,
+      verificationLevel: Math.max(prev.verificationLevel, 1) as VerificationLevel,
+    }));
+  };
+
+  const setSocialsLinked = (xHandle: string, instagramHandle: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      xHandle,
+      instagramHandle,
+      socialsLinked: true,
+      verificationLevel: Math.max(prev.verificationLevel, 2) as VerificationLevel,
+    }));
+  };
+
+  const setHumanVerified = () => {
+    setProfile((prev) => ({
+      ...prev,
+      humanVerified: true,
+      verificationLevel: 3,
+    }));
+  };
+
+  const { goalIdsAndState } = useImpactPay();
+
+  useEffect(() => {
+    if (goalIdsAndState?.verifications) {
+      setProfile((prev) => {
+        const { lvl1, lvl2, lvl3 } = goalIdsAndState.verifications;
+        const blockchainLevel = lvl3 ? 3 : lvl2 ? 2 : lvl1 ? 1 : 0;
+        if (blockchainLevel > prev.verificationLevel) {
+           return {
+             ...prev,
+             phoneVerified: prev.phoneVerified || lvl1,
+             socialsLinked: prev.socialsLinked || lvl2,
+             humanVerified: prev.humanVerified || lvl3,
+             verificationLevel: blockchainLevel as VerificationLevel,
+           };
+        }
+        return prev;
+      });
+    }
+  }, [goalIdsAndState?.verifications]);
+
+  const value = useMemo<UserProfileContextType>(
+    () => ({
+      profile,
+      setPhoneVerified,
+      setSocialsLinked,
+      setHumanVerified,
+      canCreateScholarship: true, // Gating removed per task
+    }),
+    [profile],
+  );
+
+  return <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>;
+}
+
+export function useUserProfile() {
+  const ctx = useContext(UserProfileContext);
+  if (!ctx) {
+    throw new Error("useUserProfile must be used within UserProfileProvider");
+  }
+  return ctx;
+}
+
