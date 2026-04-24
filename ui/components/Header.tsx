@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Link } from "react-router-dom";
+import Image from "next/image";
 import AddressWrapper from "./AddressFormatter/AddressWrapper";
 
 export default function Header() {
@@ -25,8 +26,14 @@ export default function Header() {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Link to="/" className="bg-primary p-1.5 rounded-lg">
-          <ShieldCheck className="w-5 h-5 text-accent" />
+        <Link to="/" className="p-1">
+          <Image 
+            src="/logo.png" 
+            alt="ImpactPay Logo" 
+            width={32} 
+            height={32} 
+            className="rounded-lg"
+          />
         </Link>
         <Link to="/" className="text-xl font-bold tracking-tight text-primary">
           ImpactPay

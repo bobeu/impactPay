@@ -20,7 +20,7 @@ ImpactPay follows a "Decentralized Backend" pattern where the source of truth is
 
 ### A. The "Donation to Fulfillment" Flow
 1.  **Frontend:** User clicks "Fund Goal" on a campaign.
-2.  **Smart Contract:** Receives $cUSD$, emits a `Funded` event.
+2.  **Smart Contract:** Receives $USDm$, emits a `Funded` event.
 3.  **The Listener (Worker):** A background script detects the `Funded` event.
 4.  **Backend API:** Triggered by the listener, it calls the **BitGifty API** (for utility bills) or **Chimoney API** (for virtual cards).
 5.  **Smart Contract:** Once the provider confirms the payment, the backend calls `markBillFulfilled` to settle the goal on-chain.
@@ -89,8 +89,8 @@ forge script scripts/Deploy.s.sol --rpc-url $CELO_RPC_URL --broadcast
 
 ---
 
-## 6. Getting Started as a New Developer
+<!-- ## 6. Getting Started as a New Developer
 1.  **Clone** the repo and run `bun install`.
 2.  **Copy** `.env.example` to `.env` and fill in your keys.
 3.  **Start** the dev server: `bun run dev`.
-4.  **Start** the event listener (for fulfillment testing): `bun run listen:funded`.
+4.  **Start** the event listener (for fulfillment testing): `bun run listen:funded`. -->

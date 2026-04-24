@@ -93,7 +93,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
           <input
             type="text"
             placeholder="Search by description, address, amount or type…"
-            className="w-full pl-9 pr-4 py-2 bg-white rounded-xl text-[12px] focus:ring-2 focus:ring-[#001B3D]/20 focus:outline-none shadow-sm placeholder:text-slate-300"
+            className="w-full pl-9 pr-4 py-2 bg-white rounded-xl text-[12px] text-slate-900 focus:ring-2 focus:ring-[#001B3D]/20 focus:outline-none shadow-sm placeholder:text-slate-300"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />

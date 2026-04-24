@@ -2300,4 +2300,16 @@ Antigravity, perform the following tasks:
 
 3. **Action buttons** — Shrunk from full-width pill links to `w-9 h-9` icon-only rounded squares: `Twitter` icon (share, deep navy) and `BadgeCheck` icon (verify, emerald) — both with tooltips via `title=""`.
 
-4. **SocialConnect block** — Replaced `ShieldCheck` (the generic AI-tell icon) with `Fingerprint` from lucide-react — a far more premium and semantically appropriate icon for identity/biometric reputation. Container tightened from `p-8` to `p-6`, icon from `rounded-full` to `rounded-2xl`, button restyled to deep navy matching project theme.
+4. **SocialConnect block** — Replaced `ShieldCheck` (the generic AI-tell icon) with `Fingerprint` from lucide-react — a far more premium and semantically appropriate icon for identity/biometric reputation. Container tightened from `p-8` to `p-6`, icon from `rounded-full` to `rounded-2xl`, button restyled to deep navy matching project theme.
+
+
+----------------------------------------------------------
+
+### CTO Said:
+
+1. We are preparing to deploy the smart contract to the Celo Mainnet.
+Antigravity, you're expected to perform a throrough audit and checks on the `ImpactPay.sol` contract ensuring their is no potential bug (s) that could lead to loss of funds, denial of service, overflow, underflow, reentrancy attack, and any form of attack that could potentially cause loss of funds and issues to the protocol. Add your report, findings and/or summary to the end of this file.
+
+2. Build the `ui` project and fix any issues you may found. Use `bun` for all commands.
+
+3. The text in the search input inside the ProfileClientView is not visible as user searches. Please fix it.

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
-import { PlusCircle, Wallet, Fingerprint, Share2, ExternalLink, BadgeCheck, Twitter } from 'lucide-react';
+import { PlusCircle, Verified, Fingerprint, ExternalLink, BadgeCheck, X, Share, User2 } from 'lucide-react';
 import AddressWrapper from './AddressFormatter/AddressWrapper';
 import { useAccount } from 'wagmi';
 import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
@@ -39,26 +39,12 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
         <div className="bg-white shadow-sm border border-slate-200 rounded-[2.5rem] p-6 sm:p-10">
           {/* ── Compact profile header ── */}
           <header className="flex items-center justify-between gap-4 mb-8">
-            {/* Avatar + address */}
             <div className="flex items-center gap-3">
-              <div className="relative shrink-0">
-                {/* Generated avatar from address */}
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-black shadow-md"
-                  style={{
-                    background: `linear-gradient(135deg, #001B3D ${address.slice(2,4)}%, #10B981)`
-                  }}
-                >
-                  {address.slice(2, 4).toUpperCase()}
-                </div>
-                {/* Online dot */}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white" />
-              </div>
+              <User2 className="w-8 h-8 text-slate-500" />
 
               <div className="min-w-0">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">On-chain Profile</p>
-                <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
-                  <Wallet className="w-3 h-3 text-slate-400 shrink-0" />
+                <div className="flex items-center bg-slate-50 rounded-2xl px-2 py-1 border border-slate-100">
                   <AddressWrapper
                     display={true}
                     account={address}
@@ -79,14 +65,14 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                 title="Share on X"
                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#001B3D] text-white hover:bg-[#002a5c] transition shadow-sm"
               >
-                <Twitter className="w-4 h-4" />
+                <Share className="w-4 h-4" />
               </a>
               <Link
                 to={verifyLink}
                 title="Verify identity"
                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100 transition"
               >
-                <BadgeCheck className="w-4 h-4 text-emerald-500" />
+                <Verified className="w-6 h-6 text-slate-500" />
               </Link>
             </div>
           </header>

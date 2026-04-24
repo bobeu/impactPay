@@ -105,7 +105,7 @@ export function FeaturedGoalsCarousel() {
             <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
               <div className="inline-flex items-center gap-1">
                 <Image
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="ImpactPay"
                   width={14}
                   height={14}
