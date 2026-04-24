@@ -16,7 +16,7 @@ const config: HardhatUserConfig = {
   networks: {
     celoSepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org",
-      accounts: [`${process.env.P_KEY_0xD7c}`],
+      accounts: [`${process.env.P_KEY_0x283c}`],
       chainId: 11142220,
     },
     celo: {
@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-      1142220: `privatekey://${process.env.P_KEY_0xD7c}`,
+      1142220: `privatekey://${process.env.P_KEY_0x283c}`,
       42220: `privatekey://${process.env.P_KEY_far}`
     },
     treasury:{
