@@ -2350,3 +2350,20 @@ Antigravity, you're expected to perform a throrough audit and checks on the `Imp
 
 ### CTO Said:
 
+Since a lot have changed, we need to bring the docs up to date. 
+
+- Update the README for both `blockchain`, `ui` and the main README at `impactPay/README.md`. Ensure the project structures are correctly updated. 
+
+- Each of the READMEs should contain detail descriptions and correctly state how the project should be run.
+
+- For the outer `README` i.e `impactPay/README.md`, do not modify the description. Update only the project structure.
+
+### Documentation Update Summary (Antigravity - 2026-04-24)
+
+- **Main README (`impactPay/README.md`)**: Updated the repository structure to reflect the current `blockchain` and `ui` directory organization while preserving the project description as requested.
+- **Blockchain README (`blockchain/README.md`)**: Rewrote the Hardhat default README to include accurate protocol descriptions, directory mappings, and instructions for running both Hardhat and Foundry test suites.
+- **UI README (`ui/README.md`)**: Created a comprehensive new README for the frontend project, detailing its Next.js 15 architecture, MiniPay optimization features, and fulfillment API integration.
+- **Structural Alignment**: Ensured all documentation correctly references the modern project layout, including the new `foundry-tests` and `app/api` fulfillment routes.
+
+---
+**Status: Documentation Tasks Completed.**
