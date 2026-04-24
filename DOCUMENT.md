@@ -2534,22 +2534,85 @@ I have implemented the protocol fee visibility and native stablecoin gas payment
 
 3.  **Transaction Feedback (`TransactionModal.tsx` & `CatchAllClient.tsx`)**:
     *   Updated the global `TransactionModal` to include a **Protocol Fee** line item.
-    *   The modal now explicitly shows the cost of the transaction during the authorization and settlement phases, enhancing transparency.
-    *   Wired the `modalFee` state through the context to ensure all overlays are synchronized with the current transaction context.
+- Environment variables audited and verified for production readiness.
 
-4.  **Repository Sync**:
-    *   Updated `DOCUMENT.md` with the task completion details.
-    *   All changes have been committed and pushed to the `optimize` branch (Commit `525024a`).
+**Recommendation**: Proceed with Mainnet deployment after a final gas optimization pass on the `funders` storage structure.
 
-**Status: Listing fee transparency and stablecoin gas implementation completed.**
+---
+**Status: Tasks Completed.**
 
--------------------------------------------------------------------
+----------------------------------------------------
 
 ### CTO Said:
 
-On `CreateGoalCard.tsx`, move the listing fee to the top of the category. Reduce the brightness of the text inside the `span` tag.
- # # #   U I   R e f i n e m e n t :   L i s t i n g   F e e   P l a c e m e n t   ( A n t i g r a v i t y   -   2 0 2 6 - 0 4 - 2 4 ) 
- 
- -   * * L a y o u t   O p t i m i z a t i o n * * :   M o v e d   t h e   l i s t i n g   f e e   i n f o r m a t i o n   t o   t h e   t o p   o f   t h e   \ C r e a t e G o a l C a r d . t s x \   ( a b o v e   t h e   C a t e g o r y   S e l e c t o r )   t o   e n s u r e   u s e r s   s e e   t h e   c o s t   i m m e d i a t e l y   b e f o r e   m a k i n g   c h o i c e s . 
- -   * * V i s u a l   T u n i n g * * :   R e d u c e d   t h e   b r i g h t n e s s   o f   t h e   f e e   a m o u n t   t e x t   ( c h a n g e d   t o   \ 	 e x t - s l a t e - 6 0 0 \ )   t o   c r e a t e   a   m o r e   b a l a n c e d   a n d   i n t e g r a t e d   l o o k   w i t h i n   t h e   f o r m   c o n t a i n e r .  
- 
+Since a lot have changed, we need to bring the docs up to date. 
+
+- Update the README for both `blockchain`, `ui` and the main README at `impactPay/README.md`. Ensure the project structures are correctly updated. 
+
+- Each of the READMEs should contain detail descriptions and correctly state how the project should be run.
+
+- For the outer `README` i.e `impactPay/README.md`, do not modify the description. Update only the project structure.
+
+### Documentation Update Summary (Antigravity - 2026-04-24)
+
+- **Main README (`impactPay/README.md`)**: Updated the repository structure to reflect the current `blockchain` and `ui` directory organization while preserving the project description as requested.
+- **Blockchain README (`blockchain/README.md`)**: Rewrote the Hardhat default README to include accurate protocol descriptions, directory mappings, and instructions for running both Hardhat and Foundry test suites.
+- **UI README (`ui/README.md`)**: Created a comprehensive new README for the frontend project, detailing its Next.js 15 architecture, MiniPay optimization features, and fulfillment API integration.
+- **Structural Alignment**: Ensured all documentation correctly references the modern project layout, including the new `foundry-tests` and `app/api` fulfillment routes.
+
+-------------------------------------------------
+
+### CTO Said:
+
+In `ProfileClientView.tsx`, the contents inside the header overflows to the right on mobile view especially the `Verified` icon. Rearrange it to align properly at the center. 
+
+- The `Amount input section` in `DevSubscriptionCard` also overflow to the right on mobile view.
+
+- The impactPay logo is not visible on mobile view.
+- When scrolling, the main `Header` scrolls with the app. Fix it to avoid scrolling together with the app.
+
+--------------------------------------------------
+
+### UI & Layout Fixes Summary
+
+1.  **Profile Header Optimization (`ProfileClientView.tsx`)**:
+    *   Redesigned the header to be fully mobile-responsive. 
+    *   The profile picture, address, and action buttons now stack vertically and align to the center on small screens, preventing the `Verified` icon from overflowing.
+    *   Enhanced the action buttons on mobile to include descriptive text labels (Share Profile, Verified) for better accessibility.
+
+2.  **DevSubscriptionCard Fix (`DevSubscriptionCard.tsx`)**:
+    *   Converted the horizontal input row into a responsive flex layout.
+    *   The subscription provider dropdown and amount input now stack on mobile, ensuring full visibility within narrow viewports.
+    *   Added a clear `USDm` suffix to the amount input field.
+
+3.  **Sticky Header & Logo Visibility (`Header.tsx` & `Layout.tsx`)**:
+    *   Converted the `Header` from `sticky` to `fixed` to ensure it stays at the top of the viewport regardless of the scroll container state.
+    *   Added `backdrop-blur-md` for a premium, semi-transparent fintech look.
+    *   Optimized logo visibility on mobile by hiding the "ImpactPay" text on small screens, prioritizing the logo icon and account status.
+    *   Updated the main `Layout.tsx` with `pt-20` to compensate for the fixed header height.
+
+4.  **Repository Sync**:
+    *   Updated `DOCUMENT.md` with the task completion summary.
+    *   All changes have been committed and pushed to the `optimize` branch (Commit `f4d67ff`).
+
+**Status: Mobile layout and visibility tasks completed.**
+
+------------------------------------------------
+
+### Protocol Fee Visibility & Native Stablecoin Gas (Antigravity - 2026-04-24)
+
+- **Fee Transparency**: Updated `CreateGoalCard.tsx` to dynamically display the required listing fee based on the selected goal category (Bill, Scholarship, or Default).
+- **Transaction Context**: Modified `ImpactPayContext.tsx` to track the current transaction fee and pass it to the global `TransactionModal`.
+- **MiniPay Optimization**: Integrated `feeCurrency` support in all write operations. All protocol transactions (including approvals and goal creation) are now configured to pay gas in `USDm` (cUSD), aligning with MiniPay's best practices for stablecoin-native UX.
+- **UI Feedback**: Enhanced `TransactionModal.tsx` to show the protocol fee during the authorization and settlement stages.
+
+---
+**Status: Listing Fee and Stablecoin Gas Tasks Completed.**
+
+### UI Refinement: Listing Fee Placement (Antigravity - 2026-04-24)
+
+- **Layout Optimization**: Moved the listing fee information to the top of the `CreateGoalCard.tsx` (above the Category Selector) to ensure users see the cost immediately before making choices.
+- **Visual Tuning**: Reduced the brightness of the fee amount text (changed to `text-slate-600`) to create a more balanced and integrated look within the form container.
+
+---
+**Status: UI refinement and fee placement tasks completed.**
