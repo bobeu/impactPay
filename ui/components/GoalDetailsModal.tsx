@@ -130,7 +130,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                 {common.goalType === GoalType.BILL && (
                   <div className="col-span-2 pt-2 border-t border-slate-200">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Service</span>
-                    <p className="text-xs font-bold text-slate-700">{bill.serviceType || 'Not specified'}</p>
+                    <p className="text-xs font-bold text-slate-700">{hexToString(bill.serviceType as unknown as `0x${string}`) || 'Not specified'}</p>
                   </div>
                 )}
                 {common.goalType === GoalType.SCHOLARSHIP && (
@@ -184,7 +184,8 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
               </section>
 
               {/* Action Area */}
-              {common.status === GoalStatus.OPEN && !isCreator && (
+              {/* {common.status === GoalStatus.OPEN && !isCreator && ( */}
+              {common.status === GoalStatus.OPEN && (
                 <section className="space-y-3 bg-[#001B3D]/5 p-4 rounded-xl border border-[#001B3D]/10">
                   <div className="flex items-center gap-2 mb-1">
                     <Wallet className="w-4 h-4 text-[#001B3D]" />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
-import { useAccount, useReadContract, useReadContracts, useWriteContract, useConfig, useWatchContractEvent } from 'wagmi';
+import { useAccount, useReadContract, useReadContracts, useWalletClient, useConfig, useWatchContractEvent } from 'wagmi';
 import { waitForTransactionReceipt, simulateContract } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefin
 
 export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   const { address, chain } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const config = useConfig();
   const chainId = chain?.id || 42220; // Default to Celo Mainnet
 
@@ -28,6 +29,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   const [modalStage, setModalStage] = useState<TransactionStage>('idle');
   const [modalTxHash, setModalTxHash] = useState<string>('');
   const [modalError, setModalError] = useState<string>('');
+  const [modalFee, setModalFee] = useState<bigint>(0n);
 
   // 1. Fetch user goal IDs and state
   const { data: goalIdsAndState_, refetch: refetchIdsAndState } = useReadContract({
@@ -133,21 +135,21 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     onLogs: () => refresh()
   });
 
-  // Write Hooks
-  const { writeContractAsync: writeCreateBillGoal } = useWriteContract();
-  const { writeContractAsync: writeTxn } = useWriteContract();
-  const { writeContractAsync: writeApproval } = useWriteContract();
 
   const createGoal = async (param: CreateBillGoal) => {
+    if (!walletClient) {
+      toast.error("Wallet not connected");
+      return;
+    }
     try {
       setModalStage('awaiting_auth');
       setModalTxHash('');
       setModalError('');
+      setModalFee(0n);
       const { goalType, description, extraInfo, targetAmount, billServiceIndex, serviceType } = param;
       let args = [];
       let functionName = 'createGoal';
       let listingFee = 0n;
-
       switch (goalType) {
         case 'BILL':
           if (!serviceType) return;
@@ -167,13 +169,17 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           break;
       }
 
+      setModalFee(listingFee);
+      const feeCurrency = CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address] as Address;
+
       if (listingFee > 0n) {
-        const approveHash = await writeApproval({
+        const approveHash = await walletClient.writeContract({
           address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
           abi: CONTRACTS.MockERC20.abi as any,
           functionName: 'approve',
-          args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee]
-        });
+          args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee],
+          feeCurrency
+        } as any);
         await waitForTransactionReceipt(config, { hash: approveHash });
       }
 
@@ -184,12 +190,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         args
       });
 
-      const hash = await writeCreateBillGoal({
+      const hash = await walletClient.writeContract({
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: functionName,
-        args
-      });
+        args,
+        feeCurrency
+      } as any);
 
       setModalTxHash(hash);
       setModalStage('tx_included');
@@ -209,7 +216,12 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   };
 
   const runTransaction = async (param: Args) => {
+    if (!walletClient) {
+      toast.error("Wallet not connected");
+      return;
+    }
     const { amount, extraInfo, goalIds, recipient, user, func } = param;
+    const feeCurrency = CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address] as Address;
     try {
       let args: any = [goalIds?.[0]];
       let errorMessage: string | null = null;
@@ -222,12 +234,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         case 'fundGoal':
           if (!amount) errorMessage = "Please provide amount";
           args = [goalIds?.[0], amount || 0n, extraInfo || ''];
-          const txHash = await writeApproval({
+          const txHash = await walletClient.writeContract({
             address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
             abi: CONTRACTS.MockERC20.abi as any,
             functionName: 'approve',
-            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n]
-          });
+            args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n],
+            feeCurrency
+          } as any);
           await waitForTransactionReceipt(config, { hash: txHash });
 
           break;
@@ -269,12 +282,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         args
       });
 
-      const hash = await writeTxn({
+      const hash = await walletClient.writeContract({
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: func,
-        args
-      });
+        args,
+        feeCurrency
+      } as any);
       setModalTxHash(hash);
       setModalStage('tx_included');
       await waitForTransactionReceipt(config, { hash });
@@ -299,6 +313,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         stage: modalStage,
         txHash: modalTxHash,
         error: modalError,
+        fee: modalFee,
         setStage: setModalStage
       },
       refresh,

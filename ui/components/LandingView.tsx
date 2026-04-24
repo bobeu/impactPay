@@ -46,7 +46,7 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
             ImpactPay
           </motion.h2>
           <h1 className="text-2xl font-bold text-slate-300 leading-tight">
-            Direct Help. <span className="text-accent decoration-emerald-400/40 underline underline-offset-4">Verified Stories.</span>
+            Direct Help. <span className="text-accent text-emerald-400/70">Verified Stories.</span>
           </h1>
         </div>
         <p className="text-sm text-slate-300 font-medium max-w-xs mx-auto">
