@@ -6,6 +6,7 @@ const DEPLOYMENTS_ROOT = path.join(__dirname, '../blockchain/deployments');
 
 // Networks to sync
 const NETWORK_PRIORITY = ['celoSepolia', 'celo'];
+// 0x765de816845861e75a25fca122bb6898b8b1282a
 
 // Contracts we care about syncing
 const CONTRACTS_TO_SYNC = [

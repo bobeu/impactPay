@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
-import { PlusCircle, Verified, Fingerprint, ExternalLink, BadgeCheck, X, Share, User2 } from 'lucide-react';
+import { PlusCircle, Verified, Fingerprint, ExternalLink, Share, User2 } from 'lucide-react';
 import AddressWrapper from './AddressFormatter/AddressWrapper';
 import { useAccount } from 'wagmi';
 import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';

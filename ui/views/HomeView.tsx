@@ -14,8 +14,8 @@ export default function HomeView() {
 
   if (!isConnected || !address) {
     return (
-      <div className="flex flex-col gap-5 px-4 py-12">
-        <section className="rounded-[2.5rem] border border-slate-200 bg-white px-8 py-12 shadow-xl shadow-slate-100 space-y-6 text-center max-w-sm mx-auto">
+      <div className="flex flex-col items-center">
+        <section className="rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-100 space-y-6 text-center max-w-sm mx-auto">
           <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-slate-100 overflow-hidden">
             <Image 
               src="/logo.png" 
