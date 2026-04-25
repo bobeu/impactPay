@@ -24,9 +24,9 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
-  const { claimScholarshipFunds, claimFund, toggleFlagGoal, refundScholarship  } = useImpactPay();
+  // const { claimScholarshipFunds, claimFund, toggleFlagGoal, refundScholarship  } = useImpactPay();
   const { address } = useAccount();
-  const { common, bill, scholarship, funders } = goal;
+  const { common, bill, funders } = goal;
   const [showFunders, setShowFunders] = useState(false);
 
   const isCreator = address?.toLowerCase() === common.creator.toLowerCase();
@@ -95,11 +95,11 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
         <div className="flex justify-between items-end text-[11px]">
           <div className="flex flex-col">
             <span className="text-slate-400 font-medium uppercase tracking-tighter">Raised</span>
-            <span className="text-slate-900 font-bold">{formatEther(common.raisedAmount)} USDm</span>
+            <span className="text-slate-900 font-bold">{Number(formatEther(common.raisedAmount)).toFixed(4)} USDm</span>
           </div>
           <div className="flex flex-col text-right">
             <span className="text-slate-400 font-medium uppercase tracking-tighter">Target</span>
-            <span className="text-slate-600 font-semibold">{formatEther(common.targetAmount)} USDm</span>
+            <span className="text-slate-600 font-semibold">{Number(formatEther(common.targetAmount)).toFixed(4)} USDm</span>
           </div>
         </div>
         

@@ -54,7 +54,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHas
           <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-500" />
-              Transfer Status
+              Transaction Status
             </h2>
             {/* Pulsing indicator */}
             <div className="flex items-center gap-2">
@@ -110,7 +110,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ stage, txHas
           {fee && fee > 0n && (
             <div className="px-8 py-3 bg-slate-50 border-y border-slate-100 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Protocol Fee</span>
-              <span className="text-xs font-black text-[#001B3D]">${(Number(fee) / 1e18).toFixed(2)} USDm</span>
+              <span className="text-xs font-black text-[#001B3D]">${(Number(fee) / 1e18).toFixed(4)} USDm</span>
             </div>
           )}
 

@@ -54,7 +54,9 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         uint256 targetAmount;
         uint256 raisedAmount;
         uint256 withdrawnAmount;
+        uint256 dataCreated;
         bytes description;
+        bytes extraLink;
         GoalStatus status;
         GoalType goalType;
         uint8 flagsCount;
@@ -193,9 +195,9 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         GoalType goalType,
         uint256 targetAmount,
         bytes description,
-        string serviceType,
+        bytes serviceType,
         address billService,
-        string extraInfo
+        bytes extraInfo
     );
 
     /// @notice Emitted when a goal receives funding
@@ -214,6 +216,9 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Emitted whenever a user's reputation score is updated
     event ReputationUpdated(address indexed user, uint16 change, string reason);
     
+    /// @notice Emitted whenever a goal is canceled
+    event Canceled(uint256 indexed goalId, address indexed caller, uint256 amountInGoal);
+
     /// @notice Emitted when a scholarship milestone is withdrawn
     event ScholarshipWithdrawal(
         uint256 indexed goalId, 
@@ -363,7 +368,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         bytes memory description,
         address billService,
         GoalType goalType,
-        string memory extraInfo
+        bytes memory extraLink
     ) private whenNotPaused notRestricted(_msgSender()) returns(uint256 goalId) {
         address sender = _msgSender();
         if (targetAmount == 0) revert InvalidAmount();
@@ -390,7 +395,9 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
             targetAmount,
             0,
             0,
+            block.timestamp,
             description,
+            extraLink,
             GoalStatus.OPEN,
             goalType,
             0,
@@ -398,20 +405,24 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         );
 
         if (fee > 0) stableToken.safeTransferFrom(sender, treasury, fee);
-        emit GoalCreated(goalId, sender, goalType, targetAmount, description, string(serviceType), billService, extraInfo);
+        emit GoalCreated(goalId, sender, goalType, targetAmount, description, serviceType, billService, extraLink);
+    }
+
+    function _encode(string memory data) internal pure returns(bytes memory encoded) {
+        encoded = bytes(data);
     }
 
     /// @notice Creates a new goal for bill payment
     /// @param targetAmount Amount intended to be raised
     /// @param description Public description of the goal
     /// @param serviceType Type of service (e.g. "electricity")
-    /// @param extraInfo Additional metadata encoded as string
+    /// @param extraLink Additional metadata encoded as string
     /// @param billServiceIndex Index of the service provider in billServices array
     function createBillGoal(
         uint256 targetAmount,
         string calldata description,
         string calldata serviceType,
-        string calldata extraInfo,
+        string calldata extraLink,
         uint8 billServiceIndex
     ) external isVerified(Level.LEVEL1, _msgSender()) returns(bool) {
         uint bsSize = billServices.length;
@@ -422,11 +433,11 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         }
         _createGoal(
             targetAmount, 
-            bytes(serviceType),
-            bytes(description),
+            _encode(serviceType),
+            _encode(description),
             billService == address(0)? _msgSender() : billService,
             GoalType.BILL,
-            extraInfo
+            _encode(extraLink)
         );
 
         return true;
@@ -435,19 +446,19 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Creates a new scholarship goal. Requires Level 3 levels.
     /// @param targetAmount Amount intended to be raised
     /// @param description Public description of the goal
-    /// @param extraInfo Additional metadata encoded as string
+    /// @param extraLink Additional metadata encoded as string
     function createScholarshipGoal(
         uint256 targetAmount,
         string calldata description,
-        string calldata extraInfo
+        string calldata extraLink
     ) external isVerified(Level.LEVEL3, _msgSender()) returns(bool) {
         _createGoal(
             targetAmount, 
-            hex"",
-            bytes(description),
+            _encode(""),
+            _encode(description),
             address(0),
             GoalType.SCHOLARSHIP,
-            extraInfo
+            _encode(extraLink)
         );
 
         return true;
@@ -456,19 +467,19 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @notice Creates a default social impact goal
     /// @param targetAmount Amount intended to be raised
     /// @param description Public description of the goal
-    /// @param extraInfo Additional metadata encoded as string
+    /// @param extraLink Additional metadata encoded as string
     function createGoal(
         uint256 targetAmount,
         string calldata description,
-        string calldata extraInfo
+        string calldata extraLink
     ) external isVerified(Level.LEVEL2, _msgSender()) returns(bool) {
         _createGoal(
             targetAmount, 
-            hex"",
-            bytes(description),
+            _encode(""),
+            _encode(description),
             address(0),
             GoalType.DEFAULT,
-            extraInfo
+            _encode(extraLink)
         );
 
         return true;
@@ -508,7 +519,7 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
         CommonData storage _c = goal.cData;
         _c.raisedAmount += amount;
         uint index = goal.funders.length;
-        goal.funders.push(Funder(amount, sender, abi.encode(bytes(extraInfo)), uint64(block.timestamp), false));
+        goal.funders.push(Funder(amount, sender, _encode(extraInfo), uint64(block.timestamp), false));
         if(!goal.funderFlag[sender].isFunder) {
             goal.funderFlag[sender] = FunderFlag(index, true);
         }
@@ -693,6 +704,31 @@ contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
     /// @param amount Amount to relay
     function relayBillFundsToService(uint256 goalId, uint256 amount) external onlyReleaseApprover whenNotPaused nonReentrant {
         _relayFund(goalId, amount, useBillService);
+    }
+
+    function cancelGoal(uint256 goalId) external whenNotPaused returns(bool) {
+        Goal storage _g = _verifyGoalId(goalId, GoalStatus.OPEN, "Cannot cancel");
+        CommonData storage cd = _g.cData;
+        address sender = _msgSender();
+        require(cd.creator == sender || sender == owner(), "Not permitted");
+        
+        uint256 withdrawable = cd.raisedAmount;
+        if (cd.raisedAmount > 0) {
+            require((block.timestamp - cd.dataCreated) > 90 days, "Goal is active");
+            if (sender !=  owner()) require(withdrawable < cd.targetAmount, "Raised >= target");
+            _editReputation(true, 0, cd.creator, false);
+        } 
+        cd.status = GoalStatus.CANCELED;
+        if (withdrawable > 0){
+            if(sender == cd.creator) {
+                stableToken.safeTransfer(cd.creator, withdrawable);
+            } else {
+                stableToken.safeTransfer(treasury, withdrawable);
+            }
+        }
+
+        emit Canceled(goalId, sender, withdrawable);
+        return true;
     }
 
     /// @notice Allows a donor to flag a goal for review if suspicious

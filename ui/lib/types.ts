@@ -19,7 +19,8 @@ export type OtherFuncType =
 'toggleFlagGoal' |
 'refundScholarship' |
 'onVerificationSuccess' |
-'claimFund'
+'claimFund' |
+'cancelGoal'
 
 export enum GoalStatus {
     OPEN,
@@ -56,7 +57,9 @@ export type CommonData = {
     targetAmount: bigint;
     raisedAmount: bigint;
     withdrawnAmount: bigint;
+    dataCreated: bigint;
     description: string; // bytes
+    extraLink: string; // bytes
     status: GoalStatus;
     goalType: GoalType;
     flagsCount: number;
@@ -156,6 +159,7 @@ export interface ImpactPayContextType {
     createGoal: (params: CreateBillGoal) => Promise<void>;
     fundGoal: (goalId: bigint, amount: bigint, extraInfo: string) => Promise<void>;
     reactivateGoal: (goalId: bigint) => Promise<void>;
+    cancelGoal: (goalId: bigint) => Promise<void>;
     approveScholarshipRelease: (goalIds: bigint[]) => Promise<void>;
     claimScholarshipFunds: (goalId: bigint, recipient: Address) => Promise<void>;
     relayBillFundsToService: (goalId: bigint, amount: bigint) => Promise<void>;
@@ -202,8 +206,10 @@ export const mockGoals : GetGoal = {
         raisedAmount: 0n,
         status: GoalStatus.OPEN,
         targetAmount: 0n,
+        dataCreated: 0n,
         lockedForReview: false,
-        withdrawnAmount: 0n
+        withdrawnAmount: 0n,
+        extraLink: ""
     },
     scholarship: {
         refundedAmount: 0n,

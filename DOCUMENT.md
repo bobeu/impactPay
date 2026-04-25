@@ -2598,9 +2598,27 @@ Seems like Wagmi does not support the `feeCurrency` property. We need to use `vi
 Antigravity, in `ImpactPayContext` where `feeCurrency` is used, convert the wagmi implementation to viem implementation for interacting the with contracts on the Celo blockchain so we can be able to pass in the `feeCurrency` property.
 
 NOTE: This changes must not break the existing application logic. It should not ask for private keys but use the user's connected wallet provider. 
- # # #   R e f a c t o r :   V i e m   I n t e g r a t i o n   f o r   f e e C u r r e n c y   S u p p o r t   ( A n t i g r a v i t y   -   2 0 2 6 - 0 4 - 2 4 ) 
- 
- -   * * C o n t r a c t   I n t e r a c t i o n * * :   M i g r a t e d   f r o m   W a g m i ' s   \ u s e W r i t e C o n t r a c t \   h o o k s   t o   d i r e c t   V i e m   \ w a l l e t C l i e n t . w r i t e C o n t r a c t \   c a l l s   i n   \ I m p a c t P a y C o n t e x t . t s x \ . 
- -   * * C e l o   O p t i m i z a t i o n * * :   T h i s   c h a n g e   e n s u r e s   t h e   \  e e C u r r e n c y \   p r o p e r t y   i s   c o r r e c t l y   p r o p a g a t e d   t o   t h e   b l o c k c h a i n ,   f u l l y   e n a b l i n g   s t a b l e c o i n   g a s   p a y m e n t s   f o r   a l l   p r o t o c o l   t r a n s a c t i o n s   ( a p p r o v a l s ,   g o a l   c r e a t i o n ,   a n d   f u n d i n g ) . 
- -   * * U X   S t a b i l i t y * * :   A d d e d   c o n n e c t i v i t y   c h e c k s   t o   e n s u r e   t h e   \ w a l l e t C l i e n t \   i s   a v a i l a b l e   b e f o r e   i n i t i a t i n g   t r a n s a c t i o n s ,   m a i n t a i n i n g   a   r o b u s t   u s e r   e x p e r i e n c e   w i t h o u t   r e q u i r i n g   d i r e c t   p r i v a t e   k e y   a c c e s s .  
- 
+ 
+-----------------------------------------------------------------
+
+### CTO Said:
+
+The `fundGoal` logic is not working. Could you please investigate and fix any issues you may found.
+
+-----------------------------------------------------------------
+
+### CTO Said:
+
+In `ImpactPayContext`, I have reverted to using viem to broadcast transaction to the Celo blockchain but fetching data from the blockchain using Wagmi hook suddenly stopped working. 
+
+- Investigate the root cause, and switch to using viem for fetching the data instead. The `useWeb3` hook already returns a `publicClient` that can be used for this cause. Ensure you fully understand how to use viem. This implementation should not break existing logic or the whole app. It should also be compatible for fetching multiple contracts at once i.e `multicall`.
+
+------------------------------------------------
+
+### CTO Said:
+
+Antigravity, implement the `cancelGoal` functionality on the ui for every goal whose status is `OPEN` or (`amountRaised` is greater than zero and at the same time the current time minus `dateCreated` is greater than 90 days). User can cancel their goals only if the status is `OPEN`. If the status is not open, it means there is an amount already raised. if raised amount is greater than zero, then the current time less the `dateCreated` property must be greater than 90 days.
+
+To know where the `dateCreated` property is, see interface `CommonData` in `ui/lib/types.ts` .
+
+NOTE: This implementation must not break the current logic or any other related components.
