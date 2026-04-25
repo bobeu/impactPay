@@ -90,7 +90,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // ===========================================================================
   console.log('\n--- Phase 1: Deployment ---');
 
-  let mockERC20: DeployResult;
+  let mockERC20: DeployResult = {
+    address: zeroAddress,
+    newlyDeployed: false,
+    abi: []
+  };
 
   // MockERC20 — institutional entry point (constructor: token, escrow)
    if(isTestnet){
@@ -114,8 +118,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   console.log('ImpactPay deployed :', impactPay.address);
 
+  try {
+    await execute("MockERC20", {from:deployer}, "mint", deployer, parseUnits("10000", 18));
+    console.log("Mint successfuk");
+  } catch (error) {
+    console.log("Minting failed with: ", error?.message || error?.data?.message || error);
+  }
+
   const result = await read('ImpactPay', 'getGoal', 0) as GetGoal;
+  const stableToken_ = await read('ImpactPay', 'stableToken') as string;
+  const balance = await read('MockERC20', 'balanceOf', deployer) as bigint;
   console.log('Initial getGoal(0) call result:', result);
+  console.log('Stable Token:', stableToken_);
+  console.log('Balance:', balance.toString());
 };
 
 export default func;

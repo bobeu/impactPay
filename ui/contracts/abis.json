@@ -169,6 +169,31 @@
         {
           "indexed": true,
           "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountInGoal",
+          "type": "uint256"
+        }
+      ],
+      "name": "Canceled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "goalId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
           "name": "donor",
           "type": "address"
         },
@@ -235,9 +260,9 @@
         },
         {
           "indexed": false,
-          "internalType": "string",
+          "internalType": "bytes",
           "name": "serviceType",
-          "type": "string"
+          "type": "bytes"
         },
         {
           "indexed": false,
@@ -247,9 +272,9 @@
         },
         {
           "indexed": false,
-          "internalType": "string",
+          "internalType": "bytes",
           "name": "extraInfo",
-          "type": "string"
+          "type": "bytes"
         }
       ],
       "name": "GoalCreated",
@@ -589,6 +614,25 @@
           "type": "uint256"
         }
       ],
+      "name": "cancelGoal",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "goalId",
+          "type": "uint256"
+        }
+      ],
       "name": "claimFund",
       "outputs": [
         {
@@ -643,7 +687,7 @@
         },
         {
           "internalType": "string",
-          "name": "extraInfo",
+          "name": "extraLink",
           "type": "string"
         },
         {
@@ -677,7 +721,7 @@
         },
         {
           "internalType": "string",
-          "name": "extraInfo",
+          "name": "extraLink",
           "type": "string"
         }
       ],
@@ -706,7 +750,7 @@
         },
         {
           "internalType": "string",
-          "name": "extraInfo",
+          "name": "extraLink",
           "type": "string"
         }
       ],
@@ -871,8 +915,18 @@
                   "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
+                  "name": "dataCreated",
+                  "type": "uint256"
+                },
+                {
                   "internalType": "bytes",
                   "name": "description",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "extraLink",
                   "type": "bytes"
                 },
                 {
@@ -1129,8 +1183,18 @@
               "type": "uint256"
             },
             {
+              "internalType": "uint256",
+              "name": "dataCreated",
+              "type": "uint256"
+            },
+            {
               "internalType": "bytes",
               "name": "description",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "extraLink",
               "type": "bytes"
             },
             {

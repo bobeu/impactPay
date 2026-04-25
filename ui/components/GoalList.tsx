@@ -132,6 +132,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                   <th className="py-3 pr-3 font-semibold">Creator</th>
                   <th className="py-3 pr-3 font-semibold text-right">Raised</th>
                   <th className="py-3 pr-3 font-semibold text-right">Target</th>
+                  <th className="py-3 pr-3 font-semibold">Date</th>
                   <th className="py-3 pr-3 font-semibold">Funders</th>
                   <th className="py-3 pr-5 font-semibold">Status</th>
                 </tr>
@@ -173,7 +174,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                           {shortAddr(common.creator)}
                         </td>
                         <td className="py-3.5 pr-3 text-right">
-                          <div className="font-bold text-emerald-600">{Number(formatEther(common.raisedAmount)).toFixed(2)}</div>
+                          <div className="font-bold text-emerald-600">{Number(formatEther(common.raisedAmount)).toFixed(4)}</div>
                           {/* Mini progress bar */}
                           <div className="mt-1 ml-auto w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
                             <div
@@ -183,7 +184,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                           </div>
                         </td>
                         <td className="py-3.5 pr-3 text-right font-semibold text-slate-500">
-                          {Number(formatEther(common.targetAmount)).toFixed(2)}
+                          {Number(formatEther(common.targetAmount)).toFixed(4)}
                           <span className="ml-0.5 text-[9px] text-slate-300">USDm</span>
                         </td>
                         <td className="py-3.5 pr-3">
@@ -255,7 +256,7 @@ export function GoalList({ goals, title, emptyMessage = "No goals found.", isFun
                     {/* Amounts + progress */}
                     <div className="flex items-center gap-3">
                       <span className="text-[11px] font-bold text-emerald-600">
-                        {Number(formatEther(common.raisedAmount)).toFixed(2)} USDm
+                        {Number(formatEther(common.raisedAmount)).toFixed(4)} USDm
                       </span>
                       <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }} />

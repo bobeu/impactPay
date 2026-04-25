@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
-import { useAccount, useReadContract, useReadContracts, useWalletClient, useConfig, useWatchContractEvent } from 'wagmi';
-import { waitForTransactionReceipt, simulateContract } from "wagmi/actions";
+import { useAccount, useReadContract, useReadContracts, useConfig, useWatchContractEvent } from 'wagmi';
+import {  simulateContract } from "wagmi/actions";
 import { CONTRACTS } from '@/contracts';
 import { toast } from 'sonner';
 import {
@@ -16,12 +17,14 @@ import {
   mockGoals
 } from "../lib/types";
 import { Address } from 'viem';
+import { useWeb3 } from './useWeb3';
 
 const ImpactPayContext = createContext<ImpactPayContextType | undefined>(undefined);
 
 export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
-  const { address, chain } = useAccount();
-  const { data: walletClient } = useWalletClient();
+  const { address, chain, isConnected } = useAccount();
+  const { broadcastTransaction } = useWeb3();
+  // const { data: walletClient } = useWalletClient();
   const config = useConfig();
   const chainId = chain?.id || 42220; // Default to Celo Mainnet
 
@@ -50,6 +53,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     };
   }, [goalIdsAndState_]);
 
+  
   // Fetch the goals for all the goal IDs
   const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
     contracts: goalIdsToFetch.map(k => ({
@@ -61,6 +65,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     query: { enabled: goalIdsToFetch.length > 0 }
   });
 
+  console.log("goalIdsToFetch", goalIdsToFetch);
+  console.log("rawGoals", rawGoals)
   // // Fetch the goals for all the goal IDs
   // const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
   //   contracts: goalIdsAndState.goalIds.map(k => ({
@@ -108,6 +114,10 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     }
   }, [rawGoals, address]);
 
+  console.log("userGoals", userGoals)
+  console.log("stats", stats)
+  console.log("goals", goals)
+
   const refresh = useCallback(() => {
     refetchIdsAndState();
     refetchGoals();
@@ -137,7 +147,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
 
   const createGoal = async (param: CreateBillGoal) => {
-    if (!walletClient) {
+    if (!isConnected) {
       toast.error("Wallet not connected");
       return;
     }
@@ -173,14 +183,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       const feeCurrency = CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address] as Address;
 
       if (listingFee > 0n) {
-        const approveHash = await walletClient.writeContract({
+        await broadcastTransaction({
           address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
           abi: CONTRACTS.MockERC20.abi as any,
           functionName: 'approve',
           args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], listingFee],
           feeCurrency
-        } as any);
-        await waitForTransactionReceipt(config, { hash: approveHash });
+        }, chainId);        
       }
 
       await simulateContract(config, {
@@ -190,17 +199,17 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         args
       });
 
-      const hash = await walletClient.writeContract({
+      const receipt = await broadcastTransaction({
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: functionName,
         args,
         feeCurrency
-      } as any);
+      }, chainId);
 
-      setModalTxHash(hash);
+      setModalTxHash(receipt.transactionHash);
       setModalStage('tx_included');
-      await waitForTransactionReceipt(config, { hash, confirmations: 2 });
+      // await waitForTransactionReceipt(config, { hash, confirmations: 2 });
       setModalStage('verifying');
       setTimeout(() => {
         setModalStage('success');
@@ -209,6 +218,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       }, 1500);
 
     } catch (err: any) {
+      console.log("Errored", err);
       setModalStage('error');
       setModalError(err.shortMessage || err.message);
       setTimeout(() => setModalStage('idle'), 3000);
@@ -216,7 +226,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   };
 
   const runTransaction = async (param: Args) => {
-    if (!walletClient) {
+    if (!isConnected) {
       toast.error("Wallet not connected");
       return;
     }
@@ -234,14 +244,13 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         case 'fundGoal':
           if (!amount) errorMessage = "Please provide amount";
           args = [goalIds?.[0], amount || 0n, extraInfo || ''];
-          const txHash = await walletClient.writeContract({
+          await broadcastTransaction({
             address: CONTRACTS.MockERC20.address[chainId as keyof typeof CONTRACTS.MockERC20.address],
             abi: CONTRACTS.MockERC20.abi as any,
             functionName: 'approve',
             args: [CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address], amount || 0n],
             feeCurrency
-          } as any);
-          await waitForTransactionReceipt(config, { hash: txHash });
+          }, chainId);
 
           break;
 
@@ -282,16 +291,16 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         args
       });
 
-      const hash = await walletClient.writeContract({
+      const receipt = await broadcastTransaction({
         address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
         abi: CONTRACTS.ImpactPay.abi as any,
         functionName: func,
         args,
         feeCurrency
-      } as any);
-      setModalTxHash(hash);
+      }, chainId);
+      setModalTxHash(receipt.transactionHash);
       setModalStage('tx_included');
-      await waitForTransactionReceipt(config, { hash });
+      // await waitForTransactionReceipt(config, { hash });
       setModalStage('verifying');
       setTimeout(() => {
         setModalStage('success');
@@ -319,6 +328,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       refresh,
       createGoal,
       claimFund: async(goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'claimFund' }) },
+      cancelGoal: async(goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'cancelGoal' }) },
       fundGoal: async (goalId: bigint, amount: bigint, extraInfo: string) => { await runTransaction({ goalIds: [goalId], amount, extraInfo, func: 'fundGoal' }) },
       toggleFlagGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'toggleFlagGoal' }) },
       reactivateGoal: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'reactivateGoal' }) },

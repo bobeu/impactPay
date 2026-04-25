@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { celo } from "wagmi/chains";
+import { celo, celoSepolia } from "wagmi/chains";
 import Layout from "@/components/Layout";
 import { MiniPayAutoConnect } from "@/components/MiniPayAutoConnect";
 import { UserProfileProvider } from "@/contexts/UserProfileContext";
@@ -26,10 +26,11 @@ const connectors = connectorsForWallets(
 );
 
 const config = createConfig({
-  chains: [celo],
+  chains: [celoSepolia, celo],
   connectors,
   transports: {
     // [celoSepolia.id]: http(process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL),
+    [celoSepolia.id]: http(),
     [celo.id]: http(),
   },
 });

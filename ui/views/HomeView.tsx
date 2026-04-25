@@ -12,6 +12,8 @@ export default function HomeView() {
   const { stats } = useImpactPay();
   const navigate = useNavigate();
 
+  console.log("Stats", stats);
+
   if (!isConnected || !address) {
     return (
       <div className="flex flex-col items-center">

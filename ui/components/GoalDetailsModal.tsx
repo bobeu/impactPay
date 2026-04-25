@@ -114,6 +114,12 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                       <ShieldCheck className="w-3.5 h-3.5" />
                       {common.flagsCount} Flags
                    </div>
+                   {common.dataCreated > 0n && (
+                     <div className="px-2.5 py-1 rounded-lg bg-white border border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                        <Calendar className="w-3.5 h-3.5" />
+                        Created: {new Date(Number(common.dataCreated) * 1000).toLocaleDateString()}
+                     </div>
+                   )}
                 </div>
               </section>
 
@@ -166,7 +172,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                            </div>
                            <div>
                              <p className="text-[11px] font-bold text-slate-800">{funder.id.slice(0, 6)}...{funder.id.slice(-4)}</p>
-                             <p className="text-[10px] text-slate-400 font-medium italic">"{funder.extraInfo || 'No message'}"</p>
+                             <p className="text-[10px] text-slate-400 font-medium italic">"{funder.extraInfo ? hexToString(funder.extraInfo as `0x${string}`) : 'No message'}"</p>
                            </div>
                         </div>
                         <div className="text-[11px] font-bold text-emerald-600">

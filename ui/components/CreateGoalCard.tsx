@@ -308,7 +308,7 @@ export function CreateGoalCard() {
           disabled={isSubmitting || isOverLimit}
           className="h-14 w-full rounded-[2.5rem] bg-[#001B3D] text-white text-sm font-bold hover:bg-[#002a5c] transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "Processing…" : "Create Impact Goal"}
+          {isSubmitting ? "Creating Goal…" : "Create Impact Goal"}
           {!isSubmitting && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
         </button>
 

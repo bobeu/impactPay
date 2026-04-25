@@ -6,7 +6,7 @@ import { useImpactPay } from '@/contexts/ImpactPayContext';
 import { GoalList } from '@/components/GoalList';
 import { motion } from 'framer-motion';
 import { PlusCircle, Verified, Fingerprint, ExternalLink, Share, User2 } from 'lucide-react';
-import AddressWrapper from './AddressFormatter/AddressWrapper';
+// import AddressWrapper from './AddressFormatter/AddressWrapper';
 import { useAccount } from 'wagmi';
 import { IdentityVerificationCard } from '@/components/IdentityVerificationCard';
 import { PhoneLookupCard } from '@/components/PhoneLookupCard';
@@ -43,7 +43,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
                 <User2 className="w-8 h-8 text-slate-400" />
               </div>
-
+{/* 
               <div className="space-y-1.5">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">On-chain Profile</p>
                 <div className="flex items-center bg-slate-50 rounded-2xl px-3 py-1.5 border border-slate-100 shadow-sm">
@@ -55,7 +55,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                     overrideClassName='text-slate-600 font-mono text-[12px] font-bold'
                   />
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Action buttons — centered on mobile */}
