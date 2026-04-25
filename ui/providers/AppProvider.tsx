@@ -26,12 +26,11 @@ const connectors = connectorsForWallets(
 );
 
 const config = createConfig({
-  chains: [celoSepolia, celo],
+  chains: [celo, celoSepolia],
   connectors,
   transports: {
-    // [celoSepolia.id]: http(process.env.NEXT_PUBLIC_CELOSEPOLIA_RPC_URL),
-    [celoSepolia.id]: http(),
     [celo.id]: http(),
+    [celoSepolia.id]: http(),
   },
 });
 
