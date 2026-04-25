@@ -42,7 +42,7 @@ yarn.lock
 package-lock.json
 
 # Dev doc
-DOCUMENT.md
+../DOCUMENTS.md
 # /DOCUMENT.md
 # /PROJECT_OVERVIEW.md
 REPORT.md
