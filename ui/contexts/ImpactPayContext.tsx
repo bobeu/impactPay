@@ -65,18 +65,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     query: { enabled: goalIdsToFetch.length > 0 }
   });
 
-  console.log("goalIdsToFetch", goalIdsToFetch);
-  console.log("rawGoals", rawGoals)
-  // // Fetch the goals for all the goal IDs
-  // const { data: rawGoals, isLoading: isImpactPayLoading, refetch: refetchGoals } = useReadContracts({
-  //   contracts: goalIdsAndState.goalIds.map(k => ({
-  //     address: CONTRACTS.ImpactPay.address[chainId], 
-  //     abi: CONTRACTS.ImpactPay.abi as any, 
-  //     functionName: 'getGoal',
-  //     args: [k]
-  //   })),
-  //   query: { enabled: !!goalIdsAndState }
-  // });
+  // console.log("goalIdsToFetch", goalIdsToFetch);
+  // console.log("rawGoals", rawGoals)
 
   // Derived the goals
   const { userGoals, goals, stats, funderReputations } = useMemo(() => {
@@ -114,9 +104,9 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     }
   }, [rawGoals, address]);
 
-  console.log("userGoals", userGoals)
-  console.log("stats", stats)
-  console.log("goals", goals)
+  // console.log("userGoals", userGoals)
+  // console.log("stats", stats)
+  // console.log("goals", goals)
 
   const refresh = useCallback(() => {
     refetchIdsAndState();
