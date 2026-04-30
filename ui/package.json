@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@celo/abis": "^14.0.1",
+    "@celo/contractkit": "^10.0.3",
     "@celo/identity": "^5.1.2",
     "@headlessui/react": "^2.1.10",
     "@heroicons/react": "^2.1.5",

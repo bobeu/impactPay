@@ -43,6 +43,15 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
     query: { enabled: !!address }
   });
 
+  // 1. Fetch user goal IDs and state
+  const { data: owner, refetch: refetchOwner } = useReadContract({
+    address: CONTRACTS.ImpactPay.address[chainId as keyof typeof CONTRACTS.ImpactPay.address],
+    abi: CONTRACTS.ImpactPay.abi as any,
+    functionName: 'owner',
+    args: [],
+    query: { enabled: !!isConnected }
+  });
+
   const { goalIdsAndState, goalIdsToFetch } = React.useMemo(() => {
     if (!goalIdsAndState_) return { goalIdsAndState: mockGetGoalIDAndState, goalIdsToFetch: [] };
     const goalIdsData = goalIdsAndState_ as GetGoalIdAndState;
@@ -111,7 +120,8 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(() => {
     refetchIdsAndState();
     refetchGoals();
-  }, [refetchIdsAndState, refetchGoals]);
+    refetchOwner();
+  }, [refetchIdsAndState, refetchGoals, refetchOwner]);
 
   // Watch for events to auto-refresh
   useWatchContractEvent({
@@ -209,6 +219,14 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
 
     } catch (err: any) {
       console.log("Errored", err);
+      const errMsg = (err.shortMessage || err.message || "").toLowerCase();
+      if (errMsg.includes("insufficient funds") || errMsg.includes("exceeds balance") || errMsg.includes("intrinsic gas")) {
+        if (typeof window !== "undefined" && window.ethereum?.isMiniPay) {
+          window.location.href = "https://minipay.opera.com/add_cash";
+          setModalStage('idle');
+          return;
+        }
+      }
       setModalStage('error');
       setModalError(err.shortMessage || err.message);
       setTimeout(() => setModalStage('idle'), 3000);
@@ -299,6 +317,14 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => setModalStage('idle'), 3000);
       }, 1500);
     } catch (err: any) {
+      const errMsg = (err.shortMessage || err.message || "").toLowerCase();
+      if (errMsg.includes("insufficient funds") || errMsg.includes("exceeds balance") || errMsg.includes("intrinsic gas")) {
+        if (typeof window !== "undefined" && window.ethereum?.isMiniPay) {
+          window.location.href = "https://minipay.opera.com/add_cash";
+          setModalStage('idle');
+          return;
+        }
+      }
       setModalStage('error');
       setModalError(err.shortMessage || err.message);
       setTimeout(() => setModalStage('idle'), 3000);
@@ -328,6 +354,7 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
       refundScholarship: async (goalId: bigint) => { await runTransaction({ goalIds: [goalId], func: 'refundScholarship' }) },
       onVerificationSuccess: async (user: Address) => { await runTransaction({ user, func: 'onVerificationSuccess' }) },
       goalIdsAndState,
+      owner,
       goals: goals || [] as GetGoal[],
       userGoals,
       stats,

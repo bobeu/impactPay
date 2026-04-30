@@ -9,10 +9,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Link } from "react-router-dom";
 import Image from "next/image";
 import AddressWrapper from "./AddressFormatter/AddressWrapper";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 export default function Header() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
+  const { profile } = useUserProfile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hideConnectBtn, setHideConnectBtn] = useState(false);
 
@@ -45,12 +47,18 @@ export default function Header() {
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             <span className="text-xs font-medium text-primary">
-              <AddressWrapper  
-                account={address}
-                copyIconSize="6"
-                display={true}
-                size={6}
-              />
+              {profile.phoneNumber ? (
+                profile.phoneNumber
+              ) : profile.xHandle || profile.facebookHandle || profile.instagramHandle ? (
+                `@${profile.xHandle || profile.facebookHandle || profile.instagramHandle}`
+              ) : (
+                <AddressWrapper  
+                  account={address}
+                  copyIconSize="6"
+                  display={true}
+                  size={6}
+                />
+              )}
             </span>
           </div>
         ) : (

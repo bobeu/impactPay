@@ -24,11 +24,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let obfuscatedIdentifier = "";
+    let obfuscatedIdentifier = body.obfuscatedIdentifier || "";
     if (phoneNumber) {
-      obfuscatedIdentifier = createHash("sha256")
-        .update(`PHONE:${phoneNumber}`)
-        .digest("hex");
+      if (!obfuscatedIdentifier) {
+        obfuscatedIdentifier = createHash("sha256")
+          .update(`PHONE:${phoneNumber}`)
+          .digest("hex");
+      }
 
       phoneMappings.set(obfuscatedIdentifier, {
         obfuscatedIdentifier,

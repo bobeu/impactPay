@@ -10,6 +10,7 @@ export type UserProfileState = {
   phoneVerified: boolean;
   xHandle?: string;
   instagramHandle?: string;
+  facebookHandle?: string;
   socialsLinked: boolean;
   humanVerified: boolean;
   verificationLevel: VerificationLevel;
@@ -18,7 +19,7 @@ export type UserProfileState = {
 type UserProfileContextType = {
   profile: UserProfileState;
   setPhoneVerified: (phoneNumber: string) => void;
-  setSocialsLinked: (xHandle: string, instagramHandle: string) => void;
+  setSocialsLinked: (xHandle?: string, instagramHandle?: string, facebookHandle?: string) => void;
   setHumanVerified: () => void;
   canCreateScholarship: boolean;
 };
@@ -30,6 +31,7 @@ const INITIAL_STATE: UserProfileState = {
   phoneVerified: false,
   xHandle: undefined,
   instagramHandle: undefined,
+  facebookHandle: undefined,
   socialsLinked: false,
   humanVerified: false,
   verificationLevel: 0,
@@ -47,11 +49,12 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
-  const setSocialsLinked = (xHandle: string, instagramHandle: string) => {
+  const setSocialsLinked = (xHandle?: string, instagramHandle?: string, facebookHandle?: string) => {
     setProfile((prev) => ({
       ...prev,
-      xHandle,
-      instagramHandle,
+      ...(xHandle && { xHandle }),
+      ...(instagramHandle && { instagramHandle }),
+      ...(facebookHandle && { facebookHandle }),
       socialsLinked: true,
       verificationLevel: Math.max(prev.verificationLevel, 2) as VerificationLevel,
     }));

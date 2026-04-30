@@ -20,6 +20,7 @@ export function IdentityVerificationCard({ address }: Props) {
   const { onVerificationSuccess } = useImpactPay();
   const [phoneInput, setPhoneInput] = useState("");
   const [handle, setHandle] = useState("");
+  const [socialType, setSocialType] = useState<"X" | "Facebook" | "Instagram">("X");
   const [loading, setLoading] = useState<string | null>(null);
   // const [status, setStatus] = useState<string>("");
 
@@ -39,7 +40,9 @@ export function IdentityVerificationCard({ address }: Props) {
         phoneNumber: phoneInput,
         walletAddress: address,
       });
-      await toast.promise(odisPromise, {
+      
+      let odisResult;
+      await toast.promise(odisPromise.then(res => { odisResult = res; return res; }), {
         loading: "Verifying phone with ODIS...",
         success: "ODIS verification complete",
         error: "ODIS verification failed",
@@ -47,6 +50,7 @@ export function IdentityVerificationCard({ address }: Props) {
       await registerPhoneMapping({
         phoneNumber: phoneInput,
         walletAddress: address,
+        obfuscatedIdentifier: odisResult?.obfuscatedIdentifier,
       });
       setPhoneVerified(phoneInput);
       toast.success("Phone verified and mapped securely.");
@@ -68,12 +72,17 @@ export function IdentityVerificationCard({ address }: Props) {
       const res = await fetch("/api/socialconnect/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle, walletAddress: address }),
+        body: JSON.stringify({ handle, type: socialType, walletAddress: address }),
       });
       if (!res.ok) throw new Error("Failed to register handle");
       
-      setSocialsLinked(handle.trim(), "");
-      toast.success("Social handle linked successfully.");
+      const args: [string?, string?, string?] = [undefined, undefined, undefined];
+      if (socialType === "X") args[0] = handle.trim();
+      if (socialType === "Instagram") args[1] = handle.trim();
+      if (socialType === "Facebook") args[2] = handle.trim();
+      
+      setSocialsLinked(...args);
+      toast.success(`${socialType} handle linked successfully.`);
     } catch (error) {
        toast.error((error as Error).message);
     } finally {
@@ -152,9 +161,20 @@ export function IdentityVerificationCard({ address }: Props) {
 
             {!step.field && (
               <div className="flex gap-2">
+                {step.type === "social" && (
+                  <select
+                    className="h-11 rounded-md border border-slate-200 px-2 text-sm text-slate-900 focus:border-accent outline-none transition-all"
+                    value={socialType}
+                    onChange={(e) => setSocialType(e.target.value as any)}
+                  >
+                    <option value="X">X</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Instagram">Instagram</option>
+                  </select>
+                )}
                 {step.setValue && (
                   <input
-                    className="flex-1 h-11 rounded-md border border-slate-200 px-4 text-sm text-slate-900 focus:border-accent outline-none transition-all"
+                    className="flex-1 min-w-0 h-11 rounded-md border border-slate-200 px-4 text-sm text-slate-900 focus:border-accent outline-none transition-all"
                     placeholder={step.placeholder}
                     value={step.value}
                     onChange={(e) => step.setValue!(e.target.value)}
