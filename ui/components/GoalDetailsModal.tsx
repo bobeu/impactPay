@@ -17,7 +17,8 @@ import {
   Info,
   Calendar,
   Wallet,
-  ArrowRight
+  ArrowRight,
+  Pen
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { toast } from "sonner";
@@ -29,7 +30,18 @@ interface GoalDetailsModalProps {
 }
 
 export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProps) {
-  const { fundGoal, reactivateGoal, toggleFlagGoal, refundScholarship, relayBillFundsToService, claimScholarshipFunds, claimFund } = useImpactPay();
+  const { 
+    owner, 
+    fundGoal, 
+    reactivateGoal, 
+    toggleFlagGoal, 
+    cancelGoal, 
+    refundScholarship, 
+    relayBillFundsToService, 
+    claimScholarshipFunds, 
+    claimFund,
+    approveScholarshipRelease
+  } = useImpactPay();
   const { address } = useAccount();
   const [fundingAmount, setFundingAmount] = useState<string>("");
   const [extraInfo, setExtraInfo] = useState<string>("");
@@ -39,9 +51,12 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
   const { common, bill, scholarship, funders } = goal;
   const isCreator = address?.toLowerCase() === common.creator.toLowerCase();
-  
+  const isOwner = address?.toLowerCase() === owner.toLowerCase();
   const userFunder = funders.find(f => f.id.toLowerCase() === address?.toLowerCase());
+  const isFunder = funders.some(f => f.id.toLowerCase() === address?.toLowerCase());
   const hasFlagged = userFunder?.hasFlagged ?? false;
+  const disabledCancelButton = common.status === GoalStatus.CANCELED || common.status === GoalStatus.RAISED || common.status === GoalStatus.FULFILLED;
+  const hideCancelButton = !isCreator
   
   const handleFund = async () => {
     if (!fundingAmount || isNaN(Number(fundingAmount))) {
@@ -100,7 +115,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
             <div className="flex-1 overflow-y-auto p-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {/* Description Section */}
-              <section className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <section className="relative space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Story</h3>
                 <p className="text-slate-700 leading-relaxed font-medium break-words">
                   {hexToString(common.description as unknown as `0x${string}`)}
@@ -121,38 +136,63 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                      </div>
                    )}
                 </div>
+                <button 
+                  onClick={async() => await cancelGoal(common.id)}
+                  disabled={disabledCancelButton}
+                  className={cn(`w-full py-2.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all border`, 
+                    disabledCancelButton 
+                    ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" 
+                    : "bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100",
+                    `${hideCancelButton && 'hidden'}`
+                  )}
+                >
+                  <Info className="w-3.5 h-3.5" /> Cancel Goal
+                </button>
               </section>
 
               {/* Progress & Stats */}
-              <section className="bg-slate-50 rounded-xl p-4 grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Raised</span>
-                  <div className="text-xl font-bold text-slate-900">{formatEther(common.raisedAmount)} USDm</div>
-                </div>
-                <div className="space-y-1 text-right">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Target</span>
-                  <div className="text-xl font-bold text-slate-600">{formatEther(common.targetAmount)} USDm</div>
-                </div>
-                {common.goalType === GoalType.BILL && (
-                  <div className="col-span-2 pt-2 border-t border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Service</span>
-                    <p className="text-xs font-bold text-slate-700">{hexToString(bill.serviceType as unknown as `0x${string}`) || 'Not specified'}</p>
+              <section className="space-y-4">
+                <div className="bg-slate-50 rounded-xl p-4 grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Raised</span>
+                    <div className="text-xl font-bold text-slate-900">{formatEther(common.raisedAmount)} USDm</div>
                   </div>
-                )}
-                {common.goalType === GoalType.SCHOLARSHIP && (
-                   <>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Milestone</span>
-                      <div className="text-xs font-bold text-slate-700">{getMilestoneLabel(scholarship.milestone)}</div>
+                  <div className="space-y-1 text-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Target</span>
+                    <div className="text-xl font-bold text-slate-600">{formatEther(common.targetAmount)} USDm</div>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Withdrawn</span>
+                    <div className="text-xl font-bold text-slate-600">{formatEther(common.withdrawnAmount)} USDm</div>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-4 grid grid-cols-3 gap-4">
+                  {common.goalType === GoalType.BILL && (
+                    <div className="col-span-2 pt-2 border-t border-slate-200">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Service</span>
+                      <p className="text-xs font-bold text-slate-700">{hexToString(bill.serviceType as unknown as `0x${string}`) || 'Not specified'}</p>
                     </div>
-                    <div className="space-y-1 text-right">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Disputed</span>
-                      <div className={cn("text-xs font-bold", scholarship.disputed ? "text-red-500" : "text-emerald-500")}>
-                        {scholarship.disputed ? 'Yes' : 'No'}
+                  )}
+
+                  {common.goalType === GoalType.SCHOLARSHIP && (
+                    <>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Completed Milestone</span>
+                        <div className="text-xs font-bold text-slate-700">{getMilestoneLabel(scholarship.milestone)}</div>
                       </div>
-                    </div>
-                   </>
-                )}
+                      <div className="space-y-1 text-center">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Next Milestone</span>
+                        <div className="text-xs font-bold text-slate-700">{getMilestoneLabel(scholarship.milestone + 1)}</div>
+                      </div>
+                      <div className="space-y-1 text-right">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Disputed</span>
+                        <div className={cn("text-xs font-bold", scholarship.disputed ? "text-red-500" : "text-emerald-500")}>
+                          {scholarship.disputed ? 'Yes' : 'No'}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </section>
 
               {/* Funders List */}
@@ -261,6 +301,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                     {common.raisedAmount > common.withdrawnAmount && (
                         <div className="pt-2 border-t border-slate-800">
                           <button 
+                            disabled={common.withdrawnAmount === common.raisedAmount || common.lockedForReview || common.status !== GoalStatus.RAISED}
                             onClick={async () => {
                               if (common.goalType === GoalType.BILL || common.goalType === GoalType.DEFAULT) {
                                 await claimFund(common.id);
@@ -276,13 +317,29 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                     )}
                  </section>
               )}
+
+              {/* Owner Actions */}
+              {isOwner && (
+                 <section className="p-4 bg-slate-900 rounded-xl space-y-3 shadow-lg">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Owner Tools</h4>
+                    <div className="pt-2 border-t border-slate-800">
+                      <button 
+                        disabled={!common.lockedForReview}
+                        onClick={async () => await approveScholarshipRelease([common.id])}
+                        className="w-full py-2.5 bg-emerald-500 text-white font-bold text-[12px] rounded-lg hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Pen className="w-4 h-4" /> Approve Scholarship Release
+                      </button>
+                    </div>
+                 </section>
+              )}
               
               {!isCreator && common.status === GoalStatus.OPEN && (
                  <section className="space-y-3 pt-2">
                     <div className="grid grid-cols-2 gap-2">
                        <button 
                           onClick={() => toggleFlagGoal(common.id)}
-                          disabled={hasFlagged}
+                          disabled={hasFlagged || !isFunder}
                           className={cn("w-full py-2.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all border", 
                             hasFlagged 
                             ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" 
@@ -293,7 +350,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
                        <button 
                           onClick={() => toggleFlagGoal(common.id)}
-                          disabled={!hasFlagged}
+                          disabled={!hasFlagged || !isFunder}
                           className={cn("w-full py-2.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all border", 
                             !hasFlagged 
                             ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" 

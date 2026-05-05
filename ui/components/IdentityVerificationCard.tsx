@@ -41,7 +41,7 @@ export function IdentityVerificationCard({ address }: Props) {
         walletAddress: address,
       });
       
-      let odisResult;
+      let odisResult: { obfuscatedIdentifier: string; quotaRemaining?: number } | undefined;
       await toast.promise(odisPromise.then(res => { odisResult = res; return res; }), {
         loading: "Verifying phone with ODIS...",
         success: "ODIS verification complete",

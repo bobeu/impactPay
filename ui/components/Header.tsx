@@ -10,8 +10,10 @@ import { Link } from "react-router-dom";
 import Image from "next/image";
 import AddressWrapper from "./AddressFormatter/AddressWrapper";
 import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
 
 export default function Header() {
+  const { selectedVersion, setSelectedVersion, availableVersions } = useImpactPay();
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
   const { profile } = useUserProfile();
@@ -43,6 +45,17 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-3">
+        {availableVersions > 1 && (
+          <select 
+            value={selectedVersion} 
+            onChange={(e) => setSelectedVersion(Number(e.target.value))}
+            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer hidden sm:block"
+          >
+            {Array.from({ length: availableVersions }).map((_, i) => (
+              <option key={i} value={i}>v{i + 1}.0</option>
+            ))}
+          </select>
+        )}
         {isConnected && address && hideConnectBtn ? (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />

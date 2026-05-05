@@ -2,11 +2,11 @@
 pragma solidity 0.8.28;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {ImpactPay} from "../contracts/ImpactPay.sol";
+import {ImpactGoal} from "../contracts/ImpactGoal.sol";
 import {MockERC20} from "../contracts/MockERC20.sol";
 
-contract ImpactPayTest is Test {
-    ImpactPay public impactPay;
+contract ImpactGoalTest is Test {
+    ImpactGoal public impactPay;
     MockERC20 public token;
 
     address public owner = address(this);
@@ -21,7 +21,7 @@ contract ImpactPayTest is Test {
 
     function setUp() public {
         token = new MockERC20();
-        impactPay = new ImpactPay(
+        impactPay = new ImpactGoal(
             address(token),
             treasury,
             approver,
@@ -48,9 +48,9 @@ contract ImpactPayTest is Test {
         bool success = impactPay.createGoal(100e18, "Default Goal", "Extra Info");
         assertTrue(success);
         
-        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.targetAmount, 100e18);
-        assertEq(uint8(goal.common.goalType), uint8(ImpactPay.GoalType.DEFAULT));
+        assertEq(uint8(goal.common.goalType), uint8(ImpactGoal.GoalType.DEFAULT));
     }
 
     function test_CreateBillGoal() public {
@@ -64,8 +64,8 @@ contract ImpactPayTest is Test {
         );
         assertTrue(success);
         
-        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
-        assertEq(uint8(goal.common.goalType), uint8(ImpactPay.GoalType.BILL));
+        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.goalType), uint8(ImpactGoal.GoalType.BILL));
         assertEq(goal.bill.billService, billServiceProvider);
     }
 
@@ -80,7 +80,7 @@ contract ImpactPayTest is Test {
 
     function test_CreateScholarshipGoal_SuccessAfterLevel3() public {
         impactPay.toggleUseVerifier();
-        impactPay.onVerificationSuccess(creator, ImpactPay.Level.LEVEL3);
+        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
         
         vm.prank(creator);
         bool success = impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
@@ -97,7 +97,7 @@ contract ImpactPayTest is Test {
         bool success = impactPay.fundGoal(1, 50e18, "Donor Info");
         assertTrue(success);
 
-        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.raisedAmount, 50e18);
         assertEq(goal.funders.length, 1);
         assertEq(goal.funders[0].id, donor);
@@ -106,7 +106,7 @@ contract ImpactPayTest is Test {
     // --- Scholarship Fulfillment Tests ---
 
     function test_ScholarshipMilestoneFlow() public {
-        impactPay.onVerificationSuccess(creator, ImpactPay.Level.LEVEL3);
+        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
         vm.prank(creator);
         impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
         vm.prank(donor);
@@ -153,7 +153,7 @@ contract ImpactPayTest is Test {
         vm.prank(donor);
         impactPay.toggleFlagGoal(1);
 
-        ImpactPay.GetGoal memory goal = impactPay.getGoal(1);
+        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.flagsCount, 1);
     }
 
@@ -176,7 +176,7 @@ contract ImpactPayTest is Test {
     }
 
     function test_RefundScholarship() public {
-        impactPay.onVerificationSuccess(creator, ImpactPay.Level.LEVEL3);
+        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
         vm.prank(creator);
         impactPay.createScholarshipGoal(100e18, "Scholarship", "");
         

@@ -6,15 +6,19 @@
 import _addresses from './addresses.json';
 import abis from './abis.json';
 
-const addresses = _addresses as Record<string, Record<string, string>>;
+const addresses = _addresses as Record<string, Record<string, string[]>>;
 
 export const CONTRACTS = {
+  ImpactGoal: {
+    address: addresses.ImpactGoal as Record<number, `0x${string}`[]>,
+    abi: abis.ImpactGoal,
+  },
   ImpactPay: {
-    address: addresses.ImpactPay as Record<number, `0x${string}`>,
+    address: addresses.ImpactPay as Record<number, `0x${string}`[]>,
     abi: abis.ImpactPay,
   },
   MockERC20: {
-    address: addresses.MockERC20 as Record<number, `0x${string}`>,
+    address: addresses.MockERC20 as Record<number, `0x${string}`[]>,
     abi: abis.MockERC20,
   },
 } as const;

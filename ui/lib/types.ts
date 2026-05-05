@@ -145,6 +145,10 @@ export interface ImpactPayContextType {
     stats: Stats;
     funderReputations: Record<string, bigint>;
     isLoading: boolean;
+    owner: Address;
+    selectedVersion: number;
+    setSelectedVersion: (version: number) => void;
+    availableVersions: number;
 
     // Modal State (Global for easier orchestration)
     modal: {

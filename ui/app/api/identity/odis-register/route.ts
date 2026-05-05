@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const authSigner: AuthSigner = {
       authenticationMethod: OdisUtils.Query.AuthenticationMethod.WALLET_KEY,
-      contractKit: kit,
+      contractKit: kit as any,
     };
 
     const { obfuscatedIdentifier } =

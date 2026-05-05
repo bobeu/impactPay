@@ -10,11 +10,11 @@
     "start": "next start",
     "lint": "next lint",
     "listen:funded": "bun run scripts/listen-goal-funded.ts",
-    "sync:data": "node sync-artifacts.cjs"
+    "sync:data": "node ../blockchain/sync-artifacts.cjs"
   },
   "dependencies": {
     "@celo/abis": "^14.0.1",
-    "@celo/contractkit": "^10.0.3",
+    "@celo/contractkit": "^7.2.0",
     "@celo/identity": "^5.1.2",
     "@headlessui/react": "^2.1.10",
     "@heroicons/react": "^2.1.5",

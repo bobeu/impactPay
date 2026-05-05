@@ -1,8 +1,8 @@
 const fs   = require('fs');
 const path = require('path');
 
-const FRONTEND_DIR    = path.join(__dirname, '/', 'contracts');
-const DEPLOYMENTS_ROOT = path.join(__dirname, '../blockchain/deployments');
+const FRONTEND_DIR    = path.join(__dirname, '../ui/contracts');
+const DEPLOYMENTS_ROOT = path.join(__dirname, 'deployments');
 
 // Networks to sync
 const NETWORK_PRIORITY = ['celoSepolia', 'celo'];
@@ -10,6 +10,7 @@ const NETWORK_PRIORITY = ['celoSepolia', 'celo'];
 
 // Contracts we care about syncing
 const CONTRACTS_TO_SYNC = [
+  'ImpactGoal',
   'ImpactPay',
   'MockERC20'
 ];
@@ -26,9 +27,18 @@ function sync() {
     process.exit(1);
   }
 
-  const multiAddresses = {};
+  let multiAddresses = {};
   const abis = {};
   const syncedNetworks = [];
+
+  const existingAddressesFile = path.join(FRONTEND_DIR, 'addresses.json');
+  if (fs.existsSync(existingAddressesFile)) {
+    try {
+      multiAddresses = JSON.parse(fs.readFileSync(existingAddressesFile, 'utf8'));
+    } catch (e) {
+      console.warn("Could not parse existing addresses.json");
+    }
+  }
 
   for (const net of NETWORK_PRIORITY) {
     const networkDir = path.join(DEPLOYMENTS_ROOT, net);
@@ -52,7 +62,13 @@ function sync() {
         const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         
         if (!multiAddresses[name]) multiAddresses[name] = {};
-        multiAddresses[name][chainId] = data.address;
+        if (multiAddresses[name][chainId] && !Array.isArray(multiAddresses[name][chainId])) {
+          multiAddresses[name][chainId] = [multiAddresses[name][chainId]];
+        }
+        if (!multiAddresses[name][chainId]) multiAddresses[name][chainId] = [];
+        if (!multiAddresses[name][chainId].includes(data.address)) {
+          multiAddresses[name][chainId].push(data.address);
+        }
 
         // Save ABI (take from the first network that has it)
         if (!abis[name]) {
@@ -91,15 +107,19 @@ function sync() {
 import _addresses from './addresses.json';
 import abis from './abis.json';
 
-const addresses = _addresses as Record<string, Record<string, string>>;
+const addresses = _addresses as Record<string, Record<string, string[]>>;
 
 export const CONTRACTS = {
+  ImpactGoal: {
+    address: addresses.ImpactGoal as Record<number, \`0x\${string}\`[]>,
+    abi: abis.ImpactGoal,
+  },
   ImpactPay: {
-    address: addresses.ImpactPay as Record<number, \`0x\${string}\`>,
+    address: addresses.ImpactPay as Record<number, \`0x\${string}\`[]>,
     abi: abis.ImpactPay,
   },
   MockERC20: {
-    address: addresses.MockERC20 as Record<number, \`0x\${string}\`>,
+    address: addresses.MockERC20 as Record<number, \`0x\${string}\`[]>,
     abi: abis.MockERC20,
   },
 } as const;

@@ -1,893 +1,373 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IVerification } from "./abstracts/Verification.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 /// @title ImpactPay Protocol
-/// @notice A decentralized platform for managing bill payments, scholarships, and social impact goals.
-/// @dev Implements Pausable, Ownable, and ReentrancyGuard for security. Uses SafeERC20 for token transfers.
-contract ImpactPay is Pausable, Ownable, ReentrancyGuard {
+/// @notice A decentralized platform for philantropic activities. Daily login increases users' reputation, increase daily activities
+/// @dev Implements ReentrancyGuard for security. Uses SafeERC20 for token transfers.
+contract ImpactPay is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    /// @notice Types of goals available in the protocol
-    enum GoalType {
-        DEFAULT,
-        BILL,
-        SCHOLARSHIP
+    /// @notice Thrown when a user attempting to interact is blacklisted by the verifier
+    error UserBlacklisted();
+
+    /// @notice Emitted when a user successfully claims their share of a fund
+    /// @param sender The address of the user who claimed
+    /// @param share The amount of tokens the user claimed
+    /// @param fundId The ID of the fund that was claimed from
+    event Claimed(address indexed sender, uint256 share, uint fundId);
+   
+    /// @notice Emitted when a user successfully claims their share of a fund
+    /// @param to The address of the user who claimed
+    /// @param withdrawable The balance left in the pool at fundId
+    /// @param fundId The ID of the fund that was claimed from
+    event PoolRebalanced(address indexed to, uint256 withdrawable, uint fundId);
+    
+    /// @notice Emitted when a new fund is created
+    /// @param funder The address of the user who created the fund
+    /// @param data The detailed struct of the fund
+    /// @param fundId The newly assigned ID of the fund
+    event Funded (address indexed funder, Funder data, uint256 fundId);
+    
+    /// @notice Emitted when a funder approves certain beneficiaries to withdraw
+    /// @param fundId The ID of the fund
+    /// @param beneficiaries An array of approved beneficiary addresses
+    /// @param amounts An array of corresponding approved amounts
+    event Approval(uint256 fundId, address[] beneficiaries, uint256[] amounts);
+    
+    /// @notice Emitted when the required verification level for a fund is changed
+    /// @param oldLevel The previous verification level
+    /// @param newLevel The newly required verification level
+    /// @param caller The address of the user who initiated the change
+    event LevelChanged(IVerification.Level oldLevel, IVerification.Level newLevel, address indexed caller);
+
+    /// @notice Snapshot of the verification state at the time a fund is created
+    /// @param time The block timestamp when the snapshot was taken
+    /// @param totalScores The sum of all users' verification scores globally at this time
+    struct Snapshot {
+        uint time;
+        uint totalScores;
     }
 
-    /// @notice Status of a goal through its lifecycle
-    enum GoalStatus {
-        OPEN,
-        RAISED,
-        FULFILLED,
-        CANCELED
-    }
-
-    enum Level { LEVEL1, LEVEL2, LEVEL3 }
-
-    /// @notice Milestones specifically for scholarship goals
-    enum Milestone { NONE, TWENTY, ONE_FORTY, TWO_FORTY, COMPLETED }
-
-    /// @notice Specific data for Bill-type goals
-    struct BillGoal {
-        bytes serviceType; // e.g., "electricity", "data", "subscription"
-        address billService; // BitGifty or other bill service address
-    }
-
-    /// @notice Specific data for Scholarship-type goals
-    struct ScholarshipGoal {
-        uint256 refundedAmount;
-        uint64 milestoneDeadline;
-        Milestone milestone;
-        bool disputed;
-    }
-
-    /// @notice Common data shared by all goal types
-    struct CommonData {
-        uint256 id;
-        address creator;
-        uint256 targetAmount;
-        uint256 raisedAmount;
-        uint256 withdrawnAmount;
-        uint256 dataCreated;
-        bytes description;
-        bytes extraLink;
-        GoalStatus status;
-        GoalType goalType;
-        uint8 flagsCount;
-        bool lockedForReview;
-    }
-
-    struct Verification {
-        bool lvl1;
-        bool lvl2;
-        bool lvl3;
-    }
-
-    /// @notice Composite struct for goal id and state variables information retrieval
-    struct GetGoalIdAndState {
-        uint[] goalIds;
-        address treasury;
-        address releaseApprover;
-        address backendFulfillmentSigner;
-        uint256 billListingFee;
-        uint256 scholarshipListingFee;
-        uint256 defaultListingFee;
-        uint256 scholarshipFeeBP;
-        uint256 billSuccessFeeBP;
-        uint256 goalCounter;
-        uint256 maxGoal;
-        address[] billServices;
-        Verification verifications;
-        bool restricted;
-        uint reputation;
-    }
-
-    /// @notice Composite struct for goal information retrieval
-    struct GetGoal {
-        BillGoal bill;
-        ScholarshipGoal scholarship;
-        CommonData common;
-        Funder[] funders;
-    }
-
-    /// @notice Details about a funder and their contribution
+    /// @notice Represents a philanthropic fund created by a user
+    /// @param remainingPool The amount of funds still available for claiming
+    /// @param amount The original total amount of funds deposited
+    /// @param dateCreated The block timestamp when the fund was created
+    /// @param claimed The number of individual claims made against this fund
+    /// @param id The address of the fund creator
+    /// @param name The name of the fund creator
+    /// @param handle The social handle of the fund creator
+    /// @param message A custom message attached to the fund
+    /// @param currency Indicates whether the fund uses NATIVE or STABLECOIN currency
+    /// @param pattern The specific distribution pattern (e.g. PHILANTROPIST or REDISTRIBUTE)
+    /// @param requiredLevel The minimum verification level users must hold to claim from this fund
+    /// @param snapshot The global score snapshot taken when this fund was created
     struct Funder {
-        uint256 amount;
+        uint remainingPool;
+        uint amount;
+        uint dateCreated;
+        uint claimed;
         address id;
-        bytes extraInfo;
-        uint64 fundedAt;
-        bool hasFlagged;
+        bytes name;
+        bytes handle;
+        bytes message;
+        Currency currency;
+        Pattern pattern;
+        IVerification.Level requiredLevel;
+        Snapshot snapshot;
     }
 
-    struct FunderFlag {
-        uint index;
-        bool isFunder;
+    struct GetStateData {
+        uint256 counter;
+        uint maxClaimPeriod;
+        uint cooldown;
+        address treasury;
+        IVerification verifier;
+        IERC20 stableToken;
     }
 
-    /// @notice Internal storage representation of a Goal
-    struct Goal {
-        CommonData cData;
-        BillGoal bill;
-        ScholarshipGoal scholarship;
-        Funder[] funders;
-        mapping(address => FunderFlag) funderFlag;
+    /// @notice Represents an individual user's claim against a specific fund
+    /// @param amount The amount the user has successfully claimed
+    /// @param dateClaimed The timestamp when the claim was processed
+    /// @param isClaimed A boolean indicating if the user has already claimed to prevent double-claiming
+    struct Claim {
+        uint256 amount;
+        uint256 dateClaimed;
+        bool isClaimed;
     }
 
+    /// @notice Currencies supported by the platform
+    enum Currency { NATIVE, STABLECOIN }
+
+    /// @notice Distribution patterns that define how funds are allocated
+    enum Pattern { PHILANTROPIST, REDISTRIBUTE }
+
+    /// @notice A globally incrementing counter representing the latest fund ID
+    uint256 internal counter;
+
+    /// @notice Maximum period or deadline after which users cannot claim funds from the date of funded
+    uint internal maxClaimPeriod;
+
+    /// @notice Period until when claim becomes active
+    uint internal cooldown;
+
+    /// @notice Address to receive fee or any forfeited funds
+    address internal treasury;
+
+    /// @notice The verification contract used to resolve user reputation and scores
+    IVerification internal verifier;
+    
     /// @notice The stable token used for all transactions (e.g., USDT/USDC)
-    IERC20 public immutable stableToken;
+    IERC20 internal stableToken;
 
-    /// @notice Address where listing and success fees are sent
-    address public treasury;
+    /// @notice Mapping of fund IDs to their respective Funder details
+    mapping(uint256 => Funder) public funders;
 
-    /// @notice Address authorized to approve milestone releases and relay funds
-    address public releaseApprover;
+    /// @notice Mapping of users to counters to claims.
+    mapping(address => mapping(uint256 => Claim)) public claims;
 
-    /// @notice Address used to verify off-chain fulfillment or user levels
-    address public backendFulfillmentSigner;
-
-    /// @notice Fee in absolute token units to list a Bill goal
-    uint256 public billListingFee;
-
-    /// @notice Fee in absolute token units to list a Scholarship goal
-    uint256 public scholarshipListingFee;
-    
-    /// @notice Fee in absolute token units to list a Default goal
-    uint256 public defaultListingFee;
-
-    /// @notice Fee in Basis Points for scholarship withdrawals
-    uint256 public scholarshipFeeBP = 300;
-
-    /// @notice Fee in Basis Points for bill fulfillment relays
-    uint256 public billSuccessFeeBP = 300;
-
-    /// @notice Denominator for Basis Points calculations
-    uint256 public constant BPS_DENOMINATOR = 10000;
-
-    /// @notice Counter for generating unique goal IDs
-    uint256 public goalCounter;
-
-    /// @notice Maximum number of active goals allowed per user (0 for unlimited)
-    uint256 public maxGoal;
-
-    /// @notice List of registered bill service providers
-    address[] public billServices;
-
-    /// @notice Flag showing whether to send fund to bill service or the creator;
-    bool internal useBillService;
-
-    /// @notice Flag showing whether to use verifier or not;
-    bool internal useVerifier;
-
-    /// @notice Mapping from goal ID to Goal data
-    mapping(uint256 => Goal) public goals;
-
-    /// @notice Mapping from address to Goal IDs
-    mapping(address => uint[]) public goalIDs;
-
-    /// @notice Mapping from user address to their active goal count
-    mapping(address => uint256) public activeGoals;
-
-    /// @notice Mapping to check if an address has restricted access
-    mapping(address => bool) public restrictions;
-
-    /// @notice Tracks if a donor has already flagged a specific goal
-    // mapping(uint256 => mapping(address => bool)) public hasFlagged;
-
-    /// @notice Tracks levels level of users
-    mapping(address => mapping(Level => bool)) public levels;
-
-    /// @notice Onchain reputation
-    mapping(address => uint) public reputationScores;
-
-    /// @notice Stores percentage release for each milestone
-    mapping(Milestone => uint8) public milestonePercent;
-
-    /// @notice Emitted when a new goal is created
-    event GoalCreated(
-        uint256 indexed goalId,
-        address indexed creator,
-        GoalType goalType,
-        uint256 targetAmount,
-        bytes description,
-        bytes serviceType,
-        address billService,
-        bytes extraInfo
-    );
-
-    /// @notice Emitted when a goal receives funding
-    event Funded(uint256 indexed goalId, address indexed donor, uint256 amount, uint256 totalRaised, GoalType goalType, string extraInfo);
-    
-    /// @notice Emitted when a bill goal is fulfilled by the service provider
-    event BillGoalFulfilled(
-        uint256 indexed goalId, 
-        address indexed service, 
-        address indexed creator,
-        uint256 amount,
-        bytes serviceType,
-        uint256 reputation
-    );
-
-    /// @notice Emitted whenever a user's reputation score is updated
-    event ReputationUpdated(address indexed user, uint16 change, string reason);
-    
-    /// @notice Emitted whenever a goal is canceled
-    event Canceled(uint256 indexed goalId, address indexed caller, uint256 amountInGoal);
-
-    /// @notice Emitted when a scholarship milestone is withdrawn
-    event ScholarshipWithdrawal(
-        uint256 indexed goalId, 
-        address indexed recipient, 
-        address indexed creator, 
-        uint256 amount, 
-        uint256 reputation,
-        uint8 milestoneIndex,
-        uint8 goalType
-    );
-
-    /// @notice Emitted when a goal is flagged for review
-    event GoalFlagged (
-        uint256 indexed goalId, 
-        address indexed donor, 
-        uint8 flagsCount, 
-        bool lockedForReview, 
-        GoalType goalType,
-        address indexed creator,
-        int reputationSlash,
-        string comment
-    );
-
-    /// @notice Emitted when a scholarship donor receives a refund
-    event Refunded (
-        uint256 indexed goalId, 
-        address indexed donor, 
-        uint256 amount,
-        address indexed creator, 
-        int reputationSlice,
-        string comment
-    );
-
-    error NotReleaseApprover();
-    error InvalidAmount();
-    error GoalNotFound();
-    error GoalLocked();
-    error AlreadyFinalized();
-    error DeadlineNotMet();
-    error MaxGoalExceeded();
-    error RefundNotAvailable();
-
-    /// @notice Restricts access to owner or release approver
-    modifier onlyReleaseApprover() {
-        address sender = _msgSender();
-        if (sender != owner() && sender != releaseApprover) revert NotReleaseApprover();
+    /// @notice Ensures that the caller is either the fund creator or the contract owner
+    /// @param fundId The ID of the fund to validate permissions against
+    modifier onlyFunderOrOwner(uint256 fundId) {
+        if (_msgSender() != owner()) require(_msgSender() == funders[fundId].id, "Only Funder");
         _;
     }
 
-    /// @notice Ensures the target address is not restricted
-    /// @param target The address to check
-    modifier notRestricted(address target) {
-        if (target != owner()) require(!restrictions[target], "Restricted");
+    /// @notice Validates that a given fund ID exists within the current counter range
+    /// @param fundId The ID of the fund to validate
+    modifier validateId(uint256 fundId) {
+        require(fundId > 0 && fundId <= counter, "Invalid fund Id");
         _;
     }
-
-    modifier isVerified(Level lvl, address user) {
-        if (user != owner()) {
-            if (useVerifier) require(levels[user][lvl], "Not verified");
-        }
-        _;
-    }   
-
-    /// @notice Initializes the ImpactPay contract
-    /// @param stableToken_ Address of the ERC20 token for payments
-    /// @param treasury_ Address to receive protocol fees
-    /// @param releaseApprover_ Address authorized for milestone approvals
-    /// @param backendFulfillmentSigner_ Address for off-chain levels signatures
+    
+    /// @notice Initializes the contract with its core dependencies
+    /// @param stableToken_ The address of the stablecoin used for STABLECOIN pattern funds
+    /// @param initialOwner The address of the initial contract owner
+    /// @param treasury_ The address of the initial treasury
+    /// @param verifier_ The address of the verification contract for user scores
     constructor(
-        address stableToken_,
+        address stableToken_, 
+        address initialOwner,
         address treasury_,
-        address releaseApprover_,
-        address backendFulfillmentSigner_
-    ) Ownable(_msgSender()) {
+        IVerification verifier_
+    ) Ownable(initialOwner) {
+        require(stableToken_ != address(0), "Stb Inv");
+        require(treasury_ != address(0), "Tsy Inv");
+        require(initialOwner != address(0), "InOw Inv");
         stableToken = IERC20(stableToken_);
+        verifier = verifier_;
         treasury = treasury_;
-        releaseApprover = releaseApprover_;
-        backendFulfillmentSigner = backendFulfillmentSigner_;
-        useBillService = false;
-        useVerifier = false;
-        billListingFee = 1e16 wei;
-        defaultListingFee = 1e15 wei;
-        scholarshipListingFee = 1e17 wei;
-        milestonePercent[Milestone.NONE] = 0;
-        milestonePercent[Milestone.TWENTY] = 20;
-        milestonePercent[Milestone.ONE_FORTY] = 40;
-        milestonePercent[Milestone.TWO_FORTY] = 40;
-        milestonePercent[Milestone.COMPLETED] = 0;
+        maxClaimPeriod = 90 days;
     }
 
-    /// @dev Increments and returns the next goal ID
-    function _createGoalId() internal returns(uint256 goalId) {
-        goalCounter ++;
-        goalId = goalCounter;
+    /// @notice Fallback function to allow the contract to receive native currency
+    receive() external payable {
+        funders[0].amount += msg.value;
+        funders[0].id = msg.sender;
+        emit Funded(msg.sender, funders[0], 0);
     }
 
-    /// @notice Updates the default listing fee
-    /// @param newListingFee The new fee amount
-    function setDefaultListingFee(uint256 newListingFee) public onlyOwner returns(bool){
-        defaultListingFee = newListingFee;
-        return true;
-    }
-
-    /// @notice Set the `useBillService
-    function toggleUseBillService() public onlyOwner returns(bool){
-        bool status = useBillService;
-        useBillService = !status;
-        return true;
-    }
-
-    /// @notice Set the `useVerifier`
-    function toggleUseVerifier() public onlyOwner returns(bool){
-        bool status = useVerifier;
-        useVerifier = !status;
-        return true;
-    }
-
-    /// @notice Updates the bill listing fee
-    /// @param newListingFee The new fee amount
-    function setBillListingFee(uint256 newListingFee) public onlyOwner returns(bool){
-        billListingFee = newListingFee;
-        return true;
-    }
-
-    /// @notice Updates the scholarship listing fee
-    /// @param newListingFee The new fee amount
-    function setScolarshipListingFee(uint256 newListingFee) public onlyOwner returns(bool){
-        scholarshipListingFee = newListingFee;
-        return true;
-    }
-
-    /// @notice Adds a new registered bill service provider
-    /// @param newBillService The address of the service provider
-    function setBillService(address newBillService) public onlyOwner returns(bool){
-        bool isIncluded = false;
-        for (uint i = 0; i < billServices.length; i++) {
-            if (billServices[i] == newBillService) isIncluded = true;
-        }
-        if(!isIncluded) billServices.push(newBillService);
-        return true;
-    }
-
-    /// @dev Internal logic for goal creation
-    function _createGoal(
-        uint256 targetAmount, 
-        bytes memory serviceType,
-        bytes memory description,
-        address billService,
-        GoalType goalType,
-        bytes memory extraLink
-    ) private whenNotPaused notRestricted(_msgSender()) returns(uint256 goalId) {
+    /// @notice Creates a new philanthropic fund for distribution. At this point, a snapshot of the total scores of all users is captured.
+    /// @dev Users can fund with native currency (`msg.value > 0`) or stablecoin (`msg.value == 0`).
+    /// @param amount Amount to fund or distribute
+    /// @param name The name of the fund creator
+    /// @param handle The social handle of the fund creator
+    /// @param message A custom message attached to the fund
+    /// @param pattern The specific distribution pattern (e.g. PHILANTROPIST or REDISTRIBUTE)
+    /// @param requiredLevel The minimum verification level users must hold to claim from this fund
+    /// @return A boolean indicating successful execution
+    function distributeWealth(
+        uint256 amount,
+        string memory name,
+        string memory handle,
+        string memory message,
+        Pattern pattern,
+        IVerification.Level requiredLevel
+    ) external payable returns(bool) {
         address sender = _msgSender();
-        if (targetAmount == 0) revert InvalidAmount();
-        if (maxGoal > 0) {
-            if (activeGoals[sender] >= maxGoal) revert MaxGoalExceeded();
+        Currency currency = Currency.NATIVE;
+        require(amount > 0, "Zero fund");
+        if (msg.value < amount) {
+            currency = Currency.STABLECOIN;
+            stableToken.safeTransferFrom(sender, address(this), amount);
         }
-        activeGoals[sender]++;
-        goalId = _createGoalId();
-        goalIDs[sender].push(goalId);
-        uint fee;
-        if (goalType == GoalType.BILL) {
-            fee = billListingFee;
-            goals[goalId].bill = BillGoal(serviceType, billService);
-        } else if(goalType == GoalType.SCHOLARSHIP) {
-            fee = scholarshipListingFee;
-            goals[goalId].scholarship = ScholarshipGoal(0, 0, Milestone.NONE, false);
-        } else {
-            fee = defaultListingFee;
-        }
-
-        goals[goalId].cData = CommonData(
-            goalId,
-            sender,
-            targetAmount,
-            0,
-            0,
+        counter++;
+        uint fundId = counter;
+        funders[fundId] = Funder(
+            amount,
+            amount,
             block.timestamp,
-            description,
-            extraLink,
-            GoalStatus.OPEN,
-            goalType,
             0,
-            false
+            sender,
+            bytes(name),
+            bytes(handle),
+            bytes(message),
+            currency,
+            pattern,
+            requiredLevel,
+            Snapshot(block.timestamp, verifier.getTotalScores())
         );
 
-        if (fee > 0) stableToken.safeTransferFrom(sender, treasury, fee);
-        emit GoalCreated(goalId, sender, goalType, targetAmount, description, serviceType, billService, extraLink);
+        emit Funded(sender, funders[fundId], fundId);
+        return true;
     }
 
-    function _encode(string memory data) internal pure returns(bytes memory encoded) {
-        encoded = bytes(data);
-    }
-
-    /// @notice Creates a new goal for bill payment
-    /// @param targetAmount Amount intended to be raised
-    /// @param description Public description of the goal
-    /// @param serviceType Type of service (e.g. "electricity")
-    /// @param extraLink Additional metadata encoded as string
-    /// @param billServiceIndex Index of the service provider in billServices array
-    function createBillGoal(
-        uint256 targetAmount,
-        string calldata description,
-        string calldata serviceType,
-        string calldata extraLink,
-        uint8 billServiceIndex
-    ) external isVerified(Level.LEVEL1, _msgSender()) returns(bool) {
-        uint bsSize = billServices.length;
-        address billService;
-        if (bsSize > 0) {
-            require(billServiceIndex < bsSize, "Invalid service index");
-            billService = billServices[billServiceIndex];
-        }
-        _createGoal(
-            targetAmount, 
-            _encode(serviceType),
-            _encode(description),
-            billService == address(0)? _msgSender() : billService,
-            GoalType.BILL,
-            _encode(extraLink)
-        );
+    /// @notice Allows the fund creator or the contract owner to change the minimum required level for a fund
+    /// @param fundId The ID of the fund to update
+    /// @param newLevel The newly required verification level
+    /// @return A boolean indicating successful execution
+    function changeRequiredLevel(
+        uint256 fundId, 
+        IVerification.Level newLevel
+    ) 
+        public 
+        validateId(fundId) 
+        onlyFunderOrOwner(fundId) returns(bool) 
+    {
+        emit LevelChanged(funders[fundId].requiredLevel, newLevel, _msgSender());
+        funders[fundId].requiredLevel = newLevel;
 
         return true;
     }
 
-    /// @notice Creates a new scholarship goal. Requires Level 3 levels.
-    /// @param targetAmount Amount intended to be raised
-    /// @param description Public description of the goal
-    /// @param extraLink Additional metadata encoded as string
-    function createScholarshipGoal(
-        uint256 targetAmount,
-        string calldata description,
-        string calldata extraLink
-    ) external isVerified(Level.LEVEL3, _msgSender()) returns(bool) {
-        _createGoal(
-            targetAmount, 
-            _encode(""),
-            _encode(description),
-            address(0),
-            GoalType.SCHOLARSHIP,
-            _encode(extraLink)
-        );
-
-        return true;
-    }
-
-    /// @notice Creates a default social impact goal
-    /// @param targetAmount Amount intended to be raised
-    /// @param description Public description of the goal
-    /// @param extraLink Additional metadata encoded as string
-    function createGoal(
-        uint256 targetAmount,
-        string calldata description,
-        string calldata extraLink
-    ) external isVerified(Level.LEVEL2, _msgSender()) returns(bool) {
-        _createGoal(
-            targetAmount, 
-            _encode(""),
-            _encode(description),
-            address(0),
-            GoalType.DEFAULT,
-            _encode(extraLink)
-        );
-
-        return true;
-    }
-
-    /// @dev Internal helper to verify goal existence and status
-    function _verifyGoalId(uint256 goalId, GoalStatus status, string memory errorMessage) internal view returns(Goal storage goal) {
-        goal = goals[goalId];
-        uint256 id = goal.cData.id;
-        if (id == 0 || id > goalCounter) revert GoalNotFound();
-        require(goal.cData.status == status, errorMessage);
-    }
-
-    function _editReputation(bool add, uint256 amount, address target, bool isFunder) internal {
-        uint256 mantissa = 10 ** IERC20Metadata(address(stableToken)).decimals();
-        if (add) {
-            reputationScores[target] += isFunder? amount > mantissa? (amount / mantissa) : 1 : 5;
-        } else {
-            uint rep = reputationScores[target];
-            reputationScores[target] = rep >= 5? rep - 5 : 0; 
-        }
-    }
-
-    /// @notice Allows users to fund an open goal
-    /// @param goalId ID of the goal to fund
-    /// @param amount Amount of stable tokens to contribute
-    /// @param extraInfo Optional metadata about the donation
-    function fundGoal(
-        uint256 goalId, 
-        uint256 amount, 
-        string memory extraInfo
-    ) external whenNotPaused nonReentrant notRestricted(_msgSender()) returns(bool) {
+    /// @notice Allows a verified user to claim their proportional share of a fund based on their score
+    /// @dev The user's share is calculated dynamically based on their score at the time the fund was created relative to the global total score snapshot.
+    /// @param fundId The ID of the fund the user is claiming from
+    /// @return A boolean indicating successful execution
+    function claimGigs(uint fundId) external validateId(fundId) nonReentrant returns(bool) {
         address sender = _msgSender();
-        Goal storage goal = _verifyGoalId(goalId, GoalStatus.OPEN, "Not Open");
-        if (amount == 0) revert InvalidAmount();
-        
-        CommonData storage _c = goal.cData;
-        _c.raisedAmount += amount;
-        uint index = goal.funders.length;
-        goal.funders.push(Funder(amount, sender, _encode(extraInfo), uint64(block.timestamp), false));
-        if(!goal.funderFlag[sender].isFunder) {
-            goal.funderFlag[sender] = FunderFlag(index, true);
-        }
-        if (_c.raisedAmount >= _c.targetAmount) {
-            _c.status = GoalStatus.RAISED;
-        }
+        Funder storage fd = funders[fundId];
+        Claim storage claim = claims[sender][fundId];
+        if (cooldown > 0) require(block.timestamp > (fd.dateCreated + cooldown), "Cdw in force");
+        if (maxClaimPeriod > 0) require(block.timestamp < (fd.dateCreated + maxClaimPeriod), "Claim expired");
+        require(fd.remainingPool > 0, "Fund fully claimed");
+        require(!claim.isClaimed, "User already claimed");
+        claim.isClaimed = true;
 
-        _editReputation(true, amount, sender, true);        
-        stableToken.safeTransferFrom(sender, address(this), amount);
-        emit Funded(goalId, sender, amount, _c.raisedAmount, _c.goalType, extraInfo);
-        emit ReputationUpdated(sender, 100, "funding received");
-
-        return true;
-    }
-
-    /// @notice Manually fulfill a goal or update its status
-    /// @param goalId ID of the goal
-    /// @param status New status to set
-    function fulfillGoal(uint256 goalId, GoalStatus status) public whenNotPaused notRestricted(_msgSender()) returns(bool) {
-        address sender = _msgSender();
-        Goal storage goal = _verifyGoalId(goalId, GoalStatus.OPEN, "Not Open");
-        address owner_ = owner();
-        require(sender == owner_ || sender == goal.cData.creator, "Not allowed");
-        if (sender != owner_){
-            require(uint8(status) > uint8(goal.cData.status), "Backward move not allowed");
-        }
-        goal.cData.status = status;
-
-        return true;
-    }
-
-    /// @notice Re-opens a goal that was previously closed or canceled
-    /// @param goalId ID of the goal
-    function reactivateGoal(uint256 goalId) public onlyOwner returns(bool) {
-        Goal storage goal = goals[goalId];
-        if (goal.cData.id == 0 || goal.cData.id > goalCounter) revert GoalNotFound();
-        
-        GoalStatus newStatus = GoalStatus.OPEN;
-        require(goal.cData.status != newStatus, "Goal is open");
-        goal.cData.status = newStatus;
-
-        return true;
-    }
-
-    /// @notice Sets restriction status for an address
-    /// @param target Address to restrict/unrestrict
-    /// @param status True to restrict, false to unrestrict
-    function setRestriction(address target, bool status) public onlyOwner returns(bool) {
-        restrictions[target] = status;
-        return true;
-    }
-
-    /// @notice Clears the lock status for several goals. Only callable by release approver or owner.
-    /// @param goalIds Array of goal IDs to unlock
-    function approveScholarshipRelease(uint256[] memory goalIds) external onlyReleaseApprover whenNotPaused notRestricted(_msgSender()) returns(bool) {
-        for (uint256 i = 0; i < goalIds.length; i++) {
-            uint256 goalId = goalIds[i];
-            if(goalId > 0 && goalId <= goalCounter) {
-                Goal storage goal = goals[goalId];
-                goal.cData.lockedForReview = false;
+        uint totalUserScores;
+        if (address(verifier) != address(0)) {
+            (IVerification.User[] memory lvls, bool isBlacklisted) = verifier.getUserVerificationStatus(sender);
+            if (isBlacklisted) revert UserBlacklisted();
+            for (uint8 i = 0; i < lvls.length; i++) {
+                if (fd.requiredLevel == IVerification.Level(i)) {
+                    require(lvls[i].isVerified, "Verification Invalid");
+                }
+                if (lvls[i].lastVerifiedDate <= fd.snapshot.time) {
+                    totalUserScores += lvls[i].score;
+                }
             }
         }
-        
+
+        require(totalUserScores > 0, "No score");
+        require(fd.snapshot.totalScores > 0, "Zero total scores");
+        uint256 share = (totalUserScores * fd.amount) / fd.snapshot.totalScores;
+        if (share > fd.remainingPool) {
+            share = fd.remainingPool;
+        }
+        claim.amount = share;
+        claim.dateClaimed = block.timestamp;
+        fd.remainingPool -= share;
+        fd.claimed++;
+        _sendValue(fd.currency, sender, share);
+
+        emit Claimed(sender, share, fundId);
         return true;
-    }
 
-    /// @notice Claims funds for a scholarship milestone
-    /// @param goalId ID of the scholarship goal
-    /// @param recipient Address to receive the funds (defaults to creator if zero)
-    function claimScholarshipFunds(
-        uint256 goalId, 
-        address recipient
-    ) 
-        external 
-        notRestricted(_msgSender())
-        isVerified(Level.LEVEL3, _msgSender())
-        whenNotPaused 
-        nonReentrant 
-        returns(bool) 
-    {
-        Goal storage goal = _verifyGoalId(goalId, GoalStatus.RAISED, "Not Funded");
-        ScholarshipGoal storage sc = goal.scholarship;
-        CommonData storage cd = goal.cData;
-        bool isRecipientEmpty = recipient == address(0);
-
-        require(!sc.disputed, "Disputed");
-        require(cd.goalType == GoalType.SCHOLARSHIP, "Only Scholarship");
-        if (!isRecipientEmpty){
-            require(cd.creator == _msgSender(), "Invalid caller");
-        }
-        require (!cd.lockedForReview, "Locked for review");
-        cd.lockedForReview = true;
-        
-        sc.milestone = Milestone(uint8(sc.milestone) + 1);
-        uint256 payoutAmount;
-        
-        if (sc.milestone == Milestone.TWO_FORTY) {
-            if (block.timestamp <= sc.milestoneDeadline) revert DeadlineNotMet();
-            // Dust-free release: take everything remaining for this goal
-            payoutAmount = cd.raisedAmount - cd.withdrawnAmount;
-            cd.status = GoalStatus.FULFILLED;
-            sc.milestone = Milestone.COMPLETED;
-            activeGoals[cd.creator]--;
-        } else {
-            payoutAmount = (cd.raisedAmount * milestonePercent[sc.milestone]) / 100;
-        }
-
-        uint256 fee = (payoutAmount * scholarshipFeeBP) / BPS_DENOMINATOR;
-        uint256 netPayout = payoutAmount - fee;
-        cd.withdrawnAmount += payoutAmount;
-        
-        sc.milestoneDeadline = uint64(block.timestamp + 90 days);
-        _editReputation(true, 0, _msgSender(), false);
-
-        if (fee > 0) stableToken.safeTransfer(treasury, fee);
-        if (netPayout > 0) stableToken.safeTransfer(isRecipientEmpty? cd.creator : recipient, netPayout);
-
-        emit ScholarshipWithdrawal(
-            goalId, 
-            isRecipientEmpty? cd.creator : recipient,
-            cd.creator, 
-            netPayout, 
-            100,
-            uint8(sc.milestone),
-            uint8(GoalType.SCHOLARSHIP)
-        );
-        emit ReputationUpdated(cd.creator, 100, "milestone_completed");
-
-        return true;
-    }
-
-    function _relayFund(uint256 goalId, uint256 amount, bool useBillService_) internal {
-        Goal storage _g = _verifyGoalId(goalId, GoalStatus.RAISED, "Not Funded");
-        CommonData storage cd = _g.cData;
-        if (cd.lockedForReview) revert GoalLocked();
-        require(cd.goalType == GoalType.BILL || cd.goalType == GoalType.DEFAULT, "Scholarship Not allowed");
-        
-        uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
-        if (amount > availableAmount) revert InvalidAmount();
-
-        uint256 fee = (amount * billSuccessFeeBP) / BPS_DENOMINATOR;
-        uint256 relayAmount = amount - fee;
-        
-        cd.withdrawnAmount += amount;
-        _editReputation(true, 0, cd.creator, false);
-        require(cd.withdrawnAmount <= cd.raisedAmount, "Bal Anomally");
-        if (cd.withdrawnAmount == cd.raisedAmount) {
-            cd.status = GoalStatus.FULFILLED;
-            activeGoals[cd.creator]--;
-        }
-
-        address to = useBillService_? _g.bill.billService : cd.creator;
-        require(to != address(0), "Bill service undefined");
-        if (fee > 0) stableToken.safeTransfer(treasury, fee);
-        if (relayAmount > 0) stableToken.safeTransfer(to, relayAmount);
-        emit BillGoalFulfilled(goalId, to, cd.creator, relayAmount, _g.bill.serviceType, 100);
-        emit ReputationUpdated(cd.creator, 100, "goal_completed");
     } 
 
-    function claimFund(uint256 goalId) 
-        external 
-        notRestricted(_msgSender())
-        isVerified(Level.LEVEL2, _msgSender()) 
-        whenNotPaused 
-        nonReentrant 
-        returns(bool) 
-    {
-        Goal storage goal = goals[goalId];
-        address creator = goal.cData.creator;
-        require(msg.sender == creator || msg.sender == owner(), "Not authorized");
-        
-        bool useBillService_ = useBillService;
-        CommonData memory cd = goal.cData;
-        uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
-        _relayFund(goalId, availableAmount, useBillService_);
-
-        return true;
-    }
-
-    /// @notice Relays funds from a raised bill goal to the service provider
-    /// @param goalId ID of the bill goal
-    /// @param amount Amount to relay
-    function relayBillFundsToService(uint256 goalId, uint256 amount) external onlyReleaseApprover whenNotPaused nonReentrant {
-        _relayFund(goalId, amount, useBillService);
-    }
-
-    function cancelGoal(uint256 goalId) external whenNotPaused returns(bool) {
-        Goal storage _g = _verifyGoalId(goalId, GoalStatus.OPEN, "Cannot cancel");
-        CommonData storage cd = _g.cData;
-        address sender = _msgSender();
-        require(cd.creator == sender || sender == owner(), "Not permitted");
-        
-        uint256 withdrawable = cd.raisedAmount;
-        if (cd.raisedAmount > 0) {
-            require((block.timestamp - cd.dataCreated) > 90 days, "Goal is active");
-            if (sender !=  owner()) require(withdrawable < cd.targetAmount, "Raised >= target");
-            _editReputation(true, 0, cd.creator, false);
-        } 
-        cd.status = GoalStatus.CANCELED;
-        if (withdrawable > 0){
-            if(sender == cd.creator) {
-                stableToken.safeTransfer(cd.creator, withdrawable);
-            } else {
-                stableToken.safeTransfer(treasury, withdrawable);
-            }
-        }
-
-        emit Canceled(goalId, sender, withdrawable);
-        return true;
-    }
-
-    /// @notice Allows a donor to flag a goal for review if suspicious
-    /// @param goalId ID of the goal to flag
-    function toggleFlagGoal(uint256 goalId) external whenNotPaused {
-        Goal storage goal = goals[goalId];
-        uint256 id = goal.cData.id;
-        require (id > 0, "GoalNotFound");
-        require(uint8(goal.cData.status) < uint8(GoalStatus.FULFILLED), "Fulfilled/Canceled");
-        
-        address sender = _msgSender();
-        FunderFlag memory ff = goal.funderFlag[sender];
-        require (ff.isFunder, "NotDonor");
-        Funder memory fd = goal.funders[ff.index];
-        bool status = false;
-        if (!fd.hasFlagged) {
-            status = true;
-            goal.cData.flagsCount += 1;
-            _editReputation(false, 0, goal.cData.creator, false);
+    function rebalancePool(uint fundId) public validateId(fundId) nonReentrant returns(bool) {
+        Funder storage fd = funders[fundId];
+        uint withdrawable = fd.remainingPool;
+        require(withdrawable > 0, "Pool exhausted");
+        if (maxClaimPeriod > 0) {
+            require(block.timestamp > (fd.dateCreated + maxClaimPeriod + cooldown), "Window active");
         } else {
-            
-            goal.cData.flagsCount -= 1;
-            _editReputation(true, 0, goal.cData.creator, false);
+            require(block.timestamp > (fd.dateCreated + 90 days), "Window active_");
         }
-        goal.funders[ff.index].hasFlagged = status;
-        bool isScholarship = goal.cData.goalType == GoalType.SCHOLARSHIP;
-        
-        if (goal.cData.flagsCount >= 3) {
-            if (isScholarship) {
-                goal.scholarship.disputed = true;
-            } else {
-                goal.cData.lockedForReview = true;
-            }
-        }
+        fd.remainingPool = 0;
 
-        emit GoalFlagged(
-            goalId, 
-            sender, 
-            goal.cData.flagsCount, 
-            isScholarship? goal.scholarship.disputed : goal.cData.lockedForReview, 
-            goal.cData.goalType,
-            goal.cData.creator,
-            5,
-            !status? "goal_unflagged" : "goal_flagged"
+        address to = treasury == address(0)? owner() : treasury;
+        _sendValue(fd.currency, to, fd.remainingPool);
+        emit PoolRebalanced(to, withdrawable, fundId);
+        
+        return true;
+
+    }
+
+    function rebalanceDefaultPool() public nonReentrant returns(bool) {
+        Funder storage fd = funders[0];
+        uint withdrawable = fd.amount;
+        require(withdrawable > 0, "Pool exhausted");
+        fd.amount = 0;
+
+        address to = treasury == address(0)? owner() : treasury;
+        _sendValue(fd.currency, to, fd.remainingPool);
+        emit PoolRebalanced(to, withdrawable, 0);
+        
+        return true;
+
+    }
+
+    function _sendValue(Currency currency, address to, uint256 amount) internal {
+        if(currency == Currency.STABLECOIN) {
+            stableToken.safeTransfer(to, amount);
+        } else {
+            require(address(this).balance >= amount, "Ins. bal");
+            Address.sendValue(payable(to), amount);
+        }
+    }
+
+    /// @notice Allows the contract owner to update the stable token address used for STABLECOIN distributions
+    /// @param newStableToken The address of the new ERC20 token
+    /// @return A boolean indicating successful execution
+    function setStableToken(address newStableToken) public onlyOwner returns(bool) {
+        require(newStableToken != address(0), "Invalid address");
+        stableToken = IERC20(newStableToken);
+
+        return true;
+    }
+
+    /// @notice Allows the contract owner to update the maxClaimPeriod
+    /// @param newClaimPeriod The new period until when claim becomes inactive
+    /// @return A boolean indicating successful execution
+    function setMaxClaimPeriod(uint newClaimPeriod) public onlyOwner returns(bool) {
+        maxClaimPeriod = newClaimPeriod;
+
+        return true;
+    }
+
+    /// @notice Allows the contract owner to update the treasury address
+    /// @param newTreasury The new treasury address
+    /// @return A boolean indicating successful execution
+    function setMaxClaimPeriod(address newTreasury) public onlyOwner returns(bool) {
+        treasury = newTreasury;
+
+        return true;
+    }
+
+    /// @notice Allows the contract owner to update the cooldown time
+    /// @param newCooldown The new period until when claim becomes active
+    /// @return A boolean indicating successful execution
+    function setCooldown(uint newCooldown) public onlyOwner returns(bool) {
+        cooldown = newCooldown;
+
+        return true;
+    }
+
+    function getStateData() external view returns(GetStateData memory) {
+        return GetStateData(
+            counter,
+            maxClaimPeriod,
+            cooldown,
+            treasury,
+            verifier,
+            stableToken
         );
-        emit ReputationUpdated(goal.cData.creator, 50, !status? "goal_unflagged" : "goal_flagged");
     }
-
-    /// @notice Allows donors to claim a proportional refund if scholarship milestones are not met
-    /// @param goalId ID of the scholarship goal
-    function refundScholarship(uint256 goalId) external notRestricted(_msgSender()) whenNotPaused nonReentrant {
-        Goal storage goal = goals[goalId];
-        address sender = _msgSender();
-        if (goal.cData.id == 0) revert GoalNotFound();
-        ScholarshipGoal storage sc = goal.scholarship;
-        require (sc.milestone != Milestone.COMPLETED, "RefundNotAvailable");
-        require (sc.milestoneDeadline > 0 && block.timestamp > sc.milestoneDeadline, "RefundNotAvailable");
-        uint donations;
-        for (uint i = 0; i < goal.funders.length; i++) {
-            Funder memory fd = goal.funders[i];
-            if (fd.id == sender) {
-                donations += fd.amount;
-                goal.funders[i].amount = 0;
-            }
-        }
-        
-        require (donations > 0, "NotDonor");
-        CommonData storage cd = goal.cData;
-        uint256 remainingPool = cd.raisedAmount - (cd.withdrawnAmount + sc.refundedAmount);
-        require(remainingPool > 0, "Pool empty");
-        uint256 donorShare = (donations * remainingPool) / cd.raisedAmount;
-        if (donorShare == 0) revert RefundNotAvailable();
-        _editReputation(false, 0, sender, true);
-
-        sc.refundedAmount += donorShare;
-        if (sc.refundedAmount >= (cd.raisedAmount * 80) / 100) {
-            cd.status = GoalStatus.CANCELED;
-        }
-        stableToken.safeTransfer(sender, donorShare);
-        emit Refunded(goalId, sender, donorShare, goal.cData.creator, -200, "proof_unmet");
-        emit ReputationUpdated(goal.cData.creator, 200, "refunded_proof_unmet");
-    }
-
-    /// @notice Updates user levels status. Only callable by signer or owner.
-    /// @param user Address of the user to verify
-    function onVerificationSuccess(address user, Level lvl) external {
-        address sender = _msgSender();
-        require((backendFulfillmentSigner != address(0) && sender == backendFulfillmentSigner) || sender == owner());
-        levels[user][lvl] = true;
-    }
-
-    /// @notice Sets a new release approver address
-    /// @param newApprover The new address
-    function setReleaseApprover(address newApprover) external onlyOwner {
-        releaseApprover = newApprover;
-    }
-
-    /// @notice Sets a new backend fulfillment signer address
-    /// @param newSigner The new address
-    function setBackendFulfillmentSigner(address newSigner) external onlyOwner {
-        backendFulfillmentSigner = newSigner;
-    }
-
-    /// @notice Sets the maximum goals per user
-    /// @param max The maximum number
-    function setMaxGoal(uint256 max) external onlyOwner {
-        maxGoal = max;
-    }
-
-    /// @notice Pauses contract activity
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    /// @notice Unpauses contract activity
-    function unpause() public onlyOwner {
-        _unpause();
-    }
-
-    /// @notice Retrieves comprehensive details about a goal
-    /// @param goalId ID of the goal to pull
-    /// @return data Goal
-    function getGoal(uint256 goalId) external view returns (GetGoal memory data) {
-        Goal storage goal = goals[goalId];
-        data = GetGoal({
-            bill: goal.bill,
-            scholarship: goal.scholarship,
-            common: goal.cData,
-            funders: goal.funders
-        });
-
-        return data;
-    }
-
-    /// @notice Retrieves comprehensive details about a goal
-    /// @param user Target user
-    /// @return data Struct containing goal data and protocol settings
-    function getGoalIdAndState(address user) external view returns (GetGoalIdAndState memory data) {
-        bool lvl1 = levels[user][Level.LEVEL1]; 
-        bool lvl2 = levels[user][Level.LEVEL2]; 
-        bool lvl3 = levels[user][Level.LEVEL3]; 
-        data = GetGoalIdAndState({
-            goalIds: goalIDs[user],
-            treasury: treasury,
-            releaseApprover: releaseApprover,
-            backendFulfillmentSigner: backendFulfillmentSigner,
-            billListingFee: billListingFee,
-            scholarshipListingFee: scholarshipListingFee,
-            defaultListingFee: defaultListingFee,
-            scholarshipFeeBP: scholarshipFeeBP,
-            billSuccessFeeBP: billSuccessFeeBP,
-            goalCounter:goalCounter,
-            maxGoal: maxGoal,
-            billServices: billServices,
-            verifications: Verification(lvl1, lvl2, lvl3),
-            restricted: restrictions[user],
-            reputation: reputationScores[user]
-        });
-
-        return data;
-    }
+   
 }
