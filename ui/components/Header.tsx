@@ -32,7 +32,7 @@ export default function Header() {
       <div className="flex items-center gap-2 lg:hidden">
         <Link to="/" className="p-1">
           <Image 
-            src="/logo5.png" 
+            src="/logo.png" 
             alt="ImpactPay Logo" 
             width={50} 
             height={50} 
@@ -46,8 +46,8 @@ export default function Header() {
 
       {/* Desktop left — page context label */}
       <div className="hidden lg:flex items-center gap-3">
-        <Image src="/logo5.png" alt="ImpactPay" width={32} height={32} className="rounded-lg" />
-        <span className="text-sm font-black text-[#001B3D] tracking-tight">ImpactPay</span>
+        {/* <Image src="/logo.png" alt="ImpactPay" width={32} height={32} className="rounded-lg" /> */}
+        {/* <span className="text-sm font-black text-[#001B3D] tracking-tight">ImpactPay</span> */}
       </div>
 
       <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export default function Header() {
           <select 
             value={selectedVersion} 
             onChange={(e) => setSelectedVersion(Number(e.target.value))}
-            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer"
+            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer md:hidden sm:block"
           >
             {Array.from({ length: availableVersions }).map((_, i) => (
               <option key={i} value={i}>v{i + 1}.0</option>

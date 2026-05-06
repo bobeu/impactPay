@@ -305,8 +305,11 @@ export default function WealthView() {
             );
           })}
           {payFunders.length === 0 && (
-            <div className="text-center py-12 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-              <p className="text-slate-400 font-medium">No active distributions yet.</p>
+            <div className="text-center py-12 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 space-y-4">
+              <div className="relative w-40 h-40 mx-auto">
+                <img src="/undraw_social-media-interactions.png" alt="No distributions" className="w-full h-full object-contain opacity-40" />
+              </div>
+              <p className="text-slate-400 font-medium text-sm">No active distributions yet.</p>
             </div>
           )}
         </div>
