@@ -23,7 +23,7 @@ const Layout: FC<Props> = ({ children }) => {
             Desktop: full-width of the area right of sidebar, max 1100px centered within that area, comfortable horizontal padding
         */}
         <main className="
-          pt-20 pb-24
+          pt-20 md:pt-4 pb-24
           px-3 sm:px-4
           w-full min-w-[360px] max-w-[450px] mx-auto
           lg:max-w-5xl lg:mx-auto lg:pb-10 lg:px-10

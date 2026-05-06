@@ -2,6 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
+import { useSignMessage } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
+import { toast } from "sonner";
 
 import { VerificationLevel } from "@/lib/types";
 
@@ -71,19 +74,55 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
+  const { signMessageAsync } = useSignMessage();
+  const { login, authenticated: privyAuthenticated, user: privyUser, ready: privyReady } = usePrivy();
+
   const signIn = async (method: 'message' | 'social' | 'email') => {
-    // In a real app, this would involve a backend call or wagmi signMessage
-    // For now, we simulate success
-    setProfile(prev => ({ ...prev, isAuthenticated: true }));
-    localStorage.setItem('impact_pay_auth', 'true');
+    const isMiniPay = typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay;
+
+    if (isMiniPay) {
+      try {
+        const message = `Welcome to ImpactPay!\n\nSign this message to authenticate your session.\n\nTimestamp: ${Date.now()}`;
+        await signMessageAsync({ message });
+        setProfile(prev => ({ ...prev, isAuthenticated: true }));
+        localStorage.setItem('impact_pay_auth', 'true');
+        toast.success("Authenticated with MiniPay");
+      } catch (err: any) {
+        console.error("MiniPay sign in error:", err);
+        toast.error(err.shortMessage || "Authentication failed");
+      }
+    } else {
+      if (!privyReady) {
+        toast.error("Auth provider not ready");
+        return;
+      }
+      try {
+        // Trigger Privy login modal
+        await login();
+      } catch (err: any) {
+        console.error("Privy sign in error:", err);
+        // Privy handles most errors UI-wise, but we log it
+      }
+    }
   };
+
+  // Sync Privy auth state with local profile
+  useEffect(() => {
+    if (privyAuthenticated && privyReady) {
+      setProfile(prev => ({ ...prev, isAuthenticated: true }));
+      localStorage.setItem('impact_pay_auth', 'true');
+    }
+  }, [privyAuthenticated, privyReady]);
 
   useEffect(() => {
     const isAuth = localStorage.getItem('impact_pay_auth');
-    if (isAuth === 'true') {
+    // If not in MiniPay, we also check Privy state
+    const isMiniPay = typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay;
+    
+    if (isAuth === 'true' || (!isMiniPay && privyAuthenticated)) {
       setProfile(prev => ({ ...prev, isAuthenticated: true }));
     }
-  }, []);
+  }, [privyAuthenticated]);
 
   const { goalIdsAndState } = useImpactPay();
 
