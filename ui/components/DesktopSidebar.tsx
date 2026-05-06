@@ -61,7 +61,7 @@ export function DesktopSidebar() {
       {/* Branding */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
         <div className="w-10 h-10 rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center shrink-0">
-          <Image src="/logo.png" alt="ImpactPay" width={40} height={40} className="w-full h-full object-cover" />
+          <Image src="/logo5.png" alt="ImpactPay" width={40} height={40} className="w-full h-full object-cover" />
         </div>
         <div>
           <h1 className="text-lg font-black tracking-tight">ImpactPay</h1>

@@ -14,21 +14,25 @@ const Layout: FC<Props> = ({ children }) => {
       {/* Desktop sidebar — visible lg+ */}
       <DesktopSidebar />
 
-      {/* Header — full-width on mobile, offset on desktop */}
+      {/* Content area — offset by sidebar on desktop */}
       <div className="lg:pl-72 xl:pl-80">
         <Header />
 
-        {/* Main content */}
+        {/* Main content
+            Mobile:  narrow centered column (max 450px)
+            Desktop: full-width of the area right of sidebar, max 1100px centered within that area, comfortable horizontal padding
+        */}
         <main className="
           pt-20 pb-24
           px-3 sm:px-4
           w-full min-w-[360px] max-w-[450px] mx-auto
-          lg:max-w-none lg:mx-0 lg:pb-8 lg:px-8 xl:px-12
+          lg:max-w-5xl lg:mx-auto lg:pb-10 lg:px-10
+          xl:max-w-6xl xl:px-14
         ">
           {children}
         </main>
 
-        {/* Footer — desktop only (mobile uses BottomNav) */}
+        {/* Footer — desktop only */}
         <div className="hidden lg:block">
           <Footer />
         </div>

@@ -44,9 +44,10 @@ export default function Header() {
         </Link>
       </div>
 
-      {/* Desktop breadcrumb / title area */}
-      <div className="hidden lg:flex items-center">
-        <span className="text-sm font-bold text-slate-400">ImpactPay Protocol</span>
+      {/* Desktop left — page context label */}
+      <div className="hidden lg:flex items-center gap-3">
+        <Image src="/logo5.png" alt="ImpactPay" width={32} height={32} className="rounded-lg" />
+        <span className="text-sm font-black text-[#001B3D] tracking-tight">ImpactPay</span>
       </div>
 
       <div className="flex items-center gap-3">
@@ -54,7 +55,7 @@ export default function Header() {
           <select 
             value={selectedVersion} 
             onChange={(e) => setSelectedVersion(Number(e.target.value))}
-            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer lg:hidden"
+            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer"
           >
             {Array.from({ length: availableVersions }).map((_, i) => (
               <option key={i} value={i}>v{i + 1}.0</option>
