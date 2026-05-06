@@ -1,5 +1,5 @@
 {
-  "ImpactPay": [
+  "ImpactGoal": [
     {
       "inputs": [
         {
@@ -162,6 +162,19 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "newBillService",
+          "type": "address"
+        }
+      ],
+      "name": "BillServicesUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
           "internalType": "uint256",
           "name": "goalId",
           "type": "uint256"
@@ -211,7 +224,7 @@
         },
         {
           "indexed": false,
-          "internalType": "enum ImpactPay.GoalType",
+          "internalType": "enum IVerification.GoalType",
           "name": "goalType",
           "type": "uint8"
         },
@@ -242,7 +255,7 @@
         },
         {
           "indexed": false,
-          "internalType": "enum ImpactPay.GoalType",
+          "internalType": "enum IVerification.GoalType",
           "name": "goalType",
           "type": "uint8"
         },
@@ -309,7 +322,7 @@
         },
         {
           "indexed": false,
-          "internalType": "enum ImpactPay.GoalType",
+          "internalType": "enum IVerification.GoalType",
           "name": "goalType",
           "type": "uint8"
         },
@@ -333,6 +346,43 @@
         }
       ],
       "name": "GoalFlagged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "targetContract",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "score",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32[3]",
+          "name": "txHashes",
+          "type": "bytes32[3]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "onchainCounter",
+          "type": "uint256"
+        }
+      ],
+      "name": "ImpactRegistered",
       "type": "event"
     },
     {
@@ -365,6 +415,25 @@
         }
       ],
       "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "enum IVerification.Level",
+          "name": "oldLevel",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum IVerification.Level",
+          "name": "newLevel",
+          "type": "uint8"
+        }
+      ],
+      "name": "QualifiedLevelChange",
       "type": "event"
     },
     {
@@ -440,6 +509,25 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "status",
+          "type": "bool"
+        }
+      ],
+      "name": "RestrictionStatus",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
           "internalType": "uint256",
           "name": "goalId",
           "type": "uint256"
@@ -498,27 +586,40 @@
       "type": "event"
     },
     {
-      "inputs": [],
-      "name": "BPS_DENOMINATOR",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
+      "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
           "internalType": "address",
-          "name": "",
+          "name": "target",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "newStatus",
+          "type": "bool"
         }
       ],
-      "name": "activeGoals",
+      "name": "VerificationStatus",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "newStatus",
+          "type": "bool"
+        }
+      ],
+      "name": "VerificationUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "BPS_DENOMINATOR",
       "outputs": [
         {
           "internalType": "uint256",
@@ -549,61 +650,22 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "backendFulfillmentSigner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "billListingFee",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "goalId",
           "type": "uint256"
         }
       ],
-      "name": "billServices",
+      "name": "cancelGoalOnlyCreator",
       "outputs": [
         {
-          "internalType": "address",
+          "internalType": "bool",
           "name": "",
-          "type": "address"
+          "type": "bool"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "billSuccessFeeBP",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -614,7 +676,7 @@
           "type": "uint256"
         }
       ],
-      "name": "cancelGoal",
+      "name": "cancelGoalOnlyOwner",
       "outputs": [
         {
           "internalType": "bool",
@@ -704,7 +766,7 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -733,7 +795,7 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -762,20 +824,7 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "defaultListingFee",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -786,7 +835,7 @@
           "type": "uint256"
         },
         {
-          "internalType": "enum ImpactPay.GoalStatus",
+          "internalType": "enum IVerification.GoalStatus",
           "name": "status",
           "type": "uint8"
         }
@@ -856,7 +905,7 @@
                   "type": "address"
                 }
               ],
-              "internalType": "struct ImpactPay.BillGoal",
+              "internalType": "struct IVerification.BillGoal",
               "name": "bill",
               "type": "tuple"
             },
@@ -873,7 +922,7 @@
                   "type": "uint64"
                 },
                 {
-                  "internalType": "enum ImpactPay.Milestone",
+                  "internalType": "enum IVerification.Milestone",
                   "name": "milestone",
                   "type": "uint8"
                 },
@@ -883,7 +932,7 @@
                   "type": "bool"
                 }
               ],
-              "internalType": "struct ImpactPay.ScholarshipGoal",
+              "internalType": "struct IVerification.ScholarshipGoal",
               "name": "scholarship",
               "type": "tuple"
             },
@@ -930,12 +979,12 @@
                   "type": "bytes"
                 },
                 {
-                  "internalType": "enum ImpactPay.GoalStatus",
+                  "internalType": "enum IVerification.GoalStatus",
                   "name": "status",
                   "type": "uint8"
                 },
                 {
-                  "internalType": "enum ImpactPay.GoalType",
+                  "internalType": "enum IVerification.GoalType",
                   "name": "goalType",
                   "type": "uint8"
                 },
@@ -950,7 +999,7 @@
                   "type": "bool"
                 }
               ],
-              "internalType": "struct ImpactPay.CommonData",
+              "internalType": "struct IVerification.CommonData",
               "name": "common",
               "type": "tuple"
             },
@@ -982,12 +1031,12 @@
                   "type": "bool"
                 }
               ],
-              "internalType": "struct ImpactPay.Funder[]",
+              "internalType": "struct IVerification.Funder[]",
               "name": "funders",
               "type": "tuple[]"
             }
           ],
-          "internalType": "struct ImpactPay.GetGoal",
+          "internalType": "struct IVerification.GetGoal",
           "name": "data",
           "type": "tuple"
         }
@@ -1008,86 +1057,142 @@
         {
           "components": [
             {
-              "internalType": "uint256[]",
-              "name": "goalIds",
-              "type": "uint256[]"
-            },
-            {
-              "internalType": "address",
-              "name": "treasury",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "releaseApprover",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "backendFulfillmentSigner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "billListingFee",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "scholarshipListingFee",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "defaultListingFee",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "scholarshipFeeBP",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "billSuccessFeeBP",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "goalCounter",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxGoal",
-              "type": "uint256"
-            },
-            {
-              "internalType": "address[]",
-              "name": "billServices",
-              "type": "address[]"
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "reputation",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "onchainVerifiedCounter",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "billListingFee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "scholarshipListingFee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "defaultListingFee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "scholarshipFeeBP",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "billSuccessFeeBP",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "goalCounter",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxGoal",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "verified",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalUsersScores",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "level3Indexer",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct IVerification.Uint256s",
+              "name": "uints",
+              "type": "tuple"
             },
             {
               "components": [
                 {
-                  "internalType": "bool",
-                  "name": "lvl1",
-                  "type": "bool"
+                  "internalType": "uint256[]",
+                  "name": "goalIds",
+                  "type": "uint256[]"
                 },
                 {
-                  "internalType": "bool",
-                  "name": "lvl2",
-                  "type": "bool"
+                  "internalType": "address[]",
+                  "name": "billServices",
+                  "type": "address[]"
                 },
                 {
-                  "internalType": "bool",
-                  "name": "lvl3",
-                  "type": "bool"
+                  "components": [
+                    {
+                      "internalType": "bool",
+                      "name": "isVerified",
+                      "type": "bool"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "score",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastVerifiedDate",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct IVerification.User[]",
+                  "name": "verifications",
+                  "type": "tuple[]"
                 }
               ],
-              "internalType": "struct ImpactPay.Verification",
-              "name": "verifications",
+              "internalType": "struct IVerification.Arrays",
+              "name": "arrays",
               "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "stableToken",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "treasury",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "releaseApprover",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backendFulfillmentSigner",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct IVerification.Addresses",
+              "name": "addresses",
+              "type": "tuple"
+            },
+            {
+              "internalType": "enum IVerification.Level",
+              "name": "qualifiedLevel",
+              "type": "uint8"
             },
             {
               "internalType": "bool",
@@ -1095,12 +1200,12 @@
               "type": "bool"
             },
             {
-              "internalType": "uint256",
-              "name": "reputation",
-              "type": "uint256"
+              "internalType": "bool",
+              "name": "useVerifier",
+              "type": "bool"
             }
           ],
-          "internalType": "struct ImpactPay.GetGoalIdAndState",
+          "internalType": "struct IVerification.GetGoalIdAndState",
           "name": "data",
           "type": "tuple"
         }
@@ -1109,8 +1214,14 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "goalCounter",
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "getReputation",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1125,165 +1236,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "",
+          "name": "target",
           "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
-      "name": "goalIDs",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "goals",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "id",
-              "type": "uint256"
-            },
-            {
-              "internalType": "address",
-              "name": "creator",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "targetAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "raisedAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "withdrawnAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "dataCreated",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "description",
-              "type": "bytes"
-            },
-            {
-              "internalType": "bytes",
-              "name": "extraLink",
-              "type": "bytes"
-            },
-            {
-              "internalType": "enum ImpactPay.GoalStatus",
-              "name": "status",
-              "type": "uint8"
-            },
-            {
-              "internalType": "enum ImpactPay.GoalType",
-              "name": "goalType",
-              "type": "uint8"
-            },
-            {
-              "internalType": "uint8",
-              "name": "flagsCount",
-              "type": "uint8"
-            },
-            {
-              "internalType": "bool",
-              "name": "lockedForReview",
-              "type": "bool"
-            }
-          ],
-          "internalType": "struct ImpactPay.CommonData",
-          "name": "cData",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "internalType": "bytes",
-              "name": "serviceType",
-              "type": "bytes"
-            },
-            {
-              "internalType": "address",
-              "name": "billService",
-              "type": "address"
-            }
-          ],
-          "internalType": "struct ImpactPay.BillGoal",
-          "name": "bill",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "refundedAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint64",
-              "name": "milestoneDeadline",
-              "type": "uint64"
-            },
-            {
-              "internalType": "enum ImpactPay.Milestone",
-              "name": "milestone",
-              "type": "uint8"
-            },
-            {
-              "internalType": "bool",
-              "name": "disputed",
-              "type": "bool"
-            }
-          ],
-          "internalType": "struct ImpactPay.ScholarshipGoal",
-          "name": "scholarship",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "enum ImpactPay.Level",
-          "name": "",
-          "type": "uint8"
-        }
-      ],
-      "name": "levels",
+      "name": "getRestriction",
       "outputs": [
         {
           "internalType": "bool",
@@ -1296,7 +1253,7 @@
     },
     {
       "inputs": [],
-      "name": "maxGoal",
+      "name": "getTotalScores",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1310,7 +1267,92 @@
     {
       "inputs": [
         {
-          "internalType": "enum ImpactPay.Milestone",
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserVerificationStatus",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "isVerified",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "score",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastVerifiedDate",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IVerification.User[]",
+          "name": "",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "indexer",
+          "type": "uint256"
+        }
+      ],
+      "name": "getVerified",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getVerifiedDefault",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address[]",
+              "name": "verified",
+              "type": "address[]"
+            }
+          ],
+          "internalType": "struct IVerification.GetVerified[]",
+          "name": "_verified",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum IVerification.Milestone",
           "name": "",
           "type": "uint8"
         }
@@ -1334,13 +1376,19 @@
           "type": "address"
         },
         {
-          "internalType": "enum ImpactPay.Level",
+          "internalType": "enum IVerification.Level",
           "name": "lvl",
           "type": "uint8"
         }
       ],
       "name": "onVerificationSuccess",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -1412,6 +1460,40 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "targetContract",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32[3]",
+          "name": "txHashes",
+          "type": "bytes32[3]"
+        },
+        {
+          "internalType": "uint8",
+          "name": "score",
+          "type": "uint8"
+        }
+      ],
+      "name": "registerImpact",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "goalId",
           "type": "uint256"
@@ -1429,86 +1511,9 @@
     },
     {
       "inputs": [],
-      "name": "releaseApprover",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "renounceOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "reputationScores",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "restrictions",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "scholarshipFeeBP",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "scholarshipListingFee",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -1552,6 +1557,19 @@
         }
       ],
       "name": "setBillService",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint16",
+          "name": "newBP",
+          "type": "uint16"
+        }
+      ],
+      "name": "setBillSuccessFeeBP",
       "outputs": [
         {
           "internalType": "bool",
@@ -1590,7 +1608,32 @@
         }
       ],
       "name": "setMaxGoal",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum IVerification.Level",
+          "name": "_level",
+          "type": "uint8"
+        }
+      ],
+      "name": "setQualifiedLevel",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -1610,17 +1653,12 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "target",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "status",
-          "type": "bool"
+          "internalType": "uint16",
+          "name": "newBP",
+          "type": "uint16"
         }
       ],
-      "name": "setRestriction",
+      "name": "setScholarshipFeeBP",
       "outputs": [
         {
           "internalType": "bool",
@@ -1651,16 +1689,41 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "stableToken",
-      "outputs": [
+      "inputs": [
         {
-          "internalType": "contract IERC20",
-          "name": "",
+          "internalType": "address",
+          "name": "newStableToken",
           "type": "address"
         }
       ],
-      "stateMutability": "view",
+      "name": "setStableToken",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newTreasury",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasury",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1673,6 +1736,25 @@
       ],
       "name": "toggleFlagGoal",
       "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "toggleRestriction",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -1717,7 +1799,580 @@
     },
     {
       "inputs": [],
-      "name": "treasury",
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "ImpactPay": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "stableToken_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "initialOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "treasury_",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IVerification",
+          "name": "verifier_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "FailedCall",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "balance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "needed",
+          "type": "uint256"
+        }
+      ],
+      "name": "InsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "SafeERC20FailedOperation",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UserBlacklisted",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "beneficiaries",
+          "type": "address[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "share",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "Claimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "funder",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "remainingPool",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dateCreated",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claimed",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "id",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes",
+              "name": "name",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "handle",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "message",
+              "type": "bytes"
+            },
+            {
+              "internalType": "enum ImpactPay.Currency",
+              "name": "currency",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum ImpactPay.Pattern",
+              "name": "pattern",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum IVerification.Level",
+              "name": "requiredLevel",
+              "type": "uint8"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "time",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalScores",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ImpactPay.Snapshot",
+              "name": "snapshot",
+              "type": "tuple"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct ImpactPay.Funder",
+          "name": "data",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "Funded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "enum IVerification.Level",
+          "name": "oldLevel",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum IVerification.Level",
+          "name": "newLevel",
+          "type": "uint8"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "LevelChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "withdrawable",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "PoolRebalanced",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum IVerification.Level",
+          "name": "newLevel",
+          "type": "uint8"
+        }
+      ],
+      "name": "changeRequiredLevel",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimGigs",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "claims",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "dateClaimed",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isClaimed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "handle",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "internalType": "enum ImpactPay.Pattern",
+          "name": "pattern",
+          "type": "uint8"
+        },
+        {
+          "internalType": "enum IVerification.Level",
+          "name": "requiredLevel",
+          "type": "uint8"
+        }
+      ],
+      "name": "distributeWealth",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "funders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "remainingPool",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "dateCreated",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "claimed",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "id",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "name",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "handle",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "message",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum ImpactPay.Currency",
+          "name": "currency",
+          "type": "uint8"
+        },
+        {
+          "internalType": "enum ImpactPay.Pattern",
+          "name": "pattern",
+          "type": "uint8"
+        },
+        {
+          "internalType": "enum IVerification.Level",
+          "name": "requiredLevel",
+          "type": "uint8"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalScores",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ImpactPay.Snapshot",
+          "name": "snapshot",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getStateData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "counter",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxClaimPeriod",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cooldown",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "treasury",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IVerification",
+              "name": "verifier",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IERC20",
+              "name": "stableToken",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct ImpactPay.GetStateData",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
       "outputs": [
         {
           "internalType": "address",
@@ -1730,10 +2385,135 @@
     },
     {
       "inputs": [],
-      "name": "unpause",
+      "name": "rebalanceDefaultPool",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "rebalancePool",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newCooldown",
+          "type": "uint256"
+        }
+      ],
+      "name": "setCooldown",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newClaimPeriod",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMaxClaimPeriod",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newTreasury",
+          "type": "address"
+        }
+      ],
+      "name": "setMaxClaimPeriod",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newStableToken",
+          "type": "address"
+        }
+      ],
+      "name": "setStableToken",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ],
   "MockERC20": [

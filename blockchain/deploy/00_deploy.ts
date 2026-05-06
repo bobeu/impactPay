@@ -6,6 +6,8 @@ import { Address, zeroAddress } from 'viem';
 
 dotconfig();
 
+enum Level { LEVEL1, LEVEL2, LEVEL3 }
+
 interface BillGoal {
   serviceType: string; 
   billService: Address; 
@@ -40,14 +42,28 @@ interface CommonData {
   lockedForReview: boolean;
 }
 
-interface GetGoal {
-  bill: BillGoal;
-  scholarship: ScholarshipGoal;
-  common: CommonData;
-  funders: Funder[];
+interface User {
+  isVerified: boolean;
+  score: bigint;
+  lastVerifiedDate: bigint;
+}
+
+interface Arrays {
+  goalIds: bigint[];
+  billServices: Address[];
+  verifications: User[];
+}
+
+interface Addresses {
+  stableToken: Address;
   treasury: Address;
   releaseApprover: Address;
   backendFulfillmentSigner: Address;
+}
+
+interface Uint256s {
+  reputation: bigint;
+  onchainVerifiedCounter: bigint;
   billListingFee: bigint;
   scholarshipListingFee: bigint;
   defaultListingFee: bigint;
@@ -55,31 +71,18 @@ interface GetGoal {
   billSuccessFeeBP: bigint;
   goalCounter: bigint;
   maxGoal: bigint;
-  billServices: Address[];
-}
-
-interface GetVerification {
-  lvl1: boolean;
-  lvl2: boolean;
-  lvl3: boolean;
+  verified: bigint;
+  totalUsersScores: bigint;
+  level3Indexer: bigint;
 }
 
 interface GetGoalIdAndState {
-  goalIds: bigint[];
-  treasury: Address;
-  releaseApprover: Address;
-  backendFulfillmentSigner: Address;
-  billListingFee: bigint;
-  scholarshipListingFee: bigint;
-  defaultListingFee: bigint;
-  scholarshipFeeBP: bigint;
-  billSuccessFeeBP: bigint;
-  goalCounter: bigint;
-  maxGoal: bigint;
-  billServices: Address[];
-  verifications: GetVerification;
+  uints: Uint256s
+  arrays: Arrays;
+  addresses: Addresses;
+  qualifiedLevel: Level;
   restricted: boolean;
-  reputation: bigint;
+  useVerifier: boolean;
 }
 
 /// @notice Composite struct for goal information retrieval
@@ -137,6 +140,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
     console.log('MockERC20 deployed:', mockERC20.address);
   }
+
   // ERC-4626 yield vault (MockVault — constructor: asset, owner)
   const impactGoal = await deploy('ImpactGoal', {
     from: deployer,
@@ -150,23 +154,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   console.log('ImpactGoal deployed :', impactGoal.address);
 
+  const impactPay = await deploy('ImpactPay', {
+    from: deployer,
+    args: [
+      isTestnet? mockERC20.address : stableToken,
+      deployer,
+      treasury,
+      impactGoal.address
+    ],
+    log: true,
+  });
+  console.log('ImpactPay deployed :', impactPay.address);
+
   try {
     await execute("MockERC20", {from:deployer}, "mint", deployer, parseUnits("10000", 18));
-    console.log("Mint successfuk");
+    console.log("Mint successful");
   } catch (error) {
     console.log("Minting failed with: ", error?.message || error?.data?.message || error);
   }
 
   const goal = await read('ImpactGoal', 'getGoal', 0) as GetGoal;
   const goalIdsAndState = await read('ImpactGoal', 'getGoalIdAndState', zeroAddress) as GetGoalIdAndState;
-  const stableToken_ = await read('ImpactGoal', 'stableToken') as string;
   const balance = await read('MockERC20', 'balanceOf', deployer) as bigint;
   console.log('Initial getGoal(0) call goal:', goal);
   console.log('Initial goalIdsAndState call goal:', goalIdsAndState);
-  console.log('Stable Token:', stableToken_);
   console.log('Balance:', balance.toString());
 };
 
 export default func;
 
-func.tags = ["MockERC20", "ImpactGoal", ];
+func.tags = ["MockERC20", "ImpactGoal", "ImpactPay"];

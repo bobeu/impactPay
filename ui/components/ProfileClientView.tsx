@@ -12,6 +12,7 @@ import { IdentityVerificationCard } from '@/components/IdentityVerificationCard'
 import { PhoneLookupCard } from '@/components/PhoneLookupCard';
 import { VirtualCardPortal } from '@/components/VirtualCardPortal';
 import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
+import { OnchainActivityCard } from '@/components/OnchainActivityCard';
 
 interface ProfileClientViewProps {
   address: string;
@@ -179,6 +180,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
 
             <section className="grid grid-cols-1 gap-4">
                 <VirtualCardPortal address={connectedAddress} />
+                <OnchainActivityCard />
             </section>
             
             <DevSubscriptionCard />

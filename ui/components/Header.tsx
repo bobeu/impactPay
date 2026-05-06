@@ -28,14 +28,14 @@ export default function Header() {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 h-16 flex items-center justify-between">
-      <div className="flex items-center gap-2">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 h-16 flex items-center justify-between lg:left-72 xl:left-80">
+      <div className="flex items-center gap-2 lg:hidden">
         <Link to="/" className="p-1">
           <Image 
-            src="/logo.png" 
+            src="/logo5.png" 
             alt="ImpactPay Logo" 
-            width={32} 
-            height={32} 
+            width={50} 
+            height={50} 
             className="rounded-lg shadow-sm"
           />
         </Link>
@@ -44,12 +44,17 @@ export default function Header() {
         </Link>
       </div>
 
+      {/* Desktop breadcrumb / title area */}
+      <div className="hidden lg:flex items-center">
+        <span className="text-sm font-bold text-slate-400">ImpactPay Protocol</span>
+      </div>
+
       <div className="flex items-center gap-3">
         {availableVersions > 1 && (
           <select 
             value={selectedVersion} 
             onChange={(e) => setSelectedVersion(Number(e.target.value))}
-            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer hidden sm:block"
+            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer lg:hidden"
           >
             {Array.from({ length: availableVersions }).map((_, i) => (
               <option key={i} value={i}>v{i + 1}.0</option>

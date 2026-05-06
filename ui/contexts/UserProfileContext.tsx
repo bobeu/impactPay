@@ -14,6 +14,7 @@ export type UserProfileState = {
   socialsLinked: boolean;
   humanVerified: boolean;
   verificationLevel: VerificationLevel;
+  isAuthenticated: boolean;
 };
 
 type UserProfileContextType = {
@@ -22,6 +23,7 @@ type UserProfileContextType = {
   setSocialsLinked: (xHandle?: string, instagramHandle?: string, facebookHandle?: string) => void;
   setHumanVerified: () => void;
   canCreateScholarship: boolean;
+  signIn: (method: 'message' | 'social' | 'email') => Promise<void>;
 };
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
@@ -35,6 +37,7 @@ const INITIAL_STATE: UserProfileState = {
   socialsLinked: false,
   humanVerified: false,
   verificationLevel: 0,
+  isAuthenticated: false,
 };
 
 export function UserProfileProvider({ children }: { children: React.ReactNode }) {
@@ -68,26 +71,40 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
+  const signIn = async (method: 'message' | 'social' | 'email') => {
+    // In a real app, this would involve a backend call or wagmi signMessage
+    // For now, we simulate success
+    setProfile(prev => ({ ...prev, isAuthenticated: true }));
+    localStorage.setItem('impact_pay_auth', 'true');
+  };
+
+  useEffect(() => {
+    const isAuth = localStorage.getItem('impact_pay_auth');
+    if (isAuth === 'true') {
+      setProfile(prev => ({ ...prev, isAuthenticated: true }));
+    }
+  }, []);
+
   const { goalIdsAndState } = useImpactPay();
 
   useEffect(() => {
-    if (goalIdsAndState?.verifications) {
+    if (goalIdsAndState?.arrays?.verifications) {
       setProfile((prev) => {
-        const { lvl1, lvl2, lvl3 } = goalIdsAndState.verifications;
+        const [ lvl1, lvl2, lvl3 ] = goalIdsAndState?.arrays?.verifications;
         const blockchainLevel = lvl3 ? 3 : lvl2 ? 2 : lvl1 ? 1 : 0;
         if (blockchainLevel > prev.verificationLevel) {
            return {
              ...prev,
-             phoneVerified: prev.phoneVerified || lvl1,
-             socialsLinked: prev.socialsLinked || lvl2,
-             humanVerified: prev.humanVerified || lvl3,
+             phoneVerified: prev.phoneVerified || lvl1.isVerified,
+             socialsLinked: prev.socialsLinked || lvl2.isVerified,
+             humanVerified: prev.humanVerified || lvl3.isVerified,
              verificationLevel: blockchainLevel as VerificationLevel,
            };
         }
         return prev;
       });
     }
-  }, [goalIdsAndState?.verifications]);
+  }, [goalIdsAndState?.arrays?.verifications]);
 
   const value = useMemo<UserProfileContextType>(
     () => ({
@@ -96,8 +113,9 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       setSocialsLinked,
       setHumanVerified,
       canCreateScholarship: true, // Gating removed per task
+      signIn,
     }),
-    [profile],
+    [profile, signIn],
   );
 
   return <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>;

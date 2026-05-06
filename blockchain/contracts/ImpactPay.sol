@@ -280,6 +280,9 @@ contract ImpactPay is Ownable, ReentrancyGuard {
 
     } 
 
+    /// @notice Rebalances an active pool to the treasury or owner after expiration
+    /// @param fundId The ID of the pool
+    /// @return A boolean indicating success
     function rebalancePool(uint fundId) public validateId(fundId) nonReentrant returns(bool) {
         Funder storage fd = funders[fundId];
         uint withdrawable = fd.remainingPool;
@@ -299,6 +302,8 @@ contract ImpactPay is Ownable, ReentrancyGuard {
 
     }
 
+    /// @notice Rebalances the default native pool (fundId 0)
+    /// @return A boolean indicating success
     function rebalanceDefaultPool() public nonReentrant returns(bool) {
         Funder storage fd = funders[0];
         uint withdrawable = fd.amount;
@@ -359,6 +364,8 @@ contract ImpactPay is Ownable, ReentrancyGuard {
         return true;
     }
 
+    /// @notice Returns the contract's configuration state data
+    /// @return GetStateData struct containing global configurations
     function getStateData() external view returns(GetStateData memory) {
         return GetStateData(
             counter,

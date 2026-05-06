@@ -84,6 +84,7 @@ interface IVerification {
     }
 
     struct Addresses {
+        address stableToken;
         address treasury;
         address releaseApprover;
         address backendFulfillmentSigner;

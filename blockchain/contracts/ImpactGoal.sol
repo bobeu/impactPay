@@ -183,8 +183,8 @@ contract ImpactGoal is Goals, ReentrancyGuard {
         if (sender != owner_){
             require(uint8(status) > uint8(goal.cData.status), "20");
         }
+        
         goal.cData.status = status;
-
         return true;
     }
 

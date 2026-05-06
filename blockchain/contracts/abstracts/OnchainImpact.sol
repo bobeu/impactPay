@@ -32,6 +32,9 @@ abstract contract OnchainImpact is Verification {
         qualifiedLevel = Level.LEVEL3;
     }
 
+    /// @notice Updates the level required to qualify for onchain rewards
+    /// @param _level The new required level
+    /// @return A boolean indicating success
     function setQualifiedLevel(Level _level) public onlyBackendManagerOrOwner returns(bool) {
         emit QualifiedLevelChange(qualifiedLevel, _level);
         qualifiedLevel = _level;
@@ -39,6 +42,12 @@ abstract contract OnchainImpact is Verification {
         return true;
     }
 
+    /// @notice Registers an onchain impact based on transaction hashes
+    /// @param user The address of the user who performed the transactions
+    /// @param targetContract The contract the user interacted with
+    /// @param txHashes Array of 3 transaction hashes verifying the interaction
+    /// @param score The score awarded for this impact
+    /// @return A boolean indicating success
     function registerImpact(
         address user, 
         address targetContract,
@@ -63,10 +72,15 @@ abstract contract OnchainImpact is Verification {
         return true;
     }
 
+    /// @notice Returns the total score across all users
+    /// @return The total combined score
     function getTotalScores() external view returns(uint256){
         return totalUsersScores;
     }
 
+    /// @notice Retrieves the verification status and restriction status for a specific user
+    /// @param user The address of the user
+    /// @return An array of User structs representing levels and a boolean indicating if restricted
     function getUserVerificationStatus(address user) external view returns(User[] memory, bool) {
        return (_getLevel(user), getRestriction(user));
     }

@@ -20,7 +20,8 @@ export type OtherFuncType =
 'refundScholarship' |
 'onVerificationSuccess' |
 'claimFund' |
-'cancelGoal'
+'cancelGoal' | 
+'cancelGoalOnlyCreator'
 
 export enum GoalStatus {
     OPEN,
@@ -66,18 +67,15 @@ export type CommonData = {
     lockedForReview: boolean;
 }
 
-export interface Verification {
-    lvl1: boolean;
-    lvl2: boolean;
-    lvl3: boolean;
+export interface User {
+    isVerified: boolean;
+    score: bigint;
+    lastVerifiedDate: bigint;
 }
 
-/// @notice Composite struct for goal id and state variables information retrieval
-export interface GetGoalIdAndState {
-    goalIds: readonly bigint[];
-    treasury: Address;
-    releaseApprover: Address;
-    backendFulfillmentSigner: Address;
+export interface Uint256s {
+    reputation: bigint;
+    onchainVerifiedCounter: bigint;
     billListingFee: bigint;
     scholarshipListingFee: bigint;
     defaultListingFee: bigint;
@@ -85,10 +83,64 @@ export interface GetGoalIdAndState {
     billSuccessFeeBP: bigint;
     goalCounter: bigint;
     maxGoal: bigint;
+    verified: bigint;
+    totalUsersScores: bigint;
+    level3Indexer: bigint;
+}
+
+export interface Arrays {
+    goalIds: readonly bigint[];
     billServices: readonly Address[];
-    verifications: Verification;
+    verifications: readonly User[];
+}
+
+export interface Addresses {
+    treasury: Address;
+    releaseApprover: Address;
+    backendFulfillmentSigner: Address;
+}
+
+/// @notice Composite struct for goal id and state variables information retrieval
+export interface GetGoalIdAndState {
+    uints: Uint256s;
+    arrays: Arrays;
+    addresses: Addresses;
+    qualifiedLevel: VerificationLevel;
     restricted: boolean;
-    reputation: bigint;
+    useVerifier: boolean;
+}
+
+// ImpactPay Wealth Redistribution Types
+export enum Currency { NATIVE, STABLECOIN }
+export enum Pattern { PHILANTROPIST, REDISTRIBUTE }
+
+export interface Snapshot {
+    time: bigint;
+    totalScores: bigint;
+}
+
+export interface PayFunder {
+    remainingPool: bigint;
+    amount: bigint;
+    dateCreated: bigint;
+    claimed: bigint;
+    id: Address;
+    name: string;
+    handle: string;
+    message: string;
+    currency: Currency;
+    pattern: Pattern;
+    requiredLevel: VerificationLevel;
+    snapshot: Snapshot;
+}
+
+export interface ImpactPayStateData {
+    counter: bigint;
+    maxClaimPeriod: bigint;
+    cooldown: bigint;
+    treasury: Address;
+    verifier: Address;
+    stableToken: Address;
 }
 
 /// @notice Composite struct for goal information retrieval
@@ -144,11 +196,17 @@ export interface ImpactPayContextType {
     goalIdsAndState: GetGoalIdAndState;
     stats: Stats;
     funderReputations: Record<string, bigint>;
+    impactPayStateData: ImpactPayStateData;
+    payFunders: PayFunder[];
+    userClaims: Record<number, { amount: bigint; dateClaimed: bigint; isClaimed: boolean }>;
     isLoading: boolean;
     owner: Address;
     selectedVersion: number;
     setSelectedVersion: (version: number) => void;
     availableVersions: number;
+    impactGoalAddress: Address;
+    impactPayAddress: Address;
+    mockERC20Address: Address;
 
     // Modal State (Global for easier orchestration)
     modal: {
@@ -175,25 +233,33 @@ export interface ImpactPayContextType {
 }
 
 export const mockGetGoalIDAndState : GetGoalIdAndState = {
-    backendFulfillmentSigner: zeroAddress,
-    billListingFee: 0n,
-    billServices: [zeroAddress],
-    billSuccessFeeBP: 0n,   
-    defaultListingFee: 0n,
-    goalCounter: 0n,
-    goalIds: [0n],
-    verifications: {
-        lvl1: false,
-        lvl2: false,
-        lvl3: false
+    uints: {
+        reputation: 0n,
+        onchainVerifiedCounter: 0n,
+        billListingFee: 0n,
+        scholarshipListingFee: 0n,
+        defaultListingFee: 0n,
+        scholarshipFeeBP: 0n,
+        billSuccessFeeBP: 0n,
+        goalCounter: 0n,
+        maxGoal: 0n,
+        verified: 0n,
+        totalUsersScores: 0n,
+        level3Indexer: 0n
     },
-    maxGoal: 0n,
-    releaseApprover: zeroAddress,
-    reputation: 0n,
+    arrays: {
+        goalIds: [0n],
+        billServices: [zeroAddress],
+        verifications: []
+    },
+    addresses: {
+        treasury: zeroAddress,
+        releaseApprover: zeroAddress,
+        backendFulfillmentSigner: zeroAddress
+    },
+    qualifiedLevel: 0,
     restricted: false,
-    scholarshipFeeBP: 0n,
-    scholarshipListingFee: 0n,
-    treasury: zeroAddress
+    useVerifier: false
 }
 
 export const mockGoals : GetGoal = {
@@ -228,4 +294,13 @@ export const mockGoals : GetGoal = {
         id: zeroAddress,
         hasFlagged: false
     }]
+}
+
+export const mockImpactState : ImpactPayStateData = {
+    cooldown: 0n,
+    counter: 0n,
+    maxClaimPeriod: 0n,
+    stableToken: zeroAddress,
+    treasury: zeroAddress,
+    verifier: zeroAddress
 }

@@ -3,6 +3,8 @@ pragma solidity 0.8.28;
 
 import { Script } from "forge-std/Script.sol";
 import { ImpactPay } from "../contracts/ImpactPay.sol";
+import { ImpactGoal } from "../contracts/ImpactGoal.sol";
+import { IVerification } from "../contracts/abstracts/Verification.sol";
 
 /**
  * @title DeployMainnet
@@ -20,11 +22,18 @@ contract DeployMainnet is Script {
         
         vm.startBroadcast(deployerPrivateKey);
 
-        new ImpactPay(
+        ImpactGoal impactGoal = new ImpactGoal(
             cUSD,
             treasury,
             approver,
             backendSigner
+        );
+
+        new ImpactPay(
+            cUSD,
+            vm.addr(deployerPrivateKey),
+            treasury,
+            IVerification(address(impactGoal))
         );
 
         vm.stopBroadcast();

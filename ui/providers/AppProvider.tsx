@@ -26,10 +26,10 @@ const connectors = connectorsForWallets(
 );
 
 const config = createConfig({
-  chains: [celo, celoSepolia],
+  chains: [celoSepolia],
   connectors,
   transports: {
-    [celo.id]: http(),
+    // [celo.id]: http(),
     [celoSepolia.id]: http(),
   },
 });
@@ -47,7 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 accentColorForeground: 'white',
                 borderRadius: 'medium',
               })}
-              initialChain={celo.id}
+              initialChain={celoSepolia.id}
         >
           <ImpactPayProvider>
             {typeof window !== 'undefined' ? (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Stats } from "../lib/types";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { 
   Heart, 
   HandHelping, 
@@ -11,7 +11,10 @@ import {
   CheckCircle2, 
   Globe,
   ArrowRight,
-  Verified
+  Verified,
+  ShieldCheck,
+  Zap,
+  Info
 } from "lucide-react";
 import { formatEther } from "viem";
 
@@ -19,9 +22,33 @@ interface LandingViewProps {
   stats: Stats;
   onEnterAsFunder: () => void;
   onEnterAsHelpSeeker: () => void;
+  onEnterAsWealthRedistribution: () => void;
+  isAuthenticated: boolean;
+  onSignIn: (method: 'message' | 'social' | 'email') => void;
 }
 
-export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: LandingViewProps) {
+const Tooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
+  const [show, setShow] = React.useState(false);
+  return (
+    <div className="relative inline-block" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      {children}
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded whitespace-nowrap z-50 shadow-lg"
+          >
+            {text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export function LandingView({ stats, isAuthenticated, onSignIn, onEnterAsFunder, onEnterAsHelpSeeker, onEnterAsWealthRedistribution }: LandingViewProps) {
   return (
     <div className="space-y-10 py-4">
       {/* Hero Section */}
@@ -124,8 +151,107 @@ export function LandingView({ stats, onEnterAsFunder, onEnterAsHelpSeeker }: Lan
               <ArrowRight className="w-5 h-5" />
             </div>
           </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onEnterAsWealthRedistribution}
+            className="group relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-500 p-6 rounded-[2rem] text-left shadow-xl shadow-emerald-200/50 flex items-center justify-between"
+          >
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 text-white/90 text-[10px] font-bold uppercase tracking-widest">
+                <Globe className="w-3 h-3" /> Wealth Redistribution
+              </div>
+              <h4 className="text-xl font-bold text-white">Distribute or Claim Wealth</h4>
+              <p className="text-xs text-white/80">Engage in large-scale philanthropy on Celo</p>
+            </div>
+            <div className="relative z-10 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-emerald-600 transition-all">
+              <ArrowRight className="w-5 h-5" />
+            </div>
+          </motion.button>
         </div>
       </section>
+
+      {/* How it Works Section */}
+      <section className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm space-y-6">
+        <div className="text-center space-y-1">
+          <h3 className="text-lg font-black text-slate-900">How ImpactPay Works</h3>
+          <p className="text-xs text-slate-500 font-medium">Empowering direct impact through blockchain.</p>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                Verified Identity 
+                <Tooltip text="Verification via MiniPay and Social protocols">
+                  <Info className="w-3 h-3 text-slate-300 cursor-help" />
+                </Tooltip>
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">Creators are verified using ZK-biometrics and social handles to ensure help reaches the right hands.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+              <Zap className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                Instant Fulfillment
+                <Tooltip text="Direct-to-merchant payments via API">
+                  <Info className="w-3 h-3 text-slate-300 cursor-help" />
+                </Tooltip>
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">Bill payments go directly to service providers via BitGifty, preventing fund misappropriation.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
+              <Globe className="w-5 h-5 text-teal-600" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900">Wealth Redistribution</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">A circular economy where top earners distribute wealth to the community based on reputation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {!isAuthenticated && (
+        <section className="bg-accent/10 border border-accent/20 rounded-[2.5rem] p-8 text-center space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">Ready to join?</h3>
+            <p className="text-xs text-slate-500 font-medium">Sign in to start creating or funding goals.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <button 
+              onClick={() => onSignIn('message')}
+              className="bg-white border border-slate-200 py-3 rounded-2xl text-sm font-bold text-slate-700 hover:border-emerald-500 transition-all shadow-sm"
+            >
+              Sign message to Authenticate
+            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => onSignIn('social')}
+                className="flex-1 bg-white border border-slate-200 py-3 rounded-2xl text-sm font-bold text-slate-700 hover:border-emerald-500 transition-all shadow-sm"
+              >
+                Social Sign-in
+              </button>
+              <button 
+                onClick={() => onSignIn('email')}
+                className="flex-1 bg-white border border-slate-200 py-3 rounded-2xl text-sm font-bold text-slate-700 hover:border-emerald-500 transition-all shadow-sm"
+              >
+                Email Sign-in
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Trust Badge */}
       <div className="pt-4 flex flex-col items-center gap-3 opacity-60">

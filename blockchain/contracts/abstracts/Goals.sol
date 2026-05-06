@@ -252,7 +252,7 @@ contract Goals is ListingFee, Reputation {
                 level3Indexer
             ),
             arrays: Arrays(goalIDs[user], billServices, _getLevel(user)),
-            addresses: Addresses(treasury, releaseApprover, backendFulfillmentSigner),
+            addresses: Addresses(address(stableToken), treasury, releaseApprover, backendFulfillmentSigner),
             restricted: getRestriction(user),
             qualifiedLevel: qualifiedLevel,
             useVerifier: useVerifier

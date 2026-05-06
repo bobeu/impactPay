@@ -4,6 +4,7 @@ pragma solidity 0.8.28;
 import {Test, console2} from "forge-std/Test.sol";
 import {ImpactGoal} from "../contracts/ImpactGoal.sol";
 import {MockERC20} from "../contracts/MockERC20.sol";
+import {IVerification} from "../contracts/abstracts/Verification.sol";
 
 contract ImpactGoalTest is Test {
     ImpactGoal public impactPay;
@@ -38,6 +39,7 @@ contract ImpactGoalTest is Test {
         token.approve(address(impactPay), type(uint256).max);
         
         // Register a bill service
+        vm.prank(owner);
         impactPay.setBillService(billServiceProvider);
     }
 
@@ -48,9 +50,9 @@ contract ImpactGoalTest is Test {
         bool success = impactPay.createGoal(100e18, "Default Goal", "Extra Info");
         assertTrue(success);
         
-        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
+        IVerification.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.targetAmount, 100e18);
-        assertEq(uint8(goal.common.goalType), uint8(ImpactGoal.GoalType.DEFAULT));
+        assertEq(uint8(goal.common.goalType), uint8(IVerification.GoalType.DEFAULT));
     }
 
     function test_CreateBillGoal() public {
@@ -64,23 +66,26 @@ contract ImpactGoalTest is Test {
         );
         assertTrue(success);
         
-        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
-        assertEq(uint8(goal.common.goalType), uint8(ImpactGoal.GoalType.BILL));
+        IVerification.GetGoal memory goal = impactPay.getGoal(1);
+        assertEq(uint8(goal.common.goalType), uint8(IVerification.GoalType.BILL));
         assertEq(goal.bill.billService, billServiceProvider);
     }
 
     function test_CreateScholarshipGoal_RevertIfNoLevel3() public {
         // Toggle verifier on to test verifications
+        vm.prank(owner);
         impactPay.toggleUseVerifier();
         
         vm.prank(creator);
-        vm.expectRevert("Not verified");
+        vm.expectRevert(bytes("13")); // Verification error code
         impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
     }
 
     function test_CreateScholarshipGoal_SuccessAfterLevel3() public {
+        vm.prank(owner);
         impactPay.toggleUseVerifier();
-        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
+        vm.prank(signer);
+        impactPay.onVerificationSuccess(creator, IVerification.Level.LEVEL3);
         
         vm.prank(creator);
         bool success = impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
@@ -97,7 +102,7 @@ contract ImpactGoalTest is Test {
         bool success = impactPay.fundGoal(1, 50e18, "Donor Info");
         assertTrue(success);
 
-        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
+        IVerification.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.raisedAmount, 50e18);
         assertEq(goal.funders.length, 1);
         assertEq(goal.funders[0].id, donor);
@@ -106,7 +111,8 @@ contract ImpactGoalTest is Test {
     // --- Scholarship Fulfillment Tests ---
 
     function test_ScholarshipMilestoneFlow() public {
-        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
+        vm.prank(signer);
+        impactPay.onVerificationSuccess(creator, IVerification.Level.LEVEL3);
         vm.prank(creator);
         impactPay.createScholarshipGoal(100e18, "Scholarship", "Info");
         vm.prank(donor);
@@ -131,8 +137,7 @@ contract ImpactGoalTest is Test {
         impactPay.fundGoal(1, 50e18, "");
 
         uint256 serviceBalanceBefore = token.balanceOf(billServiceProvider);
-        
-        // We need to enable useBillService to relay to the provider
+        vm.prank(owner);
         impactPay.toggleUseBillService();
         
         vm.prank(approver);
@@ -153,21 +158,23 @@ contract ImpactGoalTest is Test {
         vm.prank(donor);
         impactPay.toggleFlagGoal(1);
 
-        ImpactGoal.GetGoal memory goal = impactPay.getGoal(1);
+        IVerification.GetGoal memory goal = impactPay.getGoal(1);
         assertEq(goal.common.flagsCount, 1);
     }
 
     // --- Admin Tests ---
 
     function test_Restriction() public {
-        impactPay.setRestriction(donor, true);
+        vm.prank(owner);
+        impactPay.toggleRestriction(donor);
         
         vm.prank(donor);
-        vm.expectRevert("Restricted");
+        vm.expectRevert(bytes("12")); // Restriction error code
         impactPay.fundGoal(1, 10e18, "");
     }
 
     function test_Pause() public {
+        vm.prank(owner);
         impactPay.pause();
         
         vm.prank(creator);
@@ -176,7 +183,8 @@ contract ImpactGoalTest is Test {
     }
 
     function test_RefundScholarship() public {
-        impactPay.onVerificationSuccess(creator, ImpactGoal.Level.LEVEL3);
+        vm.prank(signer);
+        impactPay.onVerificationSuccess(creator, IVerification.Level.LEVEL3);
         vm.prank(creator);
         impactPay.createScholarshipGoal(100e18, "Scholarship", "");
         
