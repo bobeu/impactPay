@@ -25,7 +25,9 @@ export default function HomeView() {
 
   console.log("Stats", stats);
 
+  
   if (!isConnected || !address) {
+    {/* Protected section */}
     return (
       <div className="flex flex-col items-center">
         <section className="rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-100 space-y-6 text-center max-w-sm mx-auto">

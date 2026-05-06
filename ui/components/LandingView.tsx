@@ -13,7 +13,6 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { formatEther } from "viem";
 import Image from "next/image";
 
 interface LandingViewProps {
