@@ -11,6 +11,8 @@ import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ImpactPayProvider } from "@/contexts/ImpactPayContext";
 import { BrowserRouter, MemoryRouter } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { PrivyProvider } from "@privy-io/react-auth";
 
 const connectors = connectorsForWallets(
   [
@@ -21,15 +23,15 @@ const connectors = connectorsForWallets(
   ],
   {
     appName: 'ImpactPay',
-    projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
+    projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '57c6763cf4e4966b74168daa46a06d2b',
   }
 );
 
 const config = createConfig({
-  chains: [celoSepolia],
+  chains: [celo, celoSepolia],
   connectors,
   transports: {
-    // [celo.id]: http(),
+    [celo.id]: http(),
     [celoSepolia.id]: http(),
   },
 });
@@ -37,35 +39,59 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [isMiniPay, setIsMiniPay] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined' && window.ethereum?.isMiniPay) {
+      setIsMiniPay(true);
+    }
+  }, []);
+
+  const Router = typeof window !== 'undefined' ? BrowserRouter : MemoryRouter;
+
+  const content = (
+    <ImpactPayProvider>
+      <Router>
+        <UserProfileProvider>
+          <MiniPayAutoConnect />
+          <Layout>{children}</Layout>
+        </UserProfileProvider>
+      </Router>
+    </ImpactPayProvider>
+  );
+
+  if (!mounted) return null;
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={
             lightTheme({
-                accentColor: '#001B3D',
+                accentColor: '#0f172a', // slate-900
                 accentColorForeground: 'white',
                 borderRadius: 'medium',
               })}
-              initialChain={celoSepolia.id}
+              initialChain={celo.id}
         >
-          <ImpactPayProvider>
-            {typeof window !== 'undefined' ? (
-              <BrowserRouter>
-                <UserProfileProvider>
-                  <MiniPayAutoConnect />
-                  <Layout>{children}</Layout>
-                </UserProfileProvider>
-              </BrowserRouter>
-            ) : (
-              <MemoryRouter>
-                <UserProfileProvider>
-                  <MiniPayAutoConnect />
-                  <Layout>{children}</Layout>
-                </UserProfileProvider>
-              </MemoryRouter>
-            )}
-          </ImpactPayProvider>
+          {!isMiniPay ? (
+            <PrivyProvider
+              appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || "cm4m2v7w002k212v2d3q3b3v3"}
+              config={{
+                appearance: {
+                  theme: 'light',
+                  accentColor: '#0f172a',
+                  showWalletLoginFirst: true,
+                },
+              }}
+            >
+              {content}
+            </PrivyProvider>
+          ) : (
+            content
+          )}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

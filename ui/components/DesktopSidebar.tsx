@@ -57,7 +57,7 @@ export function DesktopSidebar() {
   const activePath = location.pathname;
 
   return (
-    <aside className="hidden lg:flex flex-col w-72 xl:w-80 fixed top-0 left-0 h-screen bg-[#001B3D] text-white z-40 overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-72 xl:w-80 fixed top-0 left-0 h-screen bg-slate-900 text-white z-40 overflow-y-auto">
       {/* Branding */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
         <div className="w-10 h-10 rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center shrink-0">
