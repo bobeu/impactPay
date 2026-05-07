@@ -12,6 +12,7 @@ import { IdentityVerificationCard } from '@/components/IdentityVerificationCard'
 import { PhoneLookupCard } from '@/components/PhoneLookupCard';
 import { VirtualCardPortal } from '@/components/VirtualCardPortal';
 import { DevSubscriptionCard } from '@/components/DevSubscriptionCard';
+import { OnchainActivityCard } from '@/components/OnchainActivityCard';
 
 interface ProfileClientViewProps {
   address: string;
@@ -109,8 +110,12 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
                   animate={{ opacity: 1, y: 0 }}
                   className="py-16 flex flex-col items-center text-center space-y-6"
                 >
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
-                    <PlusCircle className="w-10 h-10 text-slate-200" />
+                  <div className="relative w-48 h-48 mx-auto">
+                    <img 
+                      src="/undraw_goals.png" 
+                      alt="No goals" 
+                      className="w-full h-full object-contain opacity-80"
+                    />
                   </div>
                   <div className="space-y-2 max-w-[240px]">
                     <h4 className="text-lg font-bold text-slate-800">No active goals yet</h4>
@@ -179,6 +184,7 @@ export default function ProfileClientView({ address, ogImageUrl }: ProfileClient
 
             <section className="grid grid-cols-1 gap-4">
                 <VirtualCardPortal address={connectedAddress} />
+                <OnchainActivityCard />
             </section>
             
             <DevSubscriptionCard />

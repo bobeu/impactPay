@@ -163,7 +163,12 @@ export function SponsorDashboard() {
             })}
             {scholarshipGoals.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-6 text-center text-xs text-slate-400">No scholarship goals found.</td>
+                <td colSpan={4} className="py-12 text-center space-y-4">
+                  <div className="relative w-32 h-32 mx-auto">
+                    <img src="/undraw_approve.png" alt="No scholarships" className="w-full h-full object-contain opacity-50" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">No scholarship goals found.</p>
+                </td>
               </tr>
             )}
           </tbody>

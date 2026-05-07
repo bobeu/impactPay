@@ -1,6 +1,7 @@
 export async function registerPhoneMapping(input: {
   phoneNumber: string;
   walletAddress: string;
+  obfuscatedIdentifier?: string;
 }) {
   const res = await fetch("/api/socialconnect/register", {
     method: "POST",

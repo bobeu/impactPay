@@ -58,4 +58,30 @@
   .btn-accent {
     @apply bg-[var(--accent)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all font-medium;
   }
+}
+
+/* Desktop refinements — removes visual noise at lg+ breakpoints */
+@media (min-width: 1024px) {
+  /* Strip borders and box shadows from all rounded card sections */
+  section.rounded-\[2\.5rem\],
+  div.rounded-\[2\.5rem\],
+  div.rounded-\[2rem\],
+  div.rounded-3xl,
+  div.rounded-2xl {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Tighten spacing between stacked sections */
+  .space-y-10 {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1.75rem * (1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(1.75rem * var(--tw-space-y-reverse));
+  }
+
+  .space-y-8 {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1.5rem * (1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+  }
 }

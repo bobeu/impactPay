@@ -11,6 +11,7 @@ const SponsorView = lazy(() => import('@/views/SponsorView'));
 const CreateGoalView = lazy(() => import('@/views/CreateGoalView'));
 const ReputationView = lazy(() => import('@/views/ReputationView'));
 const VerifyView = lazy(() => import('@/views/VerifyView'));
+const WealthView = lazy(() => import('@/views/WealthView'));
 
 export function AppRouter() {
   return (
@@ -27,6 +28,7 @@ export function AppRouter() {
         <Route path="/create-goal" element={<CreateGoalView />} />
         <Route path="/reputation" element={<ReputationView />} />
         <Route path="/verify/:handle" element={<VerifyView />} />
+        <Route path="/wealth" element={<WealthView />} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

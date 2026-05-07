@@ -2,6 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useImpactPay } from "@/contexts/ImpactPayContext";
+import { useSignMessage } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
+import { toast } from "sonner";
 
 import { VerificationLevel } from "@/lib/types";
 
@@ -10,17 +13,20 @@ export type UserProfileState = {
   phoneVerified: boolean;
   xHandle?: string;
   instagramHandle?: string;
+  facebookHandle?: string;
   socialsLinked: boolean;
   humanVerified: boolean;
   verificationLevel: VerificationLevel;
+  isAuthenticated: boolean;
 };
 
 type UserProfileContextType = {
   profile: UserProfileState;
   setPhoneVerified: (phoneNumber: string) => void;
-  setSocialsLinked: (xHandle: string, instagramHandle: string) => void;
+  setSocialsLinked: (xHandle?: string, instagramHandle?: string, facebookHandle?: string) => void;
   setHumanVerified: () => void;
   canCreateScholarship: boolean;
+  signIn: (method: 'message' | 'social' | 'email') => Promise<void>;
 };
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
@@ -30,9 +36,11 @@ const INITIAL_STATE: UserProfileState = {
   phoneVerified: false,
   xHandle: undefined,
   instagramHandle: undefined,
+  facebookHandle: undefined,
   socialsLinked: false,
   humanVerified: false,
   verificationLevel: 0,
+  isAuthenticated: false,
 };
 
 export function UserProfileProvider({ children }: { children: React.ReactNode }) {
@@ -47,11 +55,12 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
-  const setSocialsLinked = (xHandle: string, instagramHandle: string) => {
+  const setSocialsLinked = (xHandle?: string, instagramHandle?: string, facebookHandle?: string) => {
     setProfile((prev) => ({
       ...prev,
-      xHandle,
-      instagramHandle,
+      ...(xHandle && { xHandle }),
+      ...(instagramHandle && { instagramHandle }),
+      ...(facebookHandle && { facebookHandle }),
       socialsLinked: true,
       verificationLevel: Math.max(prev.verificationLevel, 2) as VerificationLevel,
     }));
@@ -65,26 +74,76 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }));
   };
 
+  const { signMessageAsync } = useSignMessage();
+  const { login, authenticated: privyAuthenticated, user: privyUser, ready: privyReady } = usePrivy();
+
+  const signIn = async (method: 'message' | 'social' | 'email') => {
+    const isMiniPay = typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay;
+
+    if (isMiniPay) {
+      try {
+        const message = `Welcome to ImpactPay!\n\nSign this message to authenticate your session.\n\nTimestamp: ${Date.now()}`;
+        await signMessageAsync({ message });
+        setProfile(prev => ({ ...prev, isAuthenticated: true }));
+        localStorage.setItem('impact_pay_auth', 'true');
+        toast.success("Authenticated with MiniPay");
+      } catch (err: any) {
+        console.error("MiniPay sign in error:", err);
+        toast.error(err.shortMessage || "Authentication failed");
+      }
+    } else {
+      if (!privyReady) {
+        toast.error("Auth provider not ready");
+        return;
+      }
+      try {
+        // Trigger Privy login modal
+        await login();
+      } catch (err: any) {
+        console.error("Privy sign in error:", err);
+        // Privy handles most errors UI-wise, but we log it
+      }
+    }
+  };
+
+  // Sync Privy auth state with local profile
+  useEffect(() => {
+    if (privyAuthenticated && privyReady) {
+      setProfile(prev => ({ ...prev, isAuthenticated: true }));
+      localStorage.setItem('impact_pay_auth', 'true');
+    }
+  }, [privyAuthenticated, privyReady]);
+
+  useEffect(() => {
+    const isAuth = localStorage.getItem('impact_pay_auth');
+    // If not in MiniPay, we also check Privy state
+    const isMiniPay = typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay;
+    
+    if (isAuth === 'true' || (!isMiniPay && privyAuthenticated)) {
+      setProfile(prev => ({ ...prev, isAuthenticated: true }));
+    }
+  }, [privyAuthenticated]);
+
   const { goalIdsAndState } = useImpactPay();
 
   useEffect(() => {
-    if (goalIdsAndState?.verifications) {
+    if (goalIdsAndState?.arrays?.verifications) {
       setProfile((prev) => {
-        const { lvl1, lvl2, lvl3 } = goalIdsAndState.verifications;
+        const [ lvl1, lvl2, lvl3 ] = goalIdsAndState?.arrays?.verifications;
         const blockchainLevel = lvl3 ? 3 : lvl2 ? 2 : lvl1 ? 1 : 0;
         if (blockchainLevel > prev.verificationLevel) {
            return {
              ...prev,
-             phoneVerified: prev.phoneVerified || lvl1,
-             socialsLinked: prev.socialsLinked || lvl2,
-             humanVerified: prev.humanVerified || lvl3,
+             phoneVerified: prev.phoneVerified || lvl1.isVerified,
+             socialsLinked: prev.socialsLinked || lvl2.isVerified,
+             humanVerified: prev.humanVerified || lvl3.isVerified,
              verificationLevel: blockchainLevel as VerificationLevel,
            };
         }
         return prev;
       });
     }
-  }, [goalIdsAndState?.verifications]);
+  }, [goalIdsAndState?.arrays?.verifications]);
 
   const value = useMemo<UserProfileContextType>(
     () => ({
@@ -93,8 +152,9 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       setSocialsLinked,
       setHumanVerified,
       canCreateScholarship: true, // Gating removed per task
+      signIn,
     }),
-    [profile],
+    [profile, signIn],
   );
 
   return <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>;

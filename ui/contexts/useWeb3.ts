@@ -6,7 +6,7 @@ import {
     custom,
     http,
 } from "viem";
-import { celoSepolia, celo } from "viem/chains";
+import { celoSepolia } from "viem/chains";
 
 export type Address = `0x${string}`;
 
@@ -15,12 +15,14 @@ export interface BroadcastParam {
     address: Address;
     functionName: string;
     args: any[];
+    value?: bigint;
     feeCurrency: Address;
 }
 
 function getPublicClient(chainId: number) {
     const publicClient = createPublicClient({
-        chain: chainId === celoSepolia.id? celoSepolia : celo,
+        // chain: chainId === celoSepolia.id? celoSepolia : celo,
+        chain: celoSepolia,
         transport: http(),
     });
     return publicClient;
@@ -73,7 +75,8 @@ export const useWeb3 = () => {
      const broadcastTransaction = async (params: BroadcastParam, chainId: number) => {
         let walletClient = createWalletClient({
             transport: custom(window.ethereum),
-            chain: chainId === celoSepolia.id? celoSepolia : celo,
+            // chain: chainId === celoSepolia.id? celoSepolia : celo,
+            chain: celoSepolia,
         });
 
         let [address] = await walletClient.getAddresses();

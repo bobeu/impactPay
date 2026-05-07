@@ -9,10 +9,14 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Link } from "react-router-dom";
 import Image from "next/image";
 import AddressWrapper from "./AddressFormatter/AddressWrapper";
+import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useImpactPay } from "@/contexts/ImpactPayContext";
 
 export default function Header() {
+  const { selectedVersion, setSelectedVersion, availableVersions } = useImpactPay();
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
+  const { profile } = useUserProfile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hideConnectBtn, setHideConnectBtn] = useState(false);
 
@@ -24,14 +28,14 @@ export default function Header() {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 h-16 flex items-center justify-between">
-      <div className="flex items-center gap-2">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 h-16 flex items-center justify-between lg:left-72 xl:left-80">
+      <div className="flex items-center gap-2 lg:hidden">
         <Link to="/" className="p-1">
           <Image 
             src="/logo.png" 
             alt="ImpactPay Logo" 
-            width={32} 
-            height={32} 
+            width={50} 
+            height={50} 
             className="rounded-lg shadow-sm"
           />
         </Link>
@@ -40,17 +44,40 @@ export default function Header() {
         </Link>
       </div>
 
+      {/* Desktop left — page context label */}
+      <div className="hidden lg:flex items-center gap-3">
+        {/* <Image src="/logo.png" alt="ImpactPay" width={32} height={32} className="rounded-lg" /> */}
+        {/* <span className="text-sm font-black text-[#001B3D] tracking-tight">ImpactPay</span> */}
+      </div>
+
       <div className="flex items-center gap-3">
+        {availableVersions > 1 && (
+          <select 
+            value={selectedVersion} 
+            onChange={(e) => setSelectedVersion(Number(e.target.value))}
+            className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 outline-none cursor-pointer md:hidden sm:block"
+          >
+            {Array.from({ length: availableVersions }).map((_, i) => (
+              <option key={i} value={i}>v{i + 1}.0</option>
+            ))}
+          </select>
+        )}
         {isConnected && address && hideConnectBtn ? (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             <span className="text-xs font-medium text-primary">
-              <AddressWrapper  
-                account={address}
-                copyIconSize="6"
-                display={true}
-                size={6}
-              />
+              {profile.phoneNumber ? (
+                profile.phoneNumber
+              ) : profile.xHandle || profile.facebookHandle || profile.instagramHandle ? (
+                `@${profile.xHandle || profile.facebookHandle || profile.instagramHandle}`
+              ) : (
+                <AddressWrapper  
+                  account={address}
+                  copyIconSize="6"
+                  display={true}
+                  size={6}
+                />
+              )}
             </span>
           </div>
         ) : (

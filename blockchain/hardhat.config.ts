@@ -61,8 +61,9 @@ const config: HardhatUserConfig = {
     settings: {          // See the solidity docs for advice about optimization and evmVersion
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 1,
       },
+      viaIR: true,
       evmVersion: "cancun"
       // evmVersion: "constantinople", // Using "constantinople" for broader compatibility, as "paris" may not be supported in all environments yet
       // evmVersion: "paris"
