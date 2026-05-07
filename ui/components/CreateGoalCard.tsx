@@ -54,9 +54,11 @@ export function CreateGoalCard() {
   const { 
     createGoal, 
     goalIdsAndState: {
-      billListingFee,
-      scholarshipListingFee,
-      defaultListingFee
+      uints: {
+        billListingFee,
+        scholarshipListingFee,
+        defaultListingFee
+      }
     } 
   } = useImpactPay();
   const navigate = useNavigate();
