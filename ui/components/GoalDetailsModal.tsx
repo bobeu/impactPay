@@ -18,7 +18,8 @@ import {
   Calendar,
   Wallet,
   ArrowRight,
-  Pen
+  Pen,
+  GraduationCap
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { toast } from "sonner";
@@ -101,7 +102,9 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
             <div className="p-4 pb-3 flex items-center justify-between border-b border-slate-50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
-                   {common.goalType === GoalType.BILL ? <FileText className="w-5 h-5" /> : <Target className="w-5 h-5" />}
+                   {common.goalType === GoalType.BILL ? <FileText className="w-5 h-5" /> : 
+                    common.goalType === GoalType.SCHOLARSHIP ? <GraduationCap className="w-5 h-5" /> :
+                    <Target className="w-5 h-5" />}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">Goal Details</h2>
@@ -176,18 +179,28 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
 
                   {common.goalType === GoalType.SCHOLARSHIP && (
                     <>
+                      <div className="col-span-3 space-y-2 mb-2">
+                        <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Institution</span>
+                          <span className="text-xs font-bold text-slate-700">{scholarship.schoolName || 'Not provided'}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Student ID</span>
+                          <span className="text-xs font-bold text-slate-700">{scholarship.studentId || 'Not provided'}</span>
+                        </div>
+                      </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Completed Milestone</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Milestone</span>
                         <div className="text-xs font-bold text-slate-700">{getMilestoneLabel(scholarship.milestone)}</div>
                       </div>
                       <div className="space-y-1 text-center">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Next Milestone</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Next</span>
                         <div className="text-xs font-bold text-slate-700">{getMilestoneLabel(scholarship.milestone + 1)}</div>
                       </div>
                       <div className="space-y-1 text-right">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Disputed</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Status</span>
                         <div className={cn("text-xs font-bold", scholarship.disputed ? "text-red-500" : "text-emerald-500")}>
-                          {scholarship.disputed ? 'Yes' : 'No'}
+                          {scholarship.disputed ? 'Disputed' : 'Valid'}
                         </div>
                       </div>
                     </>
@@ -303,7 +316,7 @@ export function GoalDetailsModal({ goal, isOpen, onClose }: GoalDetailsModalProp
                           <button 
                             disabled={common.withdrawnAmount === common.raisedAmount || common.lockedForReview || common.status !== GoalStatus.RAISED}
                             onClick={async () => {
-                              if (common.goalType === GoalType.BILL || common.goalType === GoalType.DEFAULT) {
+                              if (common.goalType === GoalType.BILL || common.goalType === GoalType.OTHER || common.goalType === GoalType.CAREER || common.goalType === GoalType.BUSINESS) {
                                 await claimFund(common.id);
                               } else {
                                 if (address) await claimScholarshipFunds(common.id, address);

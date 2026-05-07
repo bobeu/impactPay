@@ -11,7 +11,8 @@ import {
   Verified,
   ShieldCheck,
   Zap,
-  Info
+  Info,
+  GraduationCap
 } from "lucide-react";
 import Image from "next/image";
 
@@ -73,7 +74,7 @@ export function LandingView({ stats, isAuthenticated, onSignIn, onEnterAsFunder,
                 <span className="text-accent">Verified Stories.</span>
               </motion.h1>
               <p className="text-base lg:text-lg text-slate-400 font-medium max-w-md mx-auto lg:mx-0">
-                The most transparent and verified way to support essential needs and professional goals on Celo.
+                The most transparent and verified way to support student scholarships, essential bills, and professional growth on Celo.
               </p>
             </div>
 
@@ -130,7 +131,7 @@ export function LandingView({ stats, isAuthenticated, onSignIn, onEnterAsFunder,
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <EntryCard 
             title="Fund a Goal"
-            description="Support verified bills and scholarships directly."
+            description="Support verified bills, scholarships, and student needs."
             icon={<Heart className="w-5 h-5" />}
             image="/undraw_handshake-deal.png"
             color="bg-slate-900"
@@ -181,6 +182,13 @@ export function LandingView({ stats, isAuthenticated, onSignIn, onEnterAsFunder,
               title="Instant Fulfillment"
               tooltip="Direct-to-merchant payments via API"
               description="Bill payments go directly to service providers via BitGifty, preventing fund misappropriation."
+            />
+            <FeatureItem 
+              icon={<GraduationCap className="w-5 h-5 text-purple-600" />}
+              bg="bg-purple-50"
+              title="Educational Impact"
+              tooltip="Dedicated support for verified students"
+              description="Empowering the next generation. Students can create milestone-based scholarship goals for their academic pursant."
             />
             <FeatureItem 
               icon={<Globe className="w-5 h-5 text-teal-600" />}

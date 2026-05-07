@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle, CreditCard, Infinity, GraduationCap, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { PlusCircle, CreditCard, Infinity, GraduationCap, AlertCircle, CheckCircle2, ChevronDown, Briefcase, Building2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +34,8 @@ type FormState = {
   extraInfo: string;
   serviceType: string;
   category: GoalCategory;
+  schoolName: string;
+  studentId: string;
 };
 
 const INITIAL: FormState = {
@@ -42,6 +44,8 @@ const INITIAL: FormState = {
   extraInfo: "",
   serviceType: BILL_SERVICE_TYPES[0].value,
   category: "Bill",
+  schoolName: "",
+  studentId: "",
 };
 
 const EXTRA_INFO_WORD_LIMIT = 500;
@@ -57,7 +61,7 @@ export function CreateGoalCard() {
       uints: {
         billListingFee,
         scholarshipListingFee,
-        defaultListingFee
+        otherListingFee
       }
     } 
   } = useImpactPay();
@@ -95,8 +99,10 @@ export function CreateGoalCard() {
     const parsedAmount = Number(form.amount);
     if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0)
       return "Please enter a valid target amount greater than 0.";
-    if (form.category === "Bill" && !form.serviceType)
-      return "Please select a service type.";
+    if (form.category === "Scholarship") {
+      if (!form.schoolName.trim()) return "Please provide the name of your institution.";
+      if (!form.studentId.trim()) return "Please provide your student ID or Matric number.";
+    }
     if (isOverLimit)
       return `Extra info exceeds ${EXTRA_INFO_WORD_LIMIT}-word limit (currently ${extraInfoWordCount} words).`;
     return null;
@@ -124,6 +130,8 @@ export function CreateGoalCard() {
         serviceType: form.category === "Bill" ? form.serviceType : undefined,
         // Hard-coded to 0 until providers are registered on-chain
         billServiceIndex: form.category === "Bill" ? 0 : undefined,
+        schoolName: form.category === "Scholarship" ? form.schoolName : undefined,
+        studentId: form.category === "Scholarship" ? form.studentId : undefined,
       };
 
       await createGoal(payload);
@@ -168,7 +176,7 @@ export function CreateGoalCard() {
               ${Number(
                 form.category === "Bill" ? (billListingFee ? Number(billListingFee) / 1e18 : 0) :
                 form.category === "Scholarship" ? (scholarshipListingFee ? Number(scholarshipListingFee) / 1e18 : 0) :
-                (defaultListingFee ? Number(defaultListingFee) / 1e18 : 0)
+                (otherListingFee ? Number(otherListingFee) / 1e18 : 0)
               ).toFixed(2)}
             </span>
             <span className="text-[10px] font-bold text-slate-400 ml-1 uppercase">USDm</span>
@@ -179,11 +187,13 @@ export function CreateGoalCard() {
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Goal Category</label>
           <div className="grid grid-cols-3 gap-2">
-            {(["Default", "Bill", "Scholarship"] as GoalCategory[]).map((cat) => {
+            {(["Bill", "Scholarship", "Career", "Business", "Other"] as GoalCategory[]).map((cat) => {
               const Icon =
-                cat === "Default" ? Infinity :
-                cat === "Bill"    ? CreditCard :
-                GraduationCap;
+                cat === "Other"       ? Infinity :
+                cat === "Bill"        ? CreditCard :
+                cat === "Scholarship" ? GraduationCap :
+                cat === "Career"      ? Briefcase :
+                Building2;
               const active = form.category === cat;
               return (
                 <button
@@ -236,6 +246,55 @@ export function CreateGoalCard() {
             />
           </div>
         </div>
+
+        {/* ── Scholarship Info (Scholarship only) ── */}
+        <AnimatePresence>
+          {form.category === "Scholarship" && (
+            <motion.div
+              key="scholarshipInfo"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="space-y-4 overflow-hidden"
+            >
+              {/* Infograph */}
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3">
+                <Info className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-emerald-900">Student Verification Required</p>
+                  <p className="text-[10px] leading-relaxed text-emerald-700 font-medium">
+                    Scholarship goals are exclusively for students. Please provide your official institution name and student ID. Your reputation will be slashed if this information is found to be false.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">
+                    Institution Name
+                  </label>
+                  <input
+                    className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-900 focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all placeholder:text-slate-300"
+                    value={form.schoolName}
+                    onChange={(e) => setField("schoolName")(e.target.value)}
+                    placeholder="e.g. University of Lagos"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">
+                    Student ID / Matric Number
+                  </label>
+                  <input
+                    className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-900 focus:border-[#001B3D] focus:ring-2 focus:ring-[#001B3D]/20 outline-none transition-all placeholder:text-slate-300"
+                    value={form.studentId}
+                    onChange={(e) => setField("studentId")(e.target.value)}
+                    placeholder="e.g. 1904050XX"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Service Type (Bill only) ── */}
         <AnimatePresence>

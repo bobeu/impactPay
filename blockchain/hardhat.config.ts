@@ -14,6 +14,9 @@ const config: HardhatUserConfig = {
     imports: 'imports'
   },
   networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true
+    },
     celoSepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org",
       accounts: [`${process.env.P_KEY_routeTo}`],

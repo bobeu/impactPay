@@ -103,9 +103,11 @@ contract ImpactGoal is Goals, ReentrancyGuard {
     function createScholarshipGoal(
         uint256 targetAmount,
         string calldata description,
-        string calldata extraLink
+        string calldata extraLink,
+        string calldata schoolName,
+        string calldata studentId
     ) external payable isVerified(Level.LEVEL3, _msgSender()) returns(bool) {
-        _createGoal(
+        uint256 goalId = _createGoal(
             msg.value,
             targetAmount, 
             _encode(""),
@@ -114,6 +116,10 @@ contract ImpactGoal is Goals, ReentrancyGuard {
             GoalType.SCHOLARSHIP,
             _encode(extraLink)
         );
+        
+        ScholarshipGoal storage sc = goals[goalId].scholarship;
+        sc.schoolName = _encode(schoolName);
+        sc.studentId = _encode(studentId);
 
         return true;
     }
@@ -133,7 +139,51 @@ contract ImpactGoal is Goals, ReentrancyGuard {
             _encode(""),
             _encode(description),
             address(0),
-            GoalType.DEFAULT,
+            GoalType.OTHER,
+            _encode(extraLink)
+        );
+
+        return true;
+    }
+
+    /// @notice Creates a career development goal
+    /// @param targetAmount Amount intended to be raised
+    /// @param description Public description of the goal
+    /// @param extraLink Additional metadata encoded as string
+    function createCareerGoal(
+        uint256 targetAmount,
+        string calldata description,
+        string calldata extraLink
+    ) external payable isVerified(Level.LEVEL2, _msgSender()) returns(bool) {
+        _createGoal(
+            msg.value,
+            targetAmount, 
+            _encode(""),
+            _encode(description),
+            address(0),
+            GoalType.CAREER,
+            _encode(extraLink)
+        );
+
+        return true;
+    }
+
+    /// @notice Creates a business startup goal
+    /// @param targetAmount Amount intended to be raised
+    /// @param description Public description of the goal
+    /// @param extraLink Additional metadata encoded as string
+    function createBusinessGoal(
+        uint256 targetAmount,
+        string calldata description,
+        string calldata extraLink
+    ) external payable isVerified(Level.LEVEL2, _msgSender()) returns(bool) {
+        _createGoal(
+            msg.value,
+            targetAmount, 
+            _encode(""),
+            _encode(description),
+            address(0),
+            GoalType.BUSINESS,
             _encode(extraLink)
         );
 

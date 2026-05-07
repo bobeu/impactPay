@@ -58,9 +58,13 @@ export function GoalCard({ goal, onClick, isFunderView }: GoalCardProps) {
   const getGoalTypeLabel = (gType: GoalType) => {
     switch (gType) {
       case GoalType.SCHOLARSHIP: return "Scholarship";
+      case GoalType.CAREER: return "Career";
+      case GoalType.BUSINESS: return "Business";
+      case GoalType.OTHER: return "Other";
+      case GoalType.BILL:
       default: 
         const res = hexToString(bill.serviceType as unknown as Hex);
-        if (res === '') return 'General';
+        if (res === '') return 'Other';
         else return res;
     }
   };

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { GetGoal, GoalStatus, GoalType } from "../lib/types";
 import { GoalDetailsModal } from "./GoalDetailsModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Layers, TrendingUp, Users, CreditCard, GraduationCap, Infinity as InfinityIcon, ChevronRight } from "lucide-react";
+import { Search, Layers, TrendingUp, Users, CreditCard, GraduationCap, Infinity as InfinityIcon, ChevronRight, Briefcase, Building2 } from "lucide-react";
 import { formatEther, hexToString } from "viem";
 import { cn } from "../lib/utils";
 
@@ -32,9 +32,11 @@ const STATUS_META: Record<GoalStatus, { label: string; dot: string; text: string
 };
 
 const TYPE_META: Record<GoalType, { label: string; Icon: React.ElementType }> = {
-  [GoalType.DEFAULT]:     { label: "Default",     Icon: InfinityIcon   },
+  [GoalType.OTHER]:       { label: "Other",       Icon: InfinityIcon   },
   [GoalType.BILL]:        { label: "Bill",        Icon: CreditCard     },
   [GoalType.SCHOLARSHIP]: { label: "Scholarship", Icon: GraduationCap },
+  [GoalType.CAREER]:      { label: "Career",      Icon: Briefcase      },
+  [GoalType.BUSINESS]:    { label: "Business",    Icon: Building2      },
 };
 
 function shortAddr(addr: string) {

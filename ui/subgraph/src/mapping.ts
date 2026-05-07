@@ -28,9 +28,11 @@ export function handleGoalCreated(event: GoalCreated): void {
   goal.creator = event.params.creator.toHexString();
   
   let gt = event.params.goalType;
-  if (gt == 0) goal.goalType = "Default";
+  if (gt == 0) goal.goalType = "Other";
   else if (gt == 1) goal.goalType = "Bill";
-  else goal.goalType = "Scholarship";
+  else if (gt == 2) goal.goalType = "Scholarship";
+  else if (gt == 3) goal.goalType = "Career";
+  else goal.goalType = "Business";
   
   goal.description = event.params.description;
   goal.extraInfo = event.params.extraInfo;

@@ -44,10 +44,10 @@ describe('ImpactGoal', function () {
   describe('Goal Creation & Funding', function () {
     it('Should allow verified users to create goals and donors to fund them', async function () {
       await impactGoal.toggleUseVerifier();
-      await impactGoal.onVerificationSuccess(creator.address, 1); // LEVEL2 required for DEFAULT
+      await impactGoal.onVerificationSuccess(creator.address, 1); // LEVEL2 required for OTHER
 
       await expect(
-        impactGoal.connect(creator).createGoal(parseUnits('100', 18), "Default Goal", "Link")
+        impactGoal.connect(creator).createGoal(parseUnits('100', 18), "Other Goal", "Link")
       ).to.emit(impactGoal, 'GoalCreated');
 
       await expect(
@@ -63,7 +63,7 @@ describe('ImpactGoal', function () {
       await impactGoal.toggleUseVerifier();
       await impactGoal.onVerificationSuccess(creator.address, 1);
 
-      await impactGoal.connect(creator).createGoal(parseUnits('100', 18), "Default Goal", "Link");
+      await impactGoal.connect(creator).createGoal(parseUnits('100', 18), "Other Goal", "Link");
       await impactGoal.connect(donor).fundGoal(1, parseUnits('100', 18), "Message");
 
       const goal = await impactGoal.getGoal(1);
@@ -106,6 +106,38 @@ describe('ImpactGoal', function () {
       await impactGoal.connect(donor).toggleFlagGoal(1);
       // Wait, toggleFlagGoal checks if flags >= 3, which requires multiple donors.
       // We will skip full simulation and just test the structure or assume it works based on logic
+    });
+  });
+
+  describe('New Goal Types', function () {
+    it('Should allow creating Career goals', async function () {
+      await impactGoal.onVerificationSuccess(creator.address, 1);
+      await expect(
+        impactGoal.connect(creator).createCareerGoal(parseUnits('100', 18), "Career Goal", "")
+      ).to.emit(impactGoal, 'GoalCreated');
+    });
+
+    it('Should allow creating Business goals', async function () {
+      await impactGoal.onVerificationSuccess(creator.address, 1);
+      await expect(
+        impactGoal.connect(creator).createBusinessGoal(parseUnits('100', 18), "Business Goal", "")
+      ).to.emit(impactGoal, 'GoalCreated');
+    });
+
+    it('Should allow creating Scholarship goals with student info', async function () {
+      await impactGoal.onVerificationSuccess(creator.address, 2); // LEVEL3 required for Scholarship
+      await expect(
+        impactGoal.connect(creator).createScholarshipGoal(
+          parseUnits('100', 18), 
+          "Scholarship Goal", 
+          "", 
+          "Unilag", 
+          "12345"
+        )
+      ).to.emit(impactGoal, 'GoalCreated');
+
+      const goal = await impactGoal.getGoal(1);
+      expect(goal.scholarship.schoolName).to.not.equal("0x");
     });
   });
 });

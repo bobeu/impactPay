@@ -261,12 +261,22 @@ export function ImpactPayProvider({ children }: { children: React.ReactNode }) {
           break;
         case 'SCHOLARSHIP':
           functionName = 'createScholarshipGoal';
-          args = [targetAmount, description, extraInfo];
+          args = [targetAmount, description, extraInfo, param.schoolName || "", param.studentId || ""];
           listingFee = goalIdsAndState?.uints.scholarshipListingFee || 0n;
+          break;
+        case 'CAREER':
+          functionName = 'createCareerGoal';
+          args = [targetAmount, description, extraInfo];
+          listingFee = goalIdsAndState?.uints.otherListingFee || 0n;
+          break;
+        case 'BUSINESS':
+          functionName = 'createBusinessGoal';
+          args = [targetAmount, description, extraInfo];
+          listingFee = goalIdsAndState?.uints.otherListingFee || 0n;
           break;
         default:
           args = [targetAmount, description, extraInfo];
-          listingFee = goalIdsAndState?.uints.defaultListingFee || 0n;
+          listingFee = goalIdsAndState?.uints.otherListingFee || 0n;
           break;
       }
 

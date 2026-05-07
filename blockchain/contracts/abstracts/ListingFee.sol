@@ -13,8 +13,8 @@ abstract contract ListingFee is OnchainImpact {
     /// @notice Fee in absolute token units to list a Scholarship goal
     uint256 internal scholarshipListingFee;
     
-    /// @notice Fee in absolute token units to list a Default goal
-    uint256 internal defaultListingFee;
+    /// @notice Fee in absolute token units to list an Other goal
+    uint256 internal otherListingFee;
 
     /// @notice Fee in Basis Points for scholarship withdrawals
     uint256 internal scholarshipFeeBP = 300;
@@ -27,14 +27,14 @@ abstract contract ListingFee is OnchainImpact {
 
     constructor(address backendFulfillmentSigner_) OnchainImpact(backendFulfillmentSigner_) {
         billListingFee = 1e16 wei;
-        defaultListingFee = 1e15 wei;
+        otherListingFee = 1e15 wei;
         scholarshipListingFee = 1e17 wei;
     }
 
-    /// @notice Updates the default listing fee
+    /// @notice Updates the other listing fee
     /// @param newListingFee The new fee amount
-    function setDefaultListingFee(uint256 newListingFee) public onlyOwner returns(bool){
-        defaultListingFee = newListingFee;
+    function setOtherListingFee(uint256 newListingFee) public onlyOwner returns(bool){
+        otherListingFee = newListingFee;
         return true;
     }
 

@@ -16,9 +16,11 @@ interface IVerification {
 
     /// @notice Types of goals available in the protocol
     enum GoalType {
-        DEFAULT,
+        OTHER,
         BILL,
-        SCHOLARSHIP
+        SCHOLARSHIP,
+        CAREER,
+        BUSINESS
     }
 
     /// @notice Status of a goal through its lifecycle
@@ -44,6 +46,8 @@ interface IVerification {
         uint64 milestoneDeadline;
         Milestone milestone;
         bool disputed;
+        bytes schoolName;
+        bytes studentId;
     }
 
     /// @notice Common data shared by all goal types
@@ -67,7 +71,7 @@ interface IVerification {
         uint onchainVerifiedCounter;
         uint256 billListingFee;
         uint256 scholarshipListingFee;
-        uint256 defaultListingFee;
+        uint256 otherListingFee;
         uint256 scholarshipFeeBP;
         uint256 billSuccessFeeBP;
         uint256 goalCounter;

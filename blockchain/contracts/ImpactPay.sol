@@ -311,7 +311,7 @@ contract ImpactPay is Ownable, ReentrancyGuard {
         fd.amount = 0;
 
         address to = treasury == address(0)? owner() : treasury;
-        _sendValue(fd.currency, to, fd.remainingPool);
+        _sendValue(Currency.NATIVE, to, fd.remainingPool);
         emit PoolRebalanced(to, withdrawable, 0);
         
         return true;

@@ -1,14 +1,16 @@
 import { Address, zeroAddress } from "viem";
 
 export enum GoalType {
-    DEFAULT,
+    OTHER,
     BILL,
-    SCHOLARSHIP
+    SCHOLARSHIP,
+    CAREER,
+    BUSINESS
 }
 
-export type GoalTypeStr = 'DEFAULT' | 'BILL' | 'SCHOLARSHIP';
-export enum GoalStr { 'Default', 'Bill', 'Scholarship'}
-export type GoalCategory = "Bill" | "Scholarship" | "Default";
+export type GoalTypeStr = 'OTHER' | 'BILL' | 'SCHOLARSHIP' | 'CAREER' | 'BUSINESS';
+export enum GoalStr { 'Other', 'Bill', 'Scholarship', 'Career', 'Business'}
+export type GoalCategory = "Bill" | "Scholarship" | "Other" | "Career" | "Business";
 export type VerificationLevel = 0 | 1 | 2 | 3;
 export type OtherFuncType = 
 'fundGoal' | 
@@ -49,6 +51,8 @@ export type ScholarshipGoal = {
     milestoneDeadline: bigint;
     milestone: Milestone;
     disputed: boolean;
+    schoolName: string;
+    studentId: string;
 }
 
 /// @notice Common data shared by all goal types
@@ -78,7 +82,7 @@ export interface Uint256s {
     onchainVerifiedCounter: bigint;
     billListingFee: bigint;
     scholarshipListingFee: bigint;
-    defaultListingFee: bigint;
+    otherListingFee: bigint;
     scholarshipFeeBP: bigint;
     billSuccessFeeBP: bigint;
     goalCounter: bigint;
@@ -172,6 +176,8 @@ export interface CreateGoal {
 export interface CreateBillGoal extends CreateGoal { 
     serviceType?: string;
     billServiceIndex?: number;
+    schoolName?: string;
+    studentId?: string;
 }
 
 export interface Args {
@@ -239,6 +245,7 @@ export const mockGetGoalIDAndState : GetGoalIdAndState = {
         billListingFee: 0n,
         scholarshipListingFee: 0n,
         defaultListingFee: 0n,
+        otherListingFee: 0n,
         scholarshipFeeBP: 0n,
         billSuccessFeeBP: 0n,
         goalCounter: 0n,
@@ -271,7 +278,7 @@ export const mockGoals : GetGoal = {
         creator: zeroAddress,
         description: "",
         flagsCount: 0,
-        goalType: GoalType.DEFAULT,
+        goalType: GoalType.OTHER,
         id: 0n,
         raisedAmount: 0n,
         status: GoalStatus.OPEN,
@@ -285,7 +292,9 @@ export const mockGoals : GetGoal = {
         refundedAmount: 0n,
         milestoneDeadline: 0n,
         milestone: Milestone.NONE,
-        disputed: false
+        disputed: false,
+        schoolName: "",
+        studentId: ""
     },
     funders: [{
         amount: 0n,

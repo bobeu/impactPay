@@ -123,9 +123,9 @@ contract Goals is ListingFee, Reputation {
             goals[goalId].bill = BillGoal(serviceType, billService);
         } else if(goalType == GoalType.SCHOLARSHIP) {
             fee = scholarshipListingFee;
-            goals[goalId].scholarship = ScholarshipGoal(0, 0, Milestone.NONE, false);
+            goals[goalId].scholarship = ScholarshipGoal(0, 0, Milestone.NONE, false, "", "");
         } else {
-            fee = defaultListingFee;
+            fee = otherListingFee;
         }
 
         goals[goalId].cData = CommonData(
@@ -186,7 +186,7 @@ contract Goals is ListingFee, Reputation {
         Goal storage _g = _verifyGoalId(goalId, GoalStatus.RAISED, "6");
         CommonData storage cd = _g.cData;
         if (cd.lockedForReview) revert GoalLocked();
-        require(cd.goalType == GoalType.BILL || cd.goalType == GoalType.DEFAULT, "7");
+        require(cd.goalType == GoalType.BILL || cd.goalType == GoalType.OTHER, "7");
         
         uint256 availableAmount = cd.raisedAmount - cd.withdrawnAmount;
         if (amount > availableAmount) revert InvalidAmount();
@@ -242,7 +242,7 @@ contract Goals is ListingFee, Reputation {
                 onchainVerifiedCounter,
                 billListingFee,
                 scholarshipListingFee,
-                defaultListingFee,
+                otherListingFee,
                 scholarshipFeeBP,
                 billSuccessFeeBP,
                 goalCounter,
